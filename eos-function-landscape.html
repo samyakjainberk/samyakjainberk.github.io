@@ -285,7 +285,7 @@
     </div>
     <div class="card">
       <h3>Direction memory of the residual — cos at lag l</h3>
-      <p class="cap">cos(r(t), r(t+l)) for l = 1, 2, 5, 10 · in 1-D this is sign(r_t)·sign(r_{t+l}) = ±1 — odd-lag −1 means the residual straddles the crossing every step</p>
+      <p class="cap">cos(r(t), r(t+l)) for l = 1, 2, 5, 10 · in 1-D this is sign(r_t)·sign(r_{t+l}) = ±1 (deflating the top NTK direction is impossible here: function space is one-dimensional)</p>
       <canvas class="plot" id="cs10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
       <div class="legend">
         <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
@@ -466,8 +466,8 @@
       </div>
     </div>
     <div class="card">
-      <h3>Direction memory of the residual — cos(r̂(t), r̂(t+l))</h3>
-      <p class="cap">r = (−f₁, y₂−μs), lags l = 1, 2, 5, 10 · during the period-2 ride the odd-lag value equals (r₂²−f₁²)/(r₂²+f₁²): it measures how much of the residual is the oscillating component</p>
+      <h3>Direction memory of the deflated residual — cos(r̃̂(t), r̃̂(t+l))</h3>
+      <p class="cap">r̃ = r − (r·û₁)û₁ with û₁ the top NTK (JJᵀ) eigenvector — the oscillating component is projected out, so the lag-cosines show only the slow residual dynamics: all lags ≈ +1 during a clean ride; deviations mark real direction changes of the non-oscillating part</p>
       <canvas class="plot" id="c3s10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
       <div class="legend">
         <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
@@ -635,7 +635,7 @@
     </div>
     <div class="card">
       <h3>Direction memory of the residual — cos at lag l</h3>
-      <p class="cap">cos(r(t), r(t+l)) for l = 1, 2, 5, 10 · 1-D: ±1 sign products — odd-lag −1 means the residual straddles the crossing every step</p>
+      <p class="cap">cos(r(t), r(t+l)) for l = 1, 2, 5, 10 · 1-D: ±1 sign products (deflation impossible in one-dimensional function space)</p>
       <canvas class="plot" id="c5s10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
       <div class="legend">
         <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
@@ -804,8 +804,8 @@
       </div>
     </div>
     <div class="card">
-      <h3>Direction memory of the residual — cos(r̂(t), r̂(t+l))</h3>
-      <p class="cap">r = (−f₁, y₂−μs), lags l = 1, 2, 5, 10 · odd-lag &lt; 0 ⇔ the oscillating component f₁ dominates the steady component r₂</p>
+      <h3>Direction memory of the deflated residual — cos(r̃̂(t), r̃̂(t+l))</h3>
+      <p class="cap">r̃ = r − (r·û₁)û₁ with û₁ the top NTK (JJᵀ) eigenvector (plain J, not preconditioned) — oscillation projected out; lags show only the slow residual dynamics</p>
       <canvas class="plot" id="c6s10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
       <div class="legend">
         <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
@@ -1648,7 +1648,15 @@ function sim3(){
     f[i] = clip3(H.f1); r2[i] = clip3(H.r2);
     L[i] = Math.min(H.f1*H.f1 + H.r2*H.r2, 1e300);
     rn[i] = Math.sqrt(L[i]);
-    if (rn[i] > 1e-300){ rr1[i] = -H.f1/rn[i]; rr2[i] = H.r2/rn[i]; }
+    if (rn[i] > 1e-300){
+      // chart 10: residual with the top NTK (JJᵀ) eigencomponent projected out
+      const K11 = H.d1*H.d1 + H.d2*H.d2, K12 = mu*(H.d1*ct + H.d2*st), K22 = mu*mu;
+      const eK = symEig2(K11, K12, K22);
+      const rdK = -H.f1*eK.v1 + H.r2*eK.v2;
+      const rt1 = -H.f1 - rdK*eK.v1, rt2 = H.r2 - rdK*eK.v2;
+      const nrt = Math.hypot(rt1, rt2);
+      if (nrt > 1e-300){ rr1[i] = rt1/nrt; rr2[i] = rt2/nrt; }
+    }
     S[i] = clip3(0.5*(H.h11 + H.h22) + Math.hypot(0.5*(H.h11 - H.h22), H.h12));
     // v1 (top eigenvector, orientation continuous) and x_t = g·v1
     const sp3 = gradSplit(H.h11, H.h22, H.h12, H.g1, H.g2);
@@ -2586,7 +2594,15 @@ function sim6(){
   for (let i = 0; i < m; i++){
     const H = hess6(X1[i], X2[i]);
     L[i] = Math.min(H.f1*H.f1 + H.r2*H.r2, 1e300); rn[i] = Math.sqrt(L[i]);
-    if (rn[i] > 1e-300){ rr1[i] = -H.f1/rn[i]; rr2[i] = H.r2/rn[i]; }
+    if (rn[i] > 1e-300){
+      // chart 10: residual with the top NTK (JJᵀ) eigencomponent projected out
+      const K11 = H.d1*H.d1 + H.d2*H.d2, K12 = mu*(H.d1*H.ct + H.d2*H.st), K22 = mu*mu;
+      const eK = symEig2(K11, K12, K22);
+      const rdK = -H.f1*eK.v1 + H.r2*eK.v2;
+      const rt1 = -H.f1 - rdK*eK.v1, rt2 = H.r2 - rdK*eK.v2;
+      const nrt = Math.hypot(rt1, rt2);
+      if (nrt > 1e-300){ rr1[i] = rt1/nrt; rr2[i] = rt2/nrt; }
+    }
     const P = pre6(H), Q = symSqrt2(P.p11, P.p12, P.p22);
     const b11 = Q.q11*H.h11 + Q.q12*H.h12, b12 = Q.q11*H.h12 + Q.q12*H.h22;
     const b21 = Q.q12*H.h11 + Q.q22*H.h12, b22 = Q.q12*H.h12 + Q.q22*H.h22;
