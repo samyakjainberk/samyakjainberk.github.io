@@ -262,7 +262,7 @@
 
     <div class="card">
       <h3>Residual projection on J∇̂S</h3>
-      <p class="cap">r·sign(f′·S′) · symlog · ±r again in 1-D — the structured directions only separate with ≥ 2 parameters</p>
+      <p class="cap">r·sign(f′·S′) · symlog · f′ frozen at the first S &gt; 2/η crossing (pre-oscillation Jacobian) · ±r again in 1-D</p>
       <canvas class="plot" id="cs7" role="img" aria-label="residual projection on the pushforward of the sharpness gradient versus step"></canvas>
     </div>
 
@@ -273,7 +273,7 @@
     </div>
     <div class="card">
       <h3>Direction memory of J∇S — cos at lag k</h3>
-      <p class="cap">cos(J∇S(t), J∇S(t+k)) for k = 1, 2, 5, 10 · in 1-D this is sign(f′S′)(t)·sign(f′S′)(t+k) = ±1 — drops to −1 mark direction reversals</p>
+      <p class="cap">cos(J*∇S(t), J*∇S(t+k)) for k = 1, 2, 5, 10, with f′ frozen at the first S &gt; 2/η crossing · 1-D sign products = ±1</p>
       <canvas class="plot" id="cs9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
       <div class="legend">
         <span><i class="sw" style="background:var(--zero)"></i>∇S itself (param space) · k = 1</span>
@@ -428,7 +428,7 @@
 
     <div class="card">
       <h3>Residual projection on J∇̂S</h3>
-      <p class="cap">r·(J∇S)/‖J∇S‖ — pushforward of the sharpness gradient, unit-normalized · ∝ dS/dt (first order) · symlog</p>
+      <p class="cap">r·(J*∇S)/‖J*∇S‖ — ∇S at the iterate pushed through J* = J frozen at the first λ<sub>max</sub> &gt; 2/η crossing (the pre-oscillation Jacobian) · symlog</p>
       <canvas class="plot" id="c3s7" role="img" aria-label="residual projection on the pushforward of the sharpness gradient versus step"></canvas>
     </div>
 
@@ -439,7 +439,7 @@
     </div>
     <div class="card">
       <h3>Direction memory of J∇S — cos(û(t), û(t+k))</h3>
-      <p class="cap">û = normalize(J∇S), lags k = 1, 2, 5, 10 · green: ∇S in parameter space (k = 1) stays ≈ +1 — the Damian-et-al. invariant; the swing lives only in the pushforward: J’s anisotropy amplifies the tiny oscillating part of ∇S, and J’s entry ∂f₁/∂w₂ = E·b·w₁ flips with the oscillation</p>
+      <p class="cap">û = normalize(J*∇S) with J* frozen at the first λ<sub>max</sub> &gt; 2/η crossing, lags k = 1, 2, 5, 10 · green: ∇S in parameter space (k = 1), the Damian-et-al. invariant · any residual swing now comes solely from ∇S's small oscillating part, amplified by J*'s anisotropy</p>
       <canvas class="plot" id="c3s9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
       <div class="legend">
         <span><i class="sw" style="background:var(--zero)"></i>∇S itself (param space) · k = 1</span>
@@ -580,7 +580,7 @@
 
     <div class="card">
       <h3>Residual on JP∇̂S_P</h3>
-      <p class="cap">r·normalize(J·P·∇S_P) — preconditioner-times-Jacobian pushforward of the sharpness gradient · symlog</p>
+      <p class="cap">r·normalize(J*·P·∇S_P) — J* frozen at the first λ(PH) &gt; 2/η crossing; P and ∇S_P stay at the iterate · symlog</p>
       <canvas class="plot" id="c5s7" role="img" aria-label="residual projection on the preconditioned sharpness pushforward versus step"></canvas>
     </div>
 
@@ -591,7 +591,7 @@
     </div>
     <div class="card">
       <h3>Direction memory of JP∇S_P — cos at lag k</h3>
-      <p class="cap">cos(JP∇S_P(t), JP∇S_P(t+k)) for k = 1, 2, 5, 10 · 1-D: ±1 sign products — drops to −1 mark direction reversals</p>
+      <p class="cap">cos(J*P∇S_P(t), J*P∇S_P(t+k)) for k = 1, 2, 5, 10, with f′ frozen at the first λ(PH) &gt; 2/η crossing · 1-D: ±1 sign products</p>
       <canvas class="plot" id="c5s9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
       <div class="legend">
         <span><i class="sw" style="background:var(--zero)"></i>∇S itself (param space) · k = 1</span>
@@ -734,7 +734,7 @@
 
     <div class="card">
       <h3>Residual on JP∇̂S_P</h3>
-      <p class="cap">r·normalize(J·P·∇S_P) — preconditioner-times-Jacobian pushforward of the sharpness gradient · symlog</p>
+      <p class="cap">r·normalize(J*·P·∇S_P) — J* frozen at the first λ(PH) &gt; 2/η crossing; P and ∇S_P stay at the iterate · symlog</p>
       <canvas class="plot" id="c6s7" role="img" aria-label="residual projection on the preconditioned sharpness pushforward versus step"></canvas>
     </div>
 
@@ -745,7 +745,7 @@
     </div>
     <div class="card">
       <h3>Direction memory of JP∇S_P — cos(û(t), û(t+k))</h3>
-      <p class="cap">û = normalize(J·P·∇S_P), lags k = 1, 2, 5, 10 · green: ∇S_P in parameter space (k = 1) — near-constant; the swing comes from the Jacobian pushforward, not from the sharpness gradient</p>
+      <p class="cap">û = normalize(J*·P·∇S_P) with J* frozen at the first λ(PH) &gt; 2/η crossing, lags k = 1, 2, 5, 10 · green: ∇S_P in parameter space (k = 1) — near-constant; remaining swing comes from P and ∇S_P at the iterate, not from J</p>
       <canvas class="plot" id="c6s9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
       <div class="legend">
         <span><i class="sw" style="background:var(--zero)"></i>∇S itself (param space) · k = 1</span>
@@ -928,6 +928,12 @@ function sim(){
         sg = new Float64Array(m), sgr = new Float64Array(m), sgS = new Float64Array(m);
   const clip = v => Math.max(-1e150, Math.min(1e150, v));
   const ur = Math.cos(2.399963);   // fixed random scalar direction u (sign is what matters in 1-D)
+  // Jacobian (f′) frozen at the first S > 2/η crossing — used by the J∇S charts
+  let tcJ = Infinity, fpc = 0;
+  for (let i = 0; i < m; i++){
+    const sv = S1(xs[i]);
+    if (isFinite(sv) && sv > 2/P.lr){ tcJ = i; fpc = clip(fP(xs[i])); break; }
+  }
   for (let i = 0; i < m; i++){
     f[i] = clip(fVal(xs[i]));
     r[i] = P.y - f[i]; L[i] = r[i]*r[i]; rn[i] = Math.abs(r[i]); S[i] = clip(S1(xs[i]));
@@ -942,7 +948,8 @@ function sim(){
     GdS[i] = clip(Xt[i]*sSp);                      // g·∇̂S, ∇̂S = sign(S′)
     const sF = fp > 0 ? 1 : fp < 0 ? -1 : 0;
     Ru[i] = clip(r[i]*sF);                         // û = normalize(J·v1) = sign(f′)
-    const sFS = fp*Sp > 0 ? 1 : fp*Sp < 0 ? -1 : 0;
+    const fpJ = i >= tcJ ? fpc : fp;
+    const sFS = fpJ*Sp > 0 ? 1 : fpJ*Sp < 0 ? -1 : 0;
     Rq[i] = clip(r[i]*sFS);                        // normalize(J·∇S) = sign(f′·S′)
     sg[i] = sFS;
     sgr[i] = r[i] > 0 ? 1 : r[i] < 0 ? -1 : 0;
@@ -1539,6 +1546,14 @@ function sim3(){
   // fixed pseudo-random parameter direction u (golden angle; identical every run)
   const uphi = 2.399963, ur1 = Math.cos(uphi), ur2 = Math.sin(uphi);
   const clip3 = v => Math.max(-1e150, Math.min(1e150, v));
+  // Jacobian frozen at the first λmax > 2/η crossing — used by the J∇S charts
+  let tcJ = Infinity, dc1 = 0, dc2 = 0;
+  for (let i = 0; i < m; i++){
+    const sv = lam3(X1[i], X2[i]);
+    if (isFinite(sv) && sv > 2/P3.lr){
+      const Hc = hess3(X1[i], X2[i]); tcJ = i; dc1 = Hc.d1; dc2 = Hc.d2; break;
+    }
+  }
   let pv1 = null, pv2 = 0;
   for (let i = 0; i < m; i++){
     const H = hess3(X1[i], X2[i]);
@@ -1564,7 +1579,8 @@ function sim3(){
     const ju1 = H.d1*vv1 + H.d2*vv2, ju2 = mu*(ct*vv1 + st*vv2);
     const nu = Math.hypot(ju1, ju2);
     Ru[i] = nu > 1e-300 ? clip3((-H.f1*ju1 + H.r2*ju2)/nu) : 0;
-    const jq1 = H.d1*gS1 + H.d2*gS2, jq2 = mu*(ct*gS1 + st*gS2);
+    const dj1 = i >= tcJ ? dc1 : H.d1, dj2 = i >= tcJ ? dc2 : H.d2;
+    const jq1 = dj1*gS1 + dj2*gS2, jq2 = mu*(ct*gS1 + st*gS2);
     const nq = Math.hypot(jq1, jq2);
     Rq[i] = nq > 1e-12 ? clip3((-H.f1*jq1 + H.r2*jq2)/nq) : 0;
     if (nq > 1e-12){ uS1[i] = jq1/nq; uS2[i] = jq2/nq; }
@@ -2170,6 +2186,12 @@ function sim5(){
     xs[t+1] = x;
   }
   const m = n+1, clip = v => Math.max(-1e150, Math.min(1e150, v));
+  // Jacobian (f′) frozen at the first λ(PH) > 2/η crossing — used by the J∇S charts
+  let tcJ = Infinity, fpc = 0;
+  for (let i = 0; i < m; i++){
+    const lp = lamP5(xs[i]);
+    if (isFinite(lp) && lp > 2/P5.lr){ tcJ = i; fpc = clip(fp5(xs[i])); break; }
+  }
   const L = new Float64Array(m), rn = new Float64Array(m), S = new Float64Array(m),
         Xt = new Float64Array(m), GdS = new Float64Array(m), Ru = new Float64Array(m),
         Rq = new Float64Array(m), Ruv = new Float64Array(m), r = new Float64Array(m),
@@ -2187,7 +2209,8 @@ function sim5(){
     GdS[i] = clip(Xt[i]*sSp);
     const sF = fp > 0 ? 1 : fp < 0 ? -1 : 0;
     Ru[i] = clip(r[i]*sF);
-    const sQ = fp*Pv*Sp > 0 ? 1 : fp*Pv*Sp < 0 ? -1 : 0;
+    const fpJ = i >= tcJ ? fpc : fp;
+    const sQ = fpJ*Pv*Sp > 0 ? 1 : fpJ*Pv*Sp < 0 ? -1 : 0;
     Rq[i] = clip(r[i]*sQ);
     sg[i] = sQ;
     sgr[i] = r[i] > 0 ? 1 : r[i] < 0 ? -1 : 0;
@@ -2402,6 +2425,14 @@ function sim6(){
         uS1 = new Float64Array(m), uS2 = new Float64Array(m),
         rr1 = new Float64Array(m), rr2 = new Float64Array(m),
         ug1 = new Float64Array(m), ug2 = new Float64Array(m);
+  // Jacobian frozen at the first λ(PH) > 2/η crossing — used by the JP∇S_P charts
+  let tcJ = Infinity, dc1 = 0, dc2 = 0;
+  for (let i = 0; i < m; i++){
+    const lp = lamP6(X1[i], X2[i]);
+    if (isFinite(lp) && lp > 2/P6.lr){
+      const Hc = hess6(X1[i], X2[i]); tcJ = i; dc1 = Hc.d1; dc2 = Hc.d2; break;
+    }
+  }
   let pv1 = null, pv2 = 0;
   for (let i = 0; i < m; i++){
     const H = hess6(X1[i], X2[i]);
@@ -2430,7 +2461,8 @@ function sim6(){
     const nu = Math.hypot(ju1, ju2);
     Ru[i] = nu > 1e-300 ? clip((-H.f1*ju1 + H.r2*ju2)/nu) : 0;
     const pq1 = P.p11*gS1 + P.p12*gS2, pq2 = P.p12*gS1 + P.p22*gS2;
-    const jq1 = H.d1*pq1 + H.d2*pq2, jq2 = mu*(H.ct*pq1 + H.st*pq2);
+    const dj1 = i >= tcJ ? dc1 : H.d1, dj2 = i >= tcJ ? dc2 : H.d2;
+    const jq1 = dj1*pq1 + dj2*pq2, jq2 = mu*(H.ct*pq1 + H.st*pq2);
     const nq = Math.hypot(jq1, jq2);
     Rq[i] = nq > 1e-12 ? clip((-H.f1*jq1 + H.r2*jq2)/nq) : 0;
     if (nq > 1e-12){ uS1[i] = jq1/nq; uS2[i] = jq2/nq; }
