@@ -904,14 +904,10 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
   <!-- ═══ training-time spectra (live GPU) ═══ -->
   <div class="card" id="ts-card">
     <h3>3 &middot; Training-time spectra (live, on GPU)</h3>
-    <p class="note" style="margin: -0.2rem 0 0.6rem">Trains an MLP live on the GPU server and streams every
-      step's loss; each checkpoint adds the exact spectra of \(H\), \(G = JJ^\top/n\) and \(F = H - G\), with
-      SLQ and block-SLQ error statistics. Datasets: teacher MLP, sparse parity, chebyshev, and CIFAR-10 (10 classes,
-      images pooled to size × size; with \(C\) classes \(J\) stacks all \(n \cdot C\) per-sample-per-class
-      gradients). SLQ (probes × k) and block SLQ (b, s, k) have independent budgets, and spectra are computed every
-      N steps (default every step — fine for small p; at \(p \approx 10{,}000\) one checkpoint costs tens of
-      seconds, so raise N or lower the step count there). The <strong>show</strong> strip controls every chart;
-      without a server, load a saved capture.</p>
+    <p class="note" style="margin: -0.2rem 0 0.6rem">Trains an MLP live on the GPU server: loss every
+      step, exact spectra of \(H\), \(JJ^\top/n\) and \(F = H - G\) at every checkpoint, with SLQ / block-SLQ
+      (optional KPM) error statistics. The <strong>show</strong> strip controls every chart; without a server,
+      load a saved capture.</p>
     <div class="rowcap">data</div>
     <div class="row">
       <div class="field"><label>dataset</label>
@@ -928,6 +924,9 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
       <div class="field"><label>width</label><input type="number" id="ts-width" value="66" min="1" max="256"></div>
       <div class="field"><label>activation</label>
         <select id="ts-act"><option>tanh</option><option>relu</option><option>gelu</option><option>elu</option><option>linear</option></select></div>
+      <div class="field"><label>init</label>
+        <select id="ts-init"><option value="fanin">1/√fan_in</option><option value="mup">μP</option><option value="kaiming-normal">Kaiming normal</option><option value="kaiming-uniform">Kaiming uniform</option><option value="width">1/√width</option></select></div>
+      <div class="field"><label>init scale</label><input type="number" id="ts-initscale" value="1" step="0.1" min="0.000001"></div>
     </div>
     <div class="rowcap">training</div>
     <div class="row">
@@ -960,6 +959,7 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
       <button id="ts-run" disabled>Run on GPU</button>
       <button id="ts-stopbtn" disabled>Stop</button>
       <button id="ts-cont" disabled>Continue training</button>
+      <button id="ts-reset">Reset</button>
       <label style="font-size: 0.85rem; color: var(--text-secondary)">load a saved capture:
         <input type="file" id="ts-file" accept=".json"></label>
     </div>
@@ -1008,7 +1008,7 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
       <div><canvas id="ts-sharp-GN" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-sharp-GN-legend"></div></div>
       <div><canvas id="ts-sharp-F" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-sharp-F-legend"></div></div>
     </div>
-        <p class="note">One column per quantity (H, \(JJ^\top/n\), \(F = Q \cdot r\)); density and index panels share axes across columns, λ_max and error panels autoscale. Solid = exact / SLQ, dashed = block SLQ, dotted = KPM (optional, tick it in the estimators row; matching chips in the show strip); gray dash = \(2/\eta\) (H panel), red marker = slider. Hover any panel to read off values. Axes stay fixed while scrubbing.</p>
+        <p class="note">Solid = exact / SLQ, dashed = block SLQ, dotted = KPM; gray dash = \(2/\eta\), red marker = slider. Hover any panel for values.</p>
   </div>
   <div id="sl-tooltip"></div>
   <div id="ts-tooltip"></div>
@@ -2646,7 +2646,7 @@ function showConfig(cfg) {
     `<span>dataset = <b>${cfg.dataset || 'teacher'}</b></span><span>classes = <b>${cfg.dout || 1}</b></span>` +
     `<span>p = <b>${cfg.p}</b></span><span>depth = <b>${cfg.depth}</b></span><span>width = <b>${cfg.width}</b></span>` +
     `<span>n = <b>${cfg.n}</b></span><span>batch = <b>${cfg.batch}</b></span><span>act = <b>${cfg.act}</b></span>` +
-    `<span>opt = <b>${cfg.opt}</b></span><span>lr = <b>${cfg.lr}</b></span><span>steps = <b>${cfg.steps}</b></span>` +
+    `<span>opt = <b>${cfg.opt}</b></span><span>lr = <b>${cfg.lr}</b></span><span>init = <b>${cfg.init || 'fanin'}${cfg.init_scale && cfg.init_scale !== 1 ? ' ×' + cfg.init_scale : ''}</b></span><span>steps = <b>${cfg.steps}</b></span>` +
     `<span>spectra every = <b>${cfg.ckpt_every || '—'}</b></span>` +
     `<span>SLQ = <b>${cfg.slq_probes}×${cfg.slq_k}</b></span><span>block = <b>b${cfg.bslq_b}·s${cfg.bslq_s}·k${cfg.bslq_k}</b></span>` +
     `<span>device = <b>${cfg.device}</b></span>`;
@@ -2694,6 +2694,7 @@ async function startRun(contFrom) {
     parity_k: iv('ts-parityk', 1, 64),
     cheby_deg: iv('ts-chebydeg', 1, 32),
     cifar_size: iv('ts-cifarsz', 4, 32),
+    init: $('ts-init').value, init_scale: parseFloat($('ts-initscale').value) || 1,
   };
   if (contFrom) body.continue_from = contFrom;
   $('ts-run').disabled = true; $('ts-cont').disabled = true;
@@ -2723,10 +2724,12 @@ async function startRun(contFrom) {
 }
 async function poll() {
   if (!live) return;
+  const myId = live.id;
   let done = false;
   try {
     const r = await FETCH(`api/tail?id=${live.id}&off=${live.off}`);
     const j = await r.json();
+    if (!live || live.id !== myId) return;
     if (j.error) throw new Error(j.error);
     live.off = j.off;
     const lines = (live.buf + (j.data || '')).split('\n');
@@ -2793,6 +2796,16 @@ async function poll() {
 }
 $('ts-run').onclick = () => startRun(null);
 $('ts-cont').onclick = () => { if (lastRunId) startRun(lastRunId); };
+$('ts-reset').onclick = () => {
+  if (live) { live.stopping = true; FETCH('api/stop?id=' + live.id).catch(() => {}); live = null; }
+  lastRunId = null;
+  resetCap();
+  document.querySelectorAll('#ts-card canvas').forEach(cv => cv.classList.add('hidden'));
+  document.querySelectorAll('#ts-card .legend').forEach(el => { if (el.id !== 'ts-qsel') el.innerHTML = ''; });
+  redraws.clear();
+  $('ts-stopbtn').disabled = true; $('ts-cont').disabled = true; $('ts-run').disabled = false;
+  setStatus('reset — pick a configuration and Run on GPU to start a new job.');
+};
 $('ts-stopbtn').onclick = () => { if (live) { live.stopping = true; FETCH('api/stop?id=' + live.id).catch(() => {}); } };
 $('ts-slider').oninput = () => {
   follow = false; $('ts-follow').checked = false;

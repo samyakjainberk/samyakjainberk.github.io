@@ -47,10 +47,11 @@ INT_PARAMS = {   # name -> (min, max, default)
     'parity_k': (1, 64, 3), 'cheby_deg': (1, 32, 4), 'cifar_size': (4, 32, 8),
 }
 FLOAT_PARAMS = {'lr': (1e-8, 100.0, 0.05), 'gn_damping': (1e-10, 10.0, 1e-3),
-                'noise': (0.0, 10.0, 0.1)}
+                'noise': (0.0, 10.0, 0.1), 'init_scale': (1e-6, 1e3, 1.0)}
 CHOICE_PARAMS = {'act': ({'tanh', 'relu', 'gelu', 'elu', 'linear'}, 'tanh'),
                  'opt': ({'gd', 'signgd', 'gn', 'spectral'}, 'gd'),
-                 'dataset': ({'teacher', 'parity', 'chebyshev', 'cifar10'}, 'teacher')}
+                 'dataset': ({'teacher', 'parity', 'chebyshev', 'cifar10'}, 'teacher'),
+                 'init': ({'fanin', 'mup', 'kaiming-normal', 'kaiming-uniform', 'width'}, 'fanin')}
 
 
 def clamp_params(body):

@@ -76,12 +76,31 @@ def make_forward(shapes, act):
     return forward
 
 
-def init_params(shapes, gen, device):
+def init_params(shapes, gen, device, scheme='fanin', scale=1.0, width=None):
+    """Weight init. Schemes: fanin (N(0,1/fan_in), default), mup (mu-P: hidden
+    N(0,1/fan_in), readout N(0,1/fan_in^2)), kaiming-normal (N(0,2/fan_in)),
+    kaiming-uniform (U(+-sqrt(6/fan_in))), width (N(0,1/width) for every layer).
+    `scale` multiplies the resulting weights. Biases zero."""
     parts = []
+    n_mats = sum(1 for sh in shapes if len(sh) == 2)
+    wi = 0
     for sh in shapes:
         if len(sh) == 2:
+            wi += 1
             fan_in = sh[1]
-            parts.append(torch.randn(sh, generator=gen, device=device).reshape(-1) / math.sqrt(fan_in))
+            if scheme == 'mup':
+                std = (1.0 / fan_in) if wi == n_mats else (1.0 / math.sqrt(fan_in))
+                w = torch.randn(sh, generator=gen, device=device) * std
+            elif scheme == 'kaiming-normal':
+                w = torch.randn(sh, generator=gen, device=device) * math.sqrt(2.0 / fan_in)
+            elif scheme == 'kaiming-uniform':
+                bnd = math.sqrt(6.0 / fan_in)
+                w = (torch.rand(sh, generator=gen, device=device) * 2 - 1) * bnd
+            elif scheme == 'width':
+                w = torch.randn(sh, generator=gen, device=device) / math.sqrt(width or sh[1])
+            else:                                        # fanin
+                w = torch.randn(sh, generator=gen, device=device) / math.sqrt(fan_in)
+            parts.append((w * scale).reshape(-1))
         else:
             parts.append(torch.zeros(sh[0], device=device))
     return torch.cat(parts)
@@ -242,6 +261,9 @@ def main():
     ap.add_argument('--din', type=int, default=16)
     ap.add_argument('--n', type=int, default=256, help='dataset size')
     ap.add_argument('--batch', type=int, default=0, help='batch size; 0 = full batch')
+    ap.add_argument('--init', choices=['fanin', 'mup', 'kaiming-normal', 'kaiming-uniform', 'width'],
+                    default='fanin')
+    ap.add_argument('--init-scale', type=float, default=1.0)
     ap.add_argument('--act', choices=list(ACTS), default='tanh')
     ap.add_argument('--opt', choices=['gd', 'signgd', 'gn', 'spectral'], default='gd')
     ap.add_argument('--lr', type=float, default=0.05)
@@ -278,6 +300,8 @@ def main():
     torch.manual_seed(args.seed)
     gen = torch.Generator(device=dev).manual_seed(args.seed)
     cgen = torch.Generator().manual_seed(args.seed + 1)
+    # data gets its own generator so the dataset is identical across init schemes
+    dgen = torch.Generator(device=dev).manual_seed(args.seed + 1000003)
 
     n = args.n
     # ── dataset: X (n, din_eff), Y (n, C) ──
@@ -287,7 +311,7 @@ def main():
         din_eff, C = args.din, 1
     shapes = build_shapes(din_eff, args.width, args.depth, C)
     forward = make_forward(shapes, args.act)
-    flat = init_params(shapes, gen, dev)
+    flat = init_params(shapes, gen, dev, args.init, args.init_scale, args.width)
     p = flat.numel()
     if args.init_from:
         prev = json.load(open(args.init_from))
@@ -313,6 +337,7 @@ def main():
                                       dataset=args.dataset, dout=C, parity_k=args.parity_k,
                                       cheby_deg=args.cheby_deg, cifar_size=args.cifar_size,
                                       ckpt_every=args.ckpt_every, kpm=args.kpm, noise=args.noise,
+                                      init=args.init, init_scale=args.init_scale,
                                       kpm_probes=args.kpm_probes, kpm_deg=args.kpm_deg,
                                       batch=B, act=args.act, opt=args.opt, lr=args.lr,
                                       steps=args.steps, gn_damping=args.gn_damping,
@@ -321,20 +346,20 @@ def main():
                                       bslq_k=args.bslq_k, device=str(dev))))
 
     if args.dataset == 'teacher':
-        X = torch.randn(n, din_eff, generator=gen, device=dev)
+        X = torch.randn(n, din_eff, generator=dgen, device=dev)
         teacher = init_params(shapes, torch.Generator(device=dev).manual_seed(args.seed + 777), dev)
         with torch.no_grad():
-            y = forward(teacher, X) + args.noise * torch.randn(n, 1, generator=gen, device=dev)
+            y = forward(teacher, X) + args.noise * torch.randn(n, 1, generator=dgen, device=dev)
     elif args.dataset == 'parity':
         kbits = max(1, min(args.parity_k, din_eff))
-        X = (torch.randint(0, 2, (n, din_eff), generator=gen, device=dev,
+        X = (torch.randint(0, 2, (n, din_eff), generator=dgen, device=dev,
                            dtype=torch.float32) * 2 - 1)
         y = X[:, :kbits].prod(dim=1, keepdim=True) \
-            + args.noise * torch.randn(n, 1, generator=gen, device=dev)
+            + args.noise * torch.randn(n, 1, generator=dgen, device=dev)
     elif args.dataset == 'chebyshev':
-        X = torch.rand(n, din_eff, generator=gen, device=dev) * 2 - 1
+        X = torch.rand(n, din_eff, generator=dgen, device=dev) * 2 - 1
         y = torch.cos(args.cheby_deg * torch.arccos(X[:, :1].clamp(-1, 1))) \
-            + args.noise * torch.randn(n, 1, generator=gen, device=dev)
+            + args.noise * torch.randn(n, 1, generator=dgen, device=dev)
     else:                                        # cifar10
         import os
         import pickle
@@ -505,6 +530,7 @@ def main():
                     dataset=args.dataset, dout=C, parity_k=args.parity_k,
                     cheby_deg=args.cheby_deg, cifar_size=args.cifar_size,
                     ckpt_every=args.ckpt_every, kpm=args.kpm, noise=args.noise,
+                    init=args.init, init_scale=args.init_scale,
                     kpm_probes=args.kpm_probes, kpm_deg=args.kpm_deg,
                     act=args.act, opt=args.opt, lr=args.lr, steps=args.steps,
                     gn_damping=args.gn_damping, seed=args.seed, p=p,
