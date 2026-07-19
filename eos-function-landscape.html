@@ -121,9 +121,6 @@
   .transport input[type=range]{flex:1}
   .transport .tlab{font-size:12px; min-width:110px; text-align:right; color:var(--ink2)}
   .transport select{background:var(--bg); color:var(--ink); border:1px solid var(--axis); border-radius:6px; padding:3px 6px; font-size:12px}
-  .notes{grid-column:1 / -1; font-size:13.5px; color:var(--ink2); max-width:82ch}
-  .notes b{color:var(--ink)}
-  .notes p{margin:8px 0}
   .linkbtn{border:0; background:none; color:var(--accent); font-size:12px; cursor:pointer; padding:0}
   #tip{position:fixed; pointer-events:none; z-index:9; background:var(--surface); border:1px solid var(--border);
     border-radius:8px; padding:6px 9px; font:11.5px ui-monospace,Menlo,Consolas,monospace; color:var(--ink);
@@ -272,33 +269,6 @@
       <canvas class="plot" id="cs8" role="img" aria-label="residual projection on a random direction versus step"></canvas>
     </div>
 
-    <div class="notes">
-      <p><b>The mechanism, read directly off the landscape.</b> Descending the concave curve raises both the
-      slope |f′| and the curvature |f″| = b²|f|, so sharpness
-      <code>S = 2b²u(2u − c)</code> grows on the way down — progressive sharpening is geometric here. S hits
-      2/η at the <b>EoS point</b> (violet), which sits <i>above</i> the target crossing whenever
-      <code>η &gt; η_c = 1/(b²c²)</code>: instability arrives while the residual is still negative. Beyond the
-      EoS point every re-descent is unstable — hops amplify; behind it the landscape is flat and stable. The
-      oscillation is therefore self-limiting: a hop that lands deep sits on a much steeper slope and is kicked
-      back out harder (the big arc), landing in the flat refuge, from which quiet descent resumes. That loop —
-      grow, eject, re-descend — is self-stabilization, and it pins the time-averaged sharpness near 2/η while
-      the running-mean residual r̄ stalls at a <i>negative</i> value: the target is never reached.</p>
-      <p><b>One correction the sketch needs.</b> For plain GD on L = (y − f)², the update direction is set by
-      the sign of the residual — while f stays strictly above y every step moves downhill. A hop can only
-      reverse after momentarily overshooting the target level, so the bounce straddles the crossing f = y
-      (watch r(t) flip sign at each turn) even though its time average stays negative and its envelope is
-      governed by the EoS point. Reversal strictly at negative residual needs a second mechanism — momentum,
-      a second coordinate, or noise.</p>
-      <p><b>Why the exit is usually a single hop — and how to make it linger.</b> Across any interval where
-      S &gt; 2/η the accumulated gradient is ∫S dx ≥ (2/η)·width, so a GD step launched from the band's edge
-      is at least <i>twice the band width</i>: entering from the sharp side you cross in ~one hop, and the
-      bounce back clears it just as fast (in the −e<sup>bx</sup> family the count after the residual flip is
-      always 1, at any η). The loophole is the entry amplitude: the <b>cliff</b> model walks in from the
-      <i>flat overshoot shelf</i> with tiny steps, seeding a tiny oscillation deep inside a <i>wide</i>
-      sharpness plateau held just above 2/η — then |1−ηS| ≈ 1.05 grows the bounce by only a few percent per
-      step, and the iterate stays inside the band for tens to hundreds of iterations after crossing the
-      residual (watch the "after 1st r-flip" counter in the info chips).</p>
-    </div>
   </div>
 </section>
 
@@ -440,37 +410,6 @@
       <canvas class="plot" id="c3s8" role="img" aria-label="residual projection on the image of a random parameter direction versus step"></canvas>
     </div>
 
-    <div class="notes">
-      <p><b>The tilted valley.</b> Two samples, two weights. Sample 1 (f₁ = a·e<sup>b·s</sup>·w₁, target 0)
-      builds the valley w₁ = 0 with oscillation along ŵ₁ and sharpness S ≈ 2a²e<sup>2bs</sup> + 2μ² varying
-      along d̂ = (cosθ, sinθ), with s anchored at the start height — <b>θ is exactly the angle between the
-      oscillation axis and ∇S</b>. Sample 2 (f₂ = μ·s, target y₂ &gt; 0) is the new ingredient: fitting it
-      <i>tilts the valley</i>, so the loss now <b>decreases along +∇S</b> (toward sharper) — g·∇̂S ≈ −2μr₂ on
-      the valley — giving genuine loss-driven progressive sharpening instead of a loss-neutral valley. The
-      bounce still generates the rectified opposing force ½x₁²·∂S/∂s, and the edge-of-stability ride is the
-      balance ½x₁²S′ = 2μr₂ between the two.</p>
-      <p><b>The retraction arc (the “Fit, then EoS takes it back” preset, θ=90°, measured).</b> Loss-driven sharpening crosses 2/η at t≈155; the iterate
-      slips past the pin and nearly fits both samples — L ≈ 2×10⁻¹³ at t≈836, sitting at s = 5.00 where
-      S = 20.6 &gt; 2/η = 20: <i>an unstable near-perfect fit</i>. The microscopic bounce regrows at ~3% per
-      step, erupts around t≈1100, and self-stabilization drags s back to 4.70: <b>the edge of stability
-      permanently retracts the fit</b>, and the loss rides forever at ≈0.548 — twelve orders of magnitude
-      above its own best value. Whether the full fit survives is a one-line check: S at the fit point
-      (2a²e<sup>2b·y₂/μ</sup> + 2μ²) versus 2/η — see the info chip, and the "full fit is stable" preset for
-      the convergent case.</p>
-      <p><b>Reading the projection charts.</b> x_t = g·v₁ alternates every step while bouncing and its
-      envelope tracks the oscillation amplitude. g·∇̂S starts negative (the tilt pulling toward sharper),
-      is fought by the rectified positive bounce contribution, and hovers near zero at the ride — the
-      balance equation as a single trace. r·û (oscillating NTK direction) is the residual content of the
-      bouncing mode; r·(J∇̂S)/‖J∇S‖ is ∝ dS/dt to first order — positive while sharpening, negative while
-      the drift flattens, ≈ 0 once pinned.</p>
-      <p><b>Stretching the oscillation.</b> The bounce regrows at |1 − η·S_fit| − 1 per step (live in the
-      "bounce growth at fit" chip), so y₂ is the duration dial: <b>lower y₂</b> toward the value where
-      S_fit = 2/η and the eruption stretches into a long ramp (the slow-motion preset: 4%/step, ≈1300 steps
-      of continuously growing |w₁|, a straight line on the symlog charts); <b>raise y₂</b> and the pull
-      sustains a large permanent period-2 bounce instead (the big-locked-ride preset: |w₁| ≈ 0.60 forever).
-      Below ≈2%/step the near-fit buries the oscillation seed at the float-precision floor and the regrowth
-      stalls numerically — the chip tells you when you are in that regime.</p>
-    </div>
   </div>
 </section>
 
@@ -598,15 +537,6 @@
       <canvas class="plot" id="c5s8" role="img" aria-label="residual projection on the image of a random direction versus step"></canvas>
     </div>
 
-    <div class="notes">
-      <p><b>What changes under a preconditioner.</b> The update x ← x − ηPg is linearly stable when
-      λ<sub>max</sub>(PH) &lt; 2/η, so the edge of stability lives in the <i>preconditioned</i> sharpness.
-      <b>Signed GD</b> takes constant-size steps, so it cannot converge: it settles into a limit cycle
-      around the crossing whose preconditioned sharpness self-tunes onto 2/η (at η = 0.2 the measured
-      median λ(PH) is 10.01 vs 2/η = 10). <b>Gauss–Newton</b> rescales the residual dynamics to
-      r ← (1 − 2η)r: λ(PH) ≈ 2 at all times, the threshold is η = 1 <i>regardless of the landscape</i>,
-      and above it the oscillation grows no matter how flat the curve is.</p>
-    </div>
   </div>
 </section>
 
@@ -736,15 +666,6 @@
       <canvas class="plot" id="c6s8" role="img" aria-label="residual projection on the image of a random direction versus step"></canvas>
     </div>
 
-    <div class="notes">
-      <p><b>Preconditioners break the EoS fitting ceiling.</b> On the θ-lab tab this model (y₂ = 2) is
-      stuck forever at L ≈ 3.9 because the full fit needs sharpness above 2/η. The adaptive optimizers walk
-      through: <b>spectral GD</b> at η = 0.1 rides its own preconditioned edge — λ(PH) = ‖H‖/‖g‖ locks
-      exactly at 2/η = 20 — while the loss keeps falling to ~3e−2 near the full fit; <b>signed GD</b> does
-      the same per-coordinate; <b>Gauss–Newton</b> ignores the sharpness ladder entirely (λ(PH) ≈ 2),
-      converging to machine zero for any η &lt; 1 and diverging for η &gt; 1. Constant-step methods cannot
-      fully converge — their loss floor scales with η².</p>
-    </div>
   </div>
 </section>
 
