@@ -102,7 +102,7 @@
   .hero{grid-column:1 / -1}
   canvas.plot{width:100%; display:block; touch-action:none; border-radius:6px}
   #chero,#clhero{height:340px}
-  #cs1,#cs2,#cs3,#cs4,#cs5,#cs6,#cs7,#cs8,#c3s1,#c3s2,#c3s3,#c3s4,#c3s5,#c3s6,#c3s7,#c3s8,#c5s1,#c5s2,#c5s3,#c5s4,#c5s5,#c5s6,#c5s7,#c5s8,#c6s1,#c6s2,#c6s3,#c6s4,#c6s5,#c6s6,#c6s7,#c6s8,#cs9,#c3s9,#c5s9,#c6s9,#cs10,#c3s10,#c5s10,#c6s10{height:172px}
+  #cs1,#cs2,#cs3,#cs4,#cs5,#cs6,#cs7,#cs8,#c3s1,#c3s2,#c3s3,#c3s4,#c3s5,#c3s6,#c3s7,#c3s8,#c5s1,#c5s2,#c5s3,#c5s4,#c5s5,#c5s6,#c5s7,#c5s8,#c6s1,#c6s2,#c6s3,#c6s4,#c6s5,#c6s6,#c6s7,#c6s8,#cs9,#c3s9,#c5s9,#c6s9,#cs10,#c3s10,#c5s10,#c6s10,#cs11,#c3s11,#c5s11,#c6s11,#cs12,#c3s12,#c5s12,#c6s12{height:172px}
   #c3f,#c3L{height:380px}
   #c5f,#c5L{height:340px}
   #c6f,#c6L{height:380px}
@@ -294,6 +294,22 @@
         <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
       </div>
     </div>
+    <div class="card">
+      <h3>Σᵢ ∇fᵢ · ∇̂S* — Jacobian rows on the frozen sharpness direction</h3>
+      <p class="cap">1-D reduction: f′(t)·sign(S′*) with S′ frozen at the first crossing · signed, symlog</p>
+      <canvas class="plot" id="cs11" role="img" aria-label="sum over samples of the Jacobian row projected on the frozen sharpness gradient direction"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>‖∇S‖ building blocks — third-derivative and J·Q terms</h3>
+      <p class="cap">1-D reductions: |r·f‴| (residual-weighted third derivative) and |f′·f″| (J·Q term) · log-scale norms</p>
+      <canvas class="plot" id="cs12" role="img" aria-label="norms of the residual-weighted third derivative contraction and the Jacobian function-Hessian contraction"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>‖Σᵢ rᵢ ∇³fᵢ[v₁,v₁,·]‖</span>
+        <span><i class="sw" style="background:var(--accent)"></i>‖Σᵢ (Jv₁)ᵢ ∇²fᵢ v₁‖</span>
+      </div>
+    </div>
+
 
 
 
@@ -460,6 +476,22 @@
         <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
       </div>
     </div>
+    <div class="card">
+      <h3>Σᵢ ∇fᵢ · ∇̂S* — Jacobian rows on the frozen sharpness direction</h3>
+      <p class="cap">each sample's Jacobian row projected on ∇̂S frozen at the first 2/η crossing, summed over the two samples: Σᵢ ⟨∇fᵢ(t), ∇̂S*⟩ · signed, symlog</p>
+      <canvas class="plot" id="c3s11" role="img" aria-label="sum over samples of the Jacobian row projected on the frozen sharpness gradient direction"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>‖∇S‖ building blocks — third-derivative and J·Q terms</h3>
+      <p class="cap">the two parameter-space vectors that build ∇S: the residual-weighted third derivative Σᵢ rᵢ∇³fᵢ[v₁,v₁,·] and the curvature term Σᵢ (Jv₁)ᵢ∇²fᵢv₁ · v₁ = top eigenvector of the (plain) loss Hessian at the iterate · log-scale norms</p>
+      <canvas class="plot" id="c3s12" role="img" aria-label="norms of the residual-weighted third derivative contraction and the Jacobian function-Hessian contraction"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>‖Σᵢ rᵢ ∇³fᵢ[v₁,v₁,·]‖</span>
+        <span><i class="sw" style="background:var(--accent)"></i>‖Σᵢ (Jv₁)ᵢ ∇²fᵢ v₁‖</span>
+      </div>
+    </div>
+
 
 
 
@@ -612,6 +644,22 @@
         <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
       </div>
     </div>
+    <div class="card">
+      <h3>Σᵢ ∇fᵢ · ∇̂S* — Jacobian rows on the frozen sharpness direction</h3>
+      <p class="cap">1-D reduction: f′(t)·sign(S_P′*) with S′ frozen at the first crossing · signed, symlog</p>
+      <canvas class="plot" id="c5s11" role="img" aria-label="sum over samples of the Jacobian row projected on the frozen sharpness gradient direction"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>‖∇S‖ building blocks — third-derivative and J·Q terms</h3>
+      <p class="cap">1-D reductions: |r·f‴| (residual-weighted third derivative) and |f′·f″| (J·Q term) · log-scale norms</p>
+      <canvas class="plot" id="c5s12" role="img" aria-label="norms of the residual-weighted third derivative contraction and the Jacobian function-Hessian contraction"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>‖Σᵢ rᵢ ∇³fᵢ[v₁,v₁,·]‖</span>
+        <span><i class="sw" style="background:var(--accent)"></i>‖Σᵢ (Jv₁)ᵢ ∇²fᵢ v₁‖</span>
+      </div>
+    </div>
+
 
 
 
@@ -766,6 +814,22 @@
         <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
       </div>
     </div>
+    <div class="card">
+      <h3>Σᵢ ∇fᵢ · ∇̂S* — Jacobian rows on the frozen sharpness direction</h3>
+      <p class="cap">each sample's Jacobian row projected on ∇̂S_P frozen at the first 2/η crossing, summed over the two samples: Σᵢ ⟨∇fᵢ(t), ∇̂S*⟩ · signed, symlog</p>
+      <canvas class="plot" id="c6s11" role="img" aria-label="sum over samples of the Jacobian row projected on the frozen sharpness gradient direction"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>‖∇S‖ building blocks — third-derivative and J·Q terms</h3>
+      <p class="cap">the two parameter-space vectors that build ∇S: the residual-weighted third derivative Σᵢ rᵢ∇³fᵢ[v₁,v₁,·] and the curvature term Σᵢ (Jv₁)ᵢ∇²fᵢv₁ · v₁ = top eigenvector of the (plain) loss Hessian at the iterate · log-scale norms</p>
+      <canvas class="plot" id="c6s12" role="img" aria-label="norms of the residual-weighted third derivative contraction and the Jacobian function-Hessian contraction"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>‖Σᵢ rᵢ ∇³fᵢ[v₁,v₁,·]‖</span>
+        <span><i class="sw" style="background:var(--accent)"></i>‖Σᵢ (Jv₁)ᵢ ∇²fᵢ v₁‖</span>
+      </div>
+    </div>
+
 
 
 
@@ -907,6 +971,11 @@ function fPP(x){
   const sl = sgm(P.k*(x+P.W)), sr = sgm(P.k*x);
   return -P.m*P.k*(sl*(1-sl) - sr*(1-sr));
 }
+function fPPP(x){
+  if (P.model === 'exp'){ const e = P.b*x; return -P.b*P.b*P.b*(e > 60 ? Infinity : Math.exp(e)); }
+  const sl = sgm(P.k*(x+P.W)), sr = sgm(P.k*x);
+  return -P.m*P.k*P.k*(sl*(1-sl)*(1-2*sl) - sr*(1-sr)*(1-2*sr));
+}
 function S1(x){ return 2*fP(x)*fP(x) + 2*(fVal(x) - P.y)*fPP(x); }
 
 function sim(){
@@ -925,7 +994,8 @@ function sim(){
         S = new Float64Array(m), rbar = new Float64Array(m), Xt = new Float64Array(m),
         rn = new Float64Array(m), GdS = new Float64Array(m), Ru = new Float64Array(m),
         Rq = new Float64Array(m), Ruv = new Float64Array(m),
-        sg = new Float64Array(m), sgr = new Float64Array(m), sgS = new Float64Array(m);
+        sg = new Float64Array(m), sgr = new Float64Array(m), sgS = new Float64Array(m),
+        JS1 = new Float64Array(m), T3n = new Float64Array(m), JQn = new Float64Array(m);
   const clip = v => Math.max(-1e150, Math.min(1e150, v));
   const ur = Math.cos(2.399963);   // fixed random scalar direction u (sign is what matters in 1-D)
   // J (f′) and ∇S (S′) frozen at the first S > 2/η crossing — used by the J∇S charts
@@ -958,13 +1028,17 @@ function sim(){
     Rq[i] = clip(r[i]*sFS);                        // normalize(J·∇S) = sign(f′·S′)
     sg[i] = sFS;
     sgr[i] = r[i] > 0 ? 1 : r[i] < 0 ? -1 : 0;
+    // chart 11: J projected on frozen ∇̂S (1 sample) ; chart 12: ∇S building blocks
+    JS1[i] = clip(fp*(SpJ > 0 ? 1 : SpJ < 0 ? -1 : 0));
+    T3n[i] = clip(Math.abs(r[i]*fPPP(xs[i])));
+    JQn[i] = clip(Math.abs(fp*fPP(xs[i])));
     const sFU = fp*ur > 0 ? 1 : fp*ur < 0 ? -1 : 0;
     Ruv[i] = clip(r[i]*sFU);                       // normalize(J·u) = sign(f′·u)
   }
   const Sm = new Float64Array(Math.max(0, m-1));
   for (let i = 0; i+1 < m; i++) Sm[i] = clip(S1(0.5*(xs[i]+xs[i+1])));
   const gEnd = 2*(f[m-1] - P.y)*clip(fP(xs[m-1]));
-  return { xs: xs.subarray(0, m), f, r, L, S, Sm, rbar, rn, Xt, GdS, Ru, Rq, Ruv,
+  return { xs: xs.subarray(0, m), f, r, L, S, Sm, rbar, rn, Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn,
            CK: lagCosArrays(sg, new Float64Array(m), m),
            RK: lagCosArrays(sgr, new Float64Array(m), m),
            GK1: lagCosArrays(sgS, new Float64Array(m), m)[0], n, div,
@@ -1271,6 +1345,8 @@ function drawAll(){
   drawSymlogStrip($('cs8'), R, tCur, R.Ruv, PAL.nt[2]);
   drawCosStrip($('cs9'), R, tCur, R.CK, R.GK1);
   drawCosStrip($('cs10'), R, tCur, R.RK);
+  drawSymlogStrip($('cs11'), R, tCur, R.JS1, PAL.now);
+  drawNormsStrip($('cs12'), R, tCur);
   const up = Math.min(Math.round(tCur), R.n);
   const ratio = R.S[up]*P.lr/2;
   let cls = PAL.good, txt = 'stable';
@@ -1452,6 +1528,8 @@ bindStrip($('cs7'), i => `t=${i}\nr·(J∇̂S)=${fmt(R.Rq[i])}`, apply1);
 bindStrip($('cs8'), i => `t=${i}\nr·(Ĵu)=${fmt(R.Ruv[i])}`, apply1);
 bindStrip($('cs9'), i => `t=${i}\ncos(J∇S): ${cosTip('cs9', [['∇Sk1', R.GK1]].concat(KLAGS.map((k, s) => ['k' + k, R.CK[s]])), i)}`, apply1);
 bindStrip($('cs10'), i => `t=${i}\ncos(r): ${cosTip('cs10', KLAGS.map((k, s) => ['l' + k, R.RK[s]]), i)}`, apply1);
+bindStrip($('cs11'), i => `t=${i}\nΣ ∇fᵢ·∇̂S* = ${fmt(R.JS1[i])}`, apply1);
+bindStrip($('cs12'), i => `t=${i}\n‖Σ rᵢ∇³fᵢ[v,v,·]‖ = ${fmt(R.T3n[i])}\n‖Σ (Jv)ᵢ∇²fᵢv‖ = ${fmt(R.JQn[i])}`, apply1);
 
 /* ---------- shared helpers (kept from removed panels) ---------- */
 const GN = 46;
@@ -1547,7 +1625,8 @@ function sim3(){
         Ru = new Float64Array(m), Rq = new Float64Array(m), Ruv = new Float64Array(m),
         uS1 = new Float64Array(m), uS2 = new Float64Array(m),
         rr1 = new Float64Array(m), rr2 = new Float64Array(m),
-        ug1 = new Float64Array(m), ug2 = new Float64Array(m);
+        ug1 = new Float64Array(m), ug2 = new Float64Array(m),
+        JS1 = new Float64Array(m), T3n = new Float64Array(m), JQn = new Float64Array(m);
   // fixed pseudo-random parameter direction u (golden angle; identical every run)
   const uphi = 2.399963, ur1 = Math.cos(uphi), ur2 = Math.sin(uphi);
   const clip3 = v => Math.max(-1e150, Math.min(1e150, v));
@@ -1597,11 +1676,23 @@ function sim3(){
     const jr1 = H.d1*ur1 + H.d2*ur2, jr2 = mu*(ct*ur1 + st*ur2);
     const nr = Math.hypot(jr1, jr2);
     Ruv[i] = nr > 1e-300 ? clip3((-H.f1*jr1 + H.r2*jr2)/nr) : 0;
+    // chart 11: Σ_i ∇f_i·∇̂S* (frozen sharpness direction) ; chart 12: ∇S building blocks
+    const ngj = Math.hypot(gj1, gj2);
+    JS1[i] = ngj > 1e-12 ? clip3(((H.d1 + mu*ct)*gj1 + (H.d2 + mu*st)*gj2)/ngj) : 0;
+    const E_ = P3.a*Math.exp(Math.min(P3.b*(ct*X1[i] + st*(X2[i] - P3.x20)), 60)), b_ = P3.b;
+    const uv = ct*vv1 + st*vv2, kA = b_*b_*b_*X1[i]*uv*uv;
+    const A1 = -H.f1*E_*(kA*ct + b_*b_*(2*vv1*uv*ct + uv*uv));
+    const A2 = -H.f1*E_*(kA*st + b_*b_*2*vv1*uv*st);
+    T3n[i] = clip3(Math.hypot(A1, A2));
+    const jv = H.d1*vv1 + H.d2*vv2;
+    const B1 = jv*E_*(b_*b_*X1[i]*uv*ct + b_*(vv1*ct + uv));
+    const B2 = jv*E_*(b_*b_*X1[i]*uv*st + b_*vv1*st);
+    JQn[i] = clip3(Math.hypot(B1, B2));
   }
   const Sm = new Float64Array(Math.max(0, m-1));
   for (let i = 0; i+1 < m; i++) Sm[i] = clip3(lam3(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1])));
   return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), f, r2, L, rn, S, Sm,
-           Xt, GdS, Ru, Rq, Ruv, CK: lagCosArrays(uS1, uS2, m),
+           Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, CK: lagCosArrays(uS1, uS2, m),
            RK: lagCosArrays(rr1, rr2, m),
            GK1: lagCosArrays(ug1, ug2, m)[0], n, div, conv: !div && L[m-1] < 1e-10 };
 }
@@ -1953,6 +2044,8 @@ function drawAll3(){
   drawSymlogStrip($('c3s8'), R3, t3, R3.Ruv, PAL.nt[2]);
   drawCosStrip($('c3s9'), R3, t3, R3.CK, R3.GK1);
   drawCosStrip($('c3s10'), R3, t3, R3.RK);
+  drawSymlogStrip($('c3s11'), R3, t3, R3.JS1, PAL.now);
+  drawNormsStrip($('c3s12'), R3, t3);
   const up = Math.min(Math.round(t3), R3.n);
   const ratio = R3.S[up]*P3.lr/2;
   let cls = PAL.good, txt = 'stable';
@@ -2068,10 +2161,12 @@ bindStrip($('c3s7'), i => `t=${i}\nr·(J∇̂S)=${fmt(R3.Rq[i])}`, apply3);
 bindStrip($('c3s8'), i => `t=${i}\nr·(Ĵu)=${fmt(R3.Ruv[i])}`, apply3);
 bindStrip($('c3s9'), i => `t=${i}\ncos(J∇S): ${cosTip('c3s9', [['∇Sk1', R3.GK1]].concat(KLAGS.map((k, s) => ['k' + k, R3.CK[s]])), i)}`, apply3);
 bindStrip($('c3s10'), i => `t=${i}\ncos(r): ${cosTip('c3s10', KLAGS.map((k, s) => ['l' + k, R3.RK[s]]), i)}`, apply3);
+bindStrip($('c3s11'), i => `t=${i}\nΣ ∇fᵢ·∇̂S* = ${fmt(R3.JS1[i])}`, apply3);
+bindStrip($('c3s12'), i => `t=${i}\n‖Σ rᵢ∇³fᵢ[v,v,·]‖ = ${fmt(R3.T3n[i])}\n‖Σ (Jv)ᵢ∇²fᵢv‖ = ${fmt(R3.JQn[i])}`, apply3);
 $('p3csv').addEventListener('click', () => {
   const rows = [];
-  for (let i = 0; i <= R3.n; i++) rows.push([i, R3.x1[i], R3.x2[i], R3.f[i], R3.r2[i], R3.L[i], R3.S[i], R3.Xt[i], R3.GdS[i], R3.Ru[i], R3.Rq[i], R3.Ruv[i], R3.CK[0][i], R3.CK[1][i], R3.CK[2][i], R3.CK[3][i], R3.RK[0][i], R3.RK[1][i], R3.RK[2][i], R3.RK[3][i]].join(','));
-  const blob = new Blob(['t,w1,w2,f1,r2,L,lamMax,xT,gDotGradS,rDotU,rDotJGradS,rDotJu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10\n' + rows.join('\n')], { type: 'text/csv' });
+  for (let i = 0; i <= R3.n; i++) rows.push([i, R3.x1[i], R3.x2[i], R3.f[i], R3.r2[i], R3.L[i], R3.S[i], R3.Xt[i], R3.GdS[i], R3.Ru[i], R3.Rq[i], R3.Ruv[i], R3.CK[0][i], R3.CK[1][i], R3.CK[2][i], R3.CK[3][i], R3.RK[0][i], R3.RK[1][i], R3.RK[2][i], R3.RK[3][i], R3.JS1[i], R3.T3n[i], R3.JQn[i]].join(','));
+  const blob = new Blob(['t,w1,w2,f1,r2,L,lamMax,xT,gDotGradS,rDotU,rDotJGradS,rDotJu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10,sumJdS,normT3,normJQ\n' + rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'eos_theta.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
@@ -2149,6 +2244,34 @@ function drawCosStrip(cv, RR, t, KA, extra){
   cv._map = { A, n: F.n };
 }
 
+function drawNormsStrip(cv, RR, t){
+  const F = stripFrame(cv, t, RR.n), ctx = F.ctx, A = F.A;
+  const lg = v => Math.log10(Math.max(v, 1e-16));
+  let lo = Infinity, hi = -Infinity;
+  for (const arr of [RR.T3n, RR.JQn])
+    for (let i = 0; i < arr.length; i++){ const v = lg(arr[i]); if (v < lo) lo = v; if (v > hi) hi = v; }
+  if (!isFinite(lo)){ lo = -1; hi = 1; }
+  if (hi - lo < 1){ hi += 0.5; lo -= 0.5; }
+  lo -= 0.06*(hi-lo); hi += 0.06*(hi-lo);
+  A.y = v => A.t + (hi - v)/(hi - lo)*A.h;
+  const dec = Math.max(1, Math.round((hi-lo)/5));
+  ctx.strokeStyle = PAL.grid; ctx.lineWidth = 1; ctx.fillStyle = PAL.muted;
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (let d = Math.ceil(lo); d <= hi; d += dec){
+    const py = A.y(d);
+    ctx.beginPath(); ctx.moveTo(A.l, py); ctx.lineTo(A.l+A.w, py); ctx.stroke();
+    ctx.fillText('1e' + d, A.l-6, py);
+  }
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (const v of ticks(0, F.n, 6)) ctx.fillText(fmt(v), A.x(v), A.t+A.h+5);
+  ctx.strokeStyle = PAL.axis;
+  ctx.beginPath(); ctx.moveTo(A.l, A.t+A.h); ctx.lineTo(A.l+A.w, A.t+A.h); ctx.stroke();
+  lineSeries(ctx, A, Array.from(RR.T3n, lg), RR.T3n.length, F.st, 0, PAL.sharp, F.up+1);
+  lineSeries(ctx, A, Array.from(RR.JQn, lg), RR.JQn.length, F.st, 0, PAL.accent, F.up+1);
+  cursorLine(ctx, A, A.x(F.up));
+  cv._map = { A, n: F.n };
+}
+
 /* ================= PANELS 5 & 6 : adaptive (preconditioned) optimizers ================= */
 function symEig2(a11, a12, a22){
   const lam = 0.5*(a11+a22) + Math.hypot(0.5*(a11-a22), a12);
@@ -2210,7 +2333,8 @@ function sim5(){
   const L = new Float64Array(m), rn = new Float64Array(m), S = new Float64Array(m),
         Xt = new Float64Array(m), GdS = new Float64Array(m), Ru = new Float64Array(m),
         Rq = new Float64Array(m), Ruv = new Float64Array(m), r = new Float64Array(m),
-        sg = new Float64Array(m), sgr = new Float64Array(m), sgS = new Float64Array(m);
+        sg = new Float64Array(m), sgr = new Float64Array(m), sgS = new Float64Array(m),
+        JS1 = new Float64Array(m), T3n = new Float64Array(m), JQn = new Float64Array(m);
   for (let i = 0; i < m; i++){
     const f = clip(fv5(xs[i])), fp = clip(fp5(xs[i]));
     r[i] = P5.y - f; L[i] = r[i]*r[i]; rn[i] = Math.abs(r[i]);
@@ -2229,13 +2353,17 @@ function sim5(){
     Rq[i] = clip(r[i]*sQ);
     sg[i] = sQ;
     sgr[i] = r[i] > 0 ? 1 : r[i] < 0 ? -1 : 0;
+    // chart 11: J on frozen ∇̂S_P ; chart 12: ∇S building blocks (exp model: f″=b·f′, f‴=b²·f′)
+    JS1[i] = clip(fp*(SpJ > 0 ? 1 : SpJ < 0 ? -1 : 0));
+    T3n[i] = clip(Math.abs(r[i]*P5.b*P5.b*fp));
+    JQn[i] = clip(Math.abs(fp*P5.b*fp));
     Ruv[i] = clip(r[i]*(fp*Pv*UPHI5 > 0 ? 1 : fp*Pv*UPHI5 < 0 ? -1 : 0));
   }
   const Sm = new Float64Array(Math.max(0, m-1));
   // midpoint curvature with P frozen at the iterate — recomputing P at the midpoint
   // blows up where the hop's gradient nearly vanishes
   for (let i = 0; i+1 < m; i++) Sm[i] = clip(pre5(xs[i]) * S5(0.5*(xs[i]+xs[i+1])));
-  return { xs: xs.subarray(0,m), r, L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv,
+  return { xs: xs.subarray(0,m), r, L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn,
            CK: lagCosArrays(sg, new Float64Array(m), m),
            RK: lagCosArrays(sgr, new Float64Array(m), m),
            GK1: lagCosArrays(sgS, new Float64Array(m), m)[0], n, div,
@@ -2439,7 +2567,8 @@ function sim6(){
         Rq = new Float64Array(m), Ruv = new Float64Array(m),
         uS1 = new Float64Array(m), uS2 = new Float64Array(m),
         rr1 = new Float64Array(m), rr2 = new Float64Array(m),
-        ug1 = new Float64Array(m), ug2 = new Float64Array(m);
+        ug1 = new Float64Array(m), ug2 = new Float64Array(m),
+        JS1 = new Float64Array(m), T3n = new Float64Array(m), JQn = new Float64Array(m);
   // J and ∇S_P frozen at the first λ(PH) > 2/η crossing — used by the JP∇S_P charts
   let tcJ = Infinity, dc1 = 0, dc2 = 0, gc1 = 0, gc2 = 0;
   for (let i = 0; i < m; i++){
@@ -2490,6 +2619,19 @@ function sim6(){
     const jr1 = H.d1*pu1 + H.d2*pu2, jr2 = mu*(H.ct*pu1 + H.st*pu2);
     const nr = Math.hypot(jr1, jr2);
     Ruv[i] = nr > 1e-300 ? clip((-H.f1*jr1 + H.r2*jr2)/nr) : 0;
+    // chart 11: Σ_i ∇f_i·∇̂S*_P ; chart 12: ∇S building blocks (v₁ of the PLAIN loss Hessian)
+    const ngj = Math.hypot(gj1, gj2);
+    JS1[i] = ngj > 1e-12 ? clip(((H.d1 + mu*H.ct)*gj1 + (H.d2 + mu*H.st)*gj2)/ngj) : 0;
+    const eH = symEig2(H.h11, H.h12, H.h22);
+    const E_ = P6.a*Math.exp(Math.min(P6.b*(H.ct*X1[i] + H.st*X2[i]), 60)), b_ = P6.b;
+    const uv = H.ct*eH.v1 + H.st*eH.v2, kA = b_*b_*b_*X1[i]*uv*uv;
+    const A1 = -H.f1*E_*(kA*H.ct + b_*b_*(2*eH.v1*uv*H.ct + uv*uv));
+    const A2 = -H.f1*E_*(kA*H.st + b_*b_*2*eH.v1*uv*H.st);
+    T3n[i] = clip(Math.hypot(A1, A2));
+    const jv = H.d1*eH.v1 + H.d2*eH.v2;
+    const B1 = jv*E_*(b_*b_*X1[i]*uv*H.ct + b_*(eH.v1*H.ct + uv));
+    const B2 = jv*E_*(b_*b_*X1[i]*uv*H.st + b_*eH.v1*H.st);
+    JQn[i] = clip(Math.hypot(B1, B2));
   }
   const Sm = new Float64Array(Math.max(0, m-1));
   // midpoint curvature with P frozen at the iterate — recomputing P at the midpoint
@@ -2503,7 +2645,7 @@ function sim6(){
     Sm[i] = clip(symEig2(c11*Qi.q11 + c12*Qi.q12, c11*Qi.q12 + c12*Qi.q22,
                          c21*Qi.q12 + c22*Qi.q22).lam);
   }
-  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv,
+  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn,
            CK: lagCosArrays(uS1, uS2, m),
            RK: lagCosArrays(rr1, rr2, m),
            GK1: lagCosArrays(ug1, ug2, m)[0], n, div,
@@ -2691,6 +2833,8 @@ function drawAdaptive(px, RR, t, lr){
   drawSymlogStrip($(px + 's8'), RR, t, RR.Ruv, PAL.nt[2]);
   drawCosStrip($(px + 's9'), RR, t, RR.CK, RR.GK1);
   drawCosStrip($(px + 's10'), RR, t, RR.RK);
+  drawSymlogStrip($(px + 's11'), RR, t, RR.JS1, PAL.now);
+  drawNormsStrip($(px + 's12'), RR, t);
 }
 function statusAdaptive(RR, t, lr){
   const up = Math.min(Math.round(t), RR.n);
@@ -2851,6 +2995,8 @@ bindStrip($('c5s7'), i => `t=${i}\nr·(JP∇̂S_P)=${fmt(R5.Rq[i])}`, apply5);
 bindStrip($('c5s8'), i => `t=${i}\nr·(JPu)=${fmt(R5.Ruv[i])}`, apply5);
 bindStrip($('c5s9'), i => `t=${i}\ncos(J∇S): ${cosTip('c5s9', [['∇Sk1', R5.GK1]].concat(KLAGS.map((k, s) => ['k' + k, R5.CK[s]])), i)}`, apply5);
 bindStrip($('c5s10'), i => `t=${i}\ncos(r): ${cosTip('c5s10', KLAGS.map((k, s) => ['l' + k, R5.RK[s]]), i)}`, apply5);
+bindStrip($('c5s11'), i => `t=${i}\nΣ ∇fᵢ·∇̂S* = ${fmt(R5.JS1[i])}`, apply5);
+bindStrip($('c5s12'), i => `t=${i}\n‖Σ rᵢ∇³fᵢ[v,v,·]‖ = ${fmt(R5.T3n[i])}\n‖Σ (Jv)ᵢ∇²fᵢv‖ = ${fmt(R5.JQn[i])}`, apply5);
 bindStrip($('c6s1'), i => `t=${i}\nL=${fmt(R6.L[i])}`, apply6);
 bindStrip($('c6s2'), i => `t=${i}\nλ(PH)=${fmt(R6.S[i])}\n2/η=${fmt(2/P6.lr)}`, apply6);
 bindStrip($('c6s3'), i => `t=${i}\n‖r‖=${fmt(R6.rn[i])}`, apply6);
@@ -2861,11 +3007,13 @@ bindStrip($('c6s7'), i => `t=${i}\nr·(JP∇̂S_P)=${fmt(R6.Rq[i])}`, apply6);
 bindStrip($('c6s8'), i => `t=${i}\nr·(JPu)=${fmt(R6.Ruv[i])}`, apply6);
 bindStrip($('c6s9'), i => `t=${i}\ncos(J∇S): ${cosTip('c6s9', [['∇Sk1', R6.GK1]].concat(KLAGS.map((k, s) => ['k' + k, R6.CK[s]])), i)}`, apply6);
 bindStrip($('c6s10'), i => `t=${i}\ncos(r): ${cosTip('c6s10', KLAGS.map((k, s) => ['l' + k, R6.RK[s]]), i)}`, apply6);
+bindStrip($('c6s11'), i => `t=${i}\nΣ ∇fᵢ·∇̂S* = ${fmt(R6.JS1[i])}`, apply6);
+bindStrip($('c6s12'), i => `t=${i}\n‖Σ rᵢ∇³fᵢ[v,v,·]‖ = ${fmt(R6.T3n[i])}\n‖Σ (Jv)ᵢ∇²fᵢv‖ = ${fmt(R6.JQn[i])}`, apply6);
 $('p5csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R5.n; i++)
-    rows.push([i, R5.xs[i], R5.r[i], R5.L[i], R5.S[i], R5.Xt[i], R5.GdS[i], R5.Ru[i], R5.Rq[i], R5.Ruv[i], R5.CK[0][i], R5.CK[1][i], R5.CK[2][i], R5.CK[3][i], R5.RK[0][i], R5.RK[1][i], R5.RK[2][i], R5.RK[3][i]].join(','));
-  const blob = new Blob(['t,x,r,L,lamPH,xT,pgDotGradSP,rDotU,rDotJPGradS,rDotJPu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10\n' + rows.join('\n')], { type: 'text/csv' });
+    rows.push([i, R5.xs[i], R5.r[i], R5.L[i], R5.S[i], R5.Xt[i], R5.GdS[i], R5.Ru[i], R5.Rq[i], R5.Ruv[i], R5.CK[0][i], R5.CK[1][i], R5.CK[2][i], R5.CK[3][i], R5.RK[0][i], R5.RK[1][i], R5.RK[2][i], R5.RK[3][i], R5.JS1[i], R5.T3n[i], R5.JQn[i]].join(','));
+  const blob = new Blob(['t,x,r,L,lamPH,xT,pgDotGradSP,rDotU,rDotJPGradS,rDotJPu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10,sumJdS,normT3,normJQ\n' + rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'eos_adaptive_1d.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
@@ -2873,8 +3021,8 @@ $('p5csv').addEventListener('click', () => {
 $('p6csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R6.n; i++)
-    rows.push([i, R6.x1[i], R6.x2[i], R6.L[i], R6.S[i], R6.Xt[i], R6.GdS[i], R6.Ru[i], R6.Rq[i], R6.Ruv[i], R6.CK[0][i], R6.CK[1][i], R6.CK[2][i], R6.CK[3][i], R6.RK[0][i], R6.RK[1][i], R6.RK[2][i], R6.RK[3][i]].join(','));
-  const blob = new Blob(['t,w1,w2,L,lamPH,xT,pgDotGradSP,rDotU,rDotJPGradS,rDotJPu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10\n' + rows.join('\n')], { type: 'text/csv' });
+    rows.push([i, R6.x1[i], R6.x2[i], R6.L[i], R6.S[i], R6.Xt[i], R6.GdS[i], R6.Ru[i], R6.Rq[i], R6.Ruv[i], R6.CK[0][i], R6.CK[1][i], R6.CK[2][i], R6.CK[3][i], R6.RK[0][i], R6.RK[1][i], R6.RK[2][i], R6.RK[3][i], R6.JS1[i], R6.T3n[i], R6.JQn[i]].join(','));
+  const blob = new Blob(['t,w1,w2,L,lamPH,xT,pgDotGradSP,rDotU,rDotJPGradS,rDotJPu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10,sumJdS,normT3,normJQ\n' + rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'eos_adaptive_valley.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
@@ -2904,8 +3052,8 @@ $('tab6').addEventListener('click', () => switchTab(6));
 /* ---------- CSV / hash ---------- */
 $('csvb').addEventListener('click', () => {
   const rows = [];
-  for (let i = 0; i <= R.n; i++) rows.push([i, R.xs[i], R.f[i], R.r[i], R.L[i], R.S[i], R.Xt[i], R.GdS[i], R.Ru[i], R.Rq[i], R.Ruv[i], R.CK[0][i], R.CK[1][i], R.CK[2][i], R.CK[3][i], R.RK[0][i], R.RK[1][i], R.RK[2][i], R.RK[3][i]].join(','));
-  const blob = new Blob(['t,x,f,r,L,S,xT,gDotGradS,rDotU,rDotJGradS,rDotJu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10\n' + rows.join('\n')], { type: 'text/csv' });
+  for (let i = 0; i <= R.n; i++) rows.push([i, R.xs[i], R.f[i], R.r[i], R.L[i], R.S[i], R.Xt[i], R.GdS[i], R.Ru[i], R.Rq[i], R.Ruv[i], R.CK[0][i], R.CK[1][i], R.CK[2][i], R.CK[3][i], R.RK[0][i], R.RK[1][i], R.RK[2][i], R.RK[3][i], R.JS1[i], R.T3n[i], R.JQn[i]].join(','));
+  const blob = new Blob(['t,x,f,r,L,S,xT,gDotGradS,rDotU,rDotJGradS,rDotJu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10,sumJdS,normT3,normJQ\n' + rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'eos_concave.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
