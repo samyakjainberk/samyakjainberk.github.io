@@ -102,7 +102,7 @@
   .hero{grid-column:1 / -1}
   canvas.plot{width:100%; display:block; touch-action:none; border-radius:6px}
   #chero,#clhero{height:340px}
-  #cs1,#cs2,#cs3,#cs4,#cs5,#cs6,#cs7,#cs8,#c3s1,#c3s2,#c3s3,#c3s4,#c3s5,#c3s6,#c3s7,#c3s8,#c5s1,#c5s2,#c5s3,#c5s4,#c5s5,#c5s6,#c5s7,#c5s8,#c6s1,#c6s2,#c6s3,#c6s4,#c6s5,#c6s6,#c6s7,#c6s8{height:172px}
+  #cs1,#cs2,#cs3,#cs4,#cs5,#cs6,#cs7,#cs8,#c3s1,#c3s2,#c3s3,#c3s4,#c3s5,#c3s6,#c3s7,#c3s8,#c5s1,#c5s2,#c5s3,#c5s4,#c5s5,#c5s6,#c5s7,#c5s8,#c6s1,#c6s2,#c6s3,#c6s4,#c6s5,#c6s6,#c6s7,#c6s8,#cs9,#c3s9,#c5s9,#c6s9,#cs10,#c3s10,#c5s10,#c6s10{height:172px}
   #c3f,#c3L{height:380px}
   #c5f,#c5L{height:340px}
   #c6f,#c6L{height:380px}
@@ -268,6 +268,30 @@
       <p class="cap">r·sign(f′·u), u a fixed random scalar · the generic baseline (±r in 1-D)</p>
       <canvas class="plot" id="cs8" role="img" aria-label="residual projection on a random direction versus step"></canvas>
     </div>
+    <div class="card">
+      <h3>Direction memory of J∇S — cos at lag k</h3>
+      <p class="cap">cos(J∇S(t), J∇S(t+k)) for k = 1, 2, 5, 10 · in 1-D this is sign(f′S′)(t)·sign(f′S′)(t+k) = ±1 — drops to −1 mark direction reversals</p>
+      <canvas class="plot" id="cs9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>k = 1</span>
+        <span><i class="sw" style="background:var(--now)"></i>k = 2</span>
+        <span><i class="sw" style="background:var(--accent)"></i>k = 5</span>
+        <span><i class="sw" style="background:var(--nt3)"></i>k = 10</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Direction memory of the residual — cos at lag l</h3>
+      <p class="cap">cos(r(t), r(t+l)) for l = 1, 2, 5, 10 · in 1-D this is sign(r_t)·sign(r_{t+l}) = ±1 — odd-lag −1 means the residual straddles the crossing every step</p>
+      <canvas class="plot" id="cs10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
+        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
+        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
+        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
+      </div>
+    </div>
+
+
 
   </div>
 </section>
@@ -409,6 +433,30 @@
       <p class="cap">r·(Ju)/‖Ju‖, u a fixed random parameter direction — the generic-direction baseline for the structured projections above · symlog</p>
       <canvas class="plot" id="c3s8" role="img" aria-label="residual projection on the image of a random parameter direction versus step"></canvas>
     </div>
+    <div class="card">
+      <h3>Direction memory of J∇S — cos(û(t), û(t+k))</h3>
+      <p class="cap">û = normalize(J∇S), lags k = 1, 2, 5, 10 · during the locked ride odd lags sit near −1 (the vector mirror-swings every step) while even lags return to +1; during the approach all lags stay at +1</p>
+      <canvas class="plot" id="c3s9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>k = 1</span>
+        <span><i class="sw" style="background:var(--now)"></i>k = 2</span>
+        <span><i class="sw" style="background:var(--accent)"></i>k = 5</span>
+        <span><i class="sw" style="background:var(--nt3)"></i>k = 10</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Direction memory of the residual — cos(r̂(t), r̂(t+l))</h3>
+      <p class="cap">r = (−f₁, y₂−μs), lags l = 1, 2, 5, 10 · during the period-2 ride the odd-lag value equals (r₂²−f₁²)/(r₂²+f₁²): it measures how much of the residual is the oscillating component</p>
+      <canvas class="plot" id="c3s10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
+        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
+        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
+        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
+      </div>
+    </div>
+
+
 
   </div>
 </section>
@@ -536,6 +584,30 @@
       <p class="cap">r·normalize(J·P·u), u a fixed random parameter direction · the generic baseline · symlog</p>
       <canvas class="plot" id="c5s8" role="img" aria-label="residual projection on the image of a random direction versus step"></canvas>
     </div>
+    <div class="card">
+      <h3>Direction memory of JP∇S_P — cos at lag k</h3>
+      <p class="cap">cos(JP∇S_P(t), JP∇S_P(t+k)) for k = 1, 2, 5, 10 · 1-D: ±1 sign products — drops to −1 mark direction reversals</p>
+      <canvas class="plot" id="c5s9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>k = 1</span>
+        <span><i class="sw" style="background:var(--now)"></i>k = 2</span>
+        <span><i class="sw" style="background:var(--accent)"></i>k = 5</span>
+        <span><i class="sw" style="background:var(--nt3)"></i>k = 10</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Direction memory of the residual — cos at lag l</h3>
+      <p class="cap">cos(r(t), r(t+l)) for l = 1, 2, 5, 10 · 1-D: ±1 sign products — odd-lag −1 means the residual straddles the crossing every step</p>
+      <canvas class="plot" id="c5s10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
+        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
+        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
+        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
+      </div>
+    </div>
+
+
 
   </div>
 </section>
@@ -665,6 +737,30 @@
       <p class="cap">r·normalize(J·P·u), u a fixed random parameter direction · the generic baseline · symlog</p>
       <canvas class="plot" id="c6s8" role="img" aria-label="residual projection on the image of a random direction versus step"></canvas>
     </div>
+    <div class="card">
+      <h3>Direction memory of JP∇S_P — cos(û(t), û(t+k))</h3>
+      <p class="cap">û = normalize(J·P·∇S_P), lags k = 1, 2, 5, 10 · odd-lag ≈ −1 with even-lag ≈ +1 is the period-2 mirror swing of the locked ride</p>
+      <canvas class="plot" id="c6s9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>k = 1</span>
+        <span><i class="sw" style="background:var(--now)"></i>k = 2</span>
+        <span><i class="sw" style="background:var(--accent)"></i>k = 5</span>
+        <span><i class="sw" style="background:var(--nt3)"></i>k = 10</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Direction memory of the residual — cos(r̂(t), r̂(t+l))</h3>
+      <p class="cap">r = (−f₁, y₂−μs), lags l = 1, 2, 5, 10 · odd-lag &lt; 0 ⇔ the oscillating component f₁ dominates the steady component r₂</p>
+      <canvas class="plot" id="c6s10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
+        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
+        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
+        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
+      </div>
+    </div>
+
+
 
   </div>
 </section>
@@ -818,7 +914,8 @@ function sim(){
   const f = new Float64Array(m), r = new Float64Array(m), L = new Float64Array(m),
         S = new Float64Array(m), rbar = new Float64Array(m), Xt = new Float64Array(m),
         rn = new Float64Array(m), GdS = new Float64Array(m), Ru = new Float64Array(m),
-        Rq = new Float64Array(m), Ruv = new Float64Array(m);
+        Rq = new Float64Array(m), Ruv = new Float64Array(m),
+        sg = new Float64Array(m), sgr = new Float64Array(m);
   const clip = v => Math.max(-1e150, Math.min(1e150, v));
   const ur = Math.cos(2.399963);   // fixed random scalar direction u (sign is what matters in 1-D)
   for (let i = 0; i < m; i++){
@@ -836,13 +933,17 @@ function sim(){
     Ru[i] = clip(r[i]*sF);                         // û = normalize(J·v1) = sign(f′)
     const sFS = fp*Sp > 0 ? 1 : fp*Sp < 0 ? -1 : 0;
     Rq[i] = clip(r[i]*sFS);                        // normalize(J·∇S) = sign(f′·S′)
+    sg[i] = sFS;
+    sgr[i] = r[i] > 0 ? 1 : r[i] < 0 ? -1 : 0;
     const sFU = fp*ur > 0 ? 1 : fp*ur < 0 ? -1 : 0;
     Ruv[i] = clip(r[i]*sFU);                       // normalize(J·u) = sign(f′·u)
   }
   const Sm = new Float64Array(Math.max(0, m-1));
   for (let i = 0; i+1 < m; i++) Sm[i] = clip(S1(0.5*(xs[i]+xs[i+1])));
   const gEnd = 2*(f[m-1] - P.y)*clip(fP(xs[m-1]));
-  return { xs, f, r, L, S, Sm, rbar, rn, Xt, GdS, Ru, Rq, Ruv, n, div,
+  return { xs, f, r, L, S, Sm, rbar, rn, Xt, GdS, Ru, Rq, Ruv,
+           CK: lagCosArrays(sg, new Float64Array(m), m),
+           RK: lagCosArrays(sgr, new Float64Array(m), m), n, div,
            conv: !div && L[m-1] < 1e-10,
            stalled: !div && Math.abs(gEnd) < 1e-9 && L[m-1] > 1e-6 };
 }
@@ -1137,6 +1238,8 @@ function drawAll(){
   drawSymlogStrip($('cs6'), R, tCur, R.Ru, PAL.sharpmid);
   drawSymlogStrip($('cs7'), R, tCur, R.Rq, PAL.accent);
   drawSymlogStrip($('cs8'), R, tCur, R.Ruv, PAL.nt[2]);
+  drawCosStrip($('cs9'), R, tCur, R.CK);
+  drawCosStrip($('cs10'), R, tCur, R.RK);
   const up = Math.min(Math.round(tCur), R.n);
   const ratio = R.S[up]*P.lr/2;
   let cls = PAL.good, txt = 'stable';
@@ -1316,6 +1419,8 @@ bindStrip($('cs5'), i => `t=${i}\ng·∇̂S=${fmt(R.GdS[i])}`, apply1);
 bindStrip($('cs6'), i => `t=${i}\nr·û=${fmt(R.Ru[i])}`, apply1);
 bindStrip($('cs7'), i => `t=${i}\nr·(J∇̂S)=${fmt(R.Rq[i])}`, apply1);
 bindStrip($('cs8'), i => `t=${i}\nr·(Ĵu)=${fmt(R.Ruv[i])}`, apply1);
+bindStrip($('cs9'), i => `t=${i}\ncos(J∇S): k1=${fmt(R.CK[0][i])} k2=${fmt(R.CK[1][i])} k5=${fmt(R.CK[2][i])} k10=${fmt(R.CK[3][i])}`, apply1);
+bindStrip($('cs10'), i => `t=${i}\ncos(r): l1=${fmt(R.RK[0][i])} l2=${fmt(R.RK[1][i])} l5=${fmt(R.RK[2][i])} l10=${fmt(R.RK[3][i])}`, apply1);
 
 /* ---------- shared helpers (kept from removed panels) ---------- */
 const GN = 46;
@@ -1408,7 +1513,9 @@ function sim3(){
   const f = new Float64Array(m), r2 = new Float64Array(m), L = new Float64Array(m),
         rn = new Float64Array(m), S = new Float64Array(m),
         Xt = new Float64Array(m), GdS = new Float64Array(m),
-        Ru = new Float64Array(m), Rq = new Float64Array(m), Ruv = new Float64Array(m);
+        Ru = new Float64Array(m), Rq = new Float64Array(m), Ruv = new Float64Array(m),
+        uS1 = new Float64Array(m), uS2 = new Float64Array(m),
+        rr1 = new Float64Array(m), rr2 = new Float64Array(m);
   // fixed pseudo-random parameter direction u (golden angle; identical every run)
   const uphi = 2.399963, ur1 = Math.cos(uphi), ur2 = Math.sin(uphi);
   const clip3 = v => Math.max(-1e150, Math.min(1e150, v));
@@ -1418,6 +1525,7 @@ function sim3(){
     f[i] = clip3(H.f1); r2[i] = clip3(H.r2);
     L[i] = Math.min(H.f1*H.f1 + H.r2*H.r2, 1e300);
     rn[i] = Math.sqrt(L[i]);
+    if (rn[i] > 1e-300){ rr1[i] = -H.f1/rn[i]; rr2[i] = H.r2/rn[i]; }
     S[i] = clip3(0.5*(H.h11 + H.h22) + Math.hypot(0.5*(H.h11 - H.h22), H.h12));
     // v1 (top eigenvector, orientation continuous) and x_t = g·v1
     const sp3 = gradSplit(H.h11, H.h22, H.h12, H.g1, H.g2);
@@ -1438,6 +1546,7 @@ function sim3(){
     const jq1 = H.d1*gS1 + H.d2*gS2, jq2 = mu*(ct*gS1 + st*gS2);
     const nq = Math.hypot(jq1, jq2);
     Rq[i] = nq > 1e-12 ? clip3((-H.f1*jq1 + H.r2*jq2)/nq) : 0;
+    if (nq > 1e-12){ uS1[i] = jq1/nq; uS2[i] = jq2/nq; }
     const jr1 = H.d1*ur1 + H.d2*ur2, jr2 = mu*(ct*ur1 + st*ur2);
     const nr = Math.hypot(jr1, jr2);
     Ruv[i] = nr > 1e-300 ? clip3((-H.f1*jr1 + H.r2*jr2)/nr) : 0;
@@ -1445,7 +1554,8 @@ function sim3(){
   const Sm = new Float64Array(Math.max(0, m-1));
   for (let i = 0; i+1 < m; i++) Sm[i] = clip3(lam3(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1])));
   return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), f, r2, L, rn, S, Sm,
-           Xt, GdS, Ru, Rq, Ruv, n, div, conv: !div && L[m-1] < 1e-10 };
+           Xt, GdS, Ru, Rq, Ruv, CK: lagCosArrays(uS1, uS2, m),
+           RK: lagCosArrays(rr1, rr2, m), n, div, conv: !div && L[m-1] < 1e-10 };
 }
 function arrowHead(ctx, x, y, ux, uy){
   const nrm = Math.hypot(ux, uy) || 1; ux /= nrm; uy /= nrm;
@@ -1793,6 +1903,8 @@ function drawAll3(){
   drawSymlogStrip($('c3s6'), R3, t3, R3.Ru, PAL.sharpmid);
   drawSymlogStrip($('c3s7'), R3, t3, R3.Rq, PAL.accent);
   drawSymlogStrip($('c3s8'), R3, t3, R3.Ruv, PAL.nt[2]);
+  drawCosStrip($('c3s9'), R3, t3, R3.CK);
+  drawCosStrip($('c3s10'), R3, t3, R3.RK);
   const up = Math.min(Math.round(t3), R3.n);
   const ratio = R3.S[up]*P3.lr/2;
   let cls = PAL.good, txt = 'stable';
@@ -1906,10 +2018,12 @@ bindStrip($('c3s5'), i => `t=${i}\ng·∇̂S=${fmt(R3.GdS[i])}`, apply3);
 bindStrip($('c3s6'), i => `t=${i}\nr·û=${fmt(R3.Ru[i])}`, apply3);
 bindStrip($('c3s7'), i => `t=${i}\nr·(J∇̂S)=${fmt(R3.Rq[i])}`, apply3);
 bindStrip($('c3s8'), i => `t=${i}\nr·(Ĵu)=${fmt(R3.Ruv[i])}`, apply3);
+bindStrip($('c3s9'), i => `t=${i}\ncos(J∇S): k1=${fmt(R3.CK[0][i])} k2=${fmt(R3.CK[1][i])} k5=${fmt(R3.CK[2][i])} k10=${fmt(R3.CK[3][i])}`, apply3);
+bindStrip($('c3s10'), i => `t=${i}\ncos(r): l1=${fmt(R3.RK[0][i])} l2=${fmt(R3.RK[1][i])} l5=${fmt(R3.RK[2][i])} l10=${fmt(R3.RK[3][i])}`, apply3);
 $('p3csv').addEventListener('click', () => {
   const rows = [];
-  for (let i = 0; i <= R3.n; i++) rows.push([i, R3.x1[i], R3.x2[i], R3.f[i], R3.r2[i], R3.L[i], R3.S[i], R3.Xt[i], R3.GdS[i], R3.Ru[i], R3.Rq[i], R3.Ruv[i]].join(','));
-  const blob = new Blob(['t,w1,w2,f1,r2,L,lamMax,xT,gDotGradS,rDotU,rDotJGradS,rDotJu\n' + rows.join('\n')], { type: 'text/csv' });
+  for (let i = 0; i <= R3.n; i++) rows.push([i, R3.x1[i], R3.x2[i], R3.f[i], R3.r2[i], R3.L[i], R3.S[i], R3.Xt[i], R3.GdS[i], R3.Ru[i], R3.Rq[i], R3.Ruv[i], R3.CK[0][i], R3.CK[1][i], R3.CK[2][i], R3.CK[3][i], R3.RK[0][i], R3.RK[1][i], R3.RK[2][i], R3.RK[3][i]].join(','));
+  const blob = new Blob(['t,w1,w2,f1,r2,L,lamMax,xT,gDotGradS,rDotU,rDotJGradS,rDotJu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10\n' + rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'eos_theta.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
@@ -1951,6 +2065,33 @@ function drawSymlogStrip(cv, RR, t, arr, color){
   cv._map = { A, n: F.n };
 }
 
+
+/* ---------- lag-cosine of the J∇S direction (shared by all four panels) ---------- */
+const KLAGS = [1, 2, 5, 10];
+function lagCosArrays(u1, u2, m){
+  // u1/u2: components of the unit J∇S direction per step (1-D panels pass sign in u1, u2 = 0)
+  return KLAGS.map(k => {
+    const C = new Float64Array(m);
+    for (let i = 0; i < m; i++){
+      const j = Math.min(i + k, m - 1);
+      C[i] = u1[i]*u1[j] + u2[i]*u2[j];
+    }
+    return C;
+  });
+}
+function drawCosStrip(cv, RR, t, KA){
+  const F = stripFrame(cv, t, RR.n), ctx = F.ctx, A = F.A;
+  const lo = -1.15, hi = 1.15;
+  A.y = v => A.t + (hi - clamp(v, lo, hi))/(hi - lo)*A.h;
+  axes(ctx, A, ticks(0, F.n, 6), [-1, -0.5, 0, 0.5, 1], fmt, fmt);
+  ctx.strokeStyle = PAL.axis; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(A.l, A.y(0)); ctx.lineTo(A.l+A.w, A.y(0)); ctx.stroke();
+  const cols = [PAL.sharp, PAL.now, PAL.accent, PAL.nt[2]];
+  for (let s = 0; s < KA.length; s++)
+    lineSeries(ctx, A, KA[s], KA[s].length, F.st, 0, cols[s], F.up+1);
+  cursorLine(ctx, A, A.x(F.up));
+  cv._map = { A, n: F.n };
+}
 
 /* ================= PANELS 5 & 6 : adaptive (preconditioned) optimizers ================= */
 function symEig2(a11, a12, a22){
@@ -2001,7 +2142,8 @@ function sim5(){
   const m = n+1, clip = v => Math.max(-1e150, Math.min(1e150, v));
   const L = new Float64Array(m), rn = new Float64Array(m), S = new Float64Array(m),
         Xt = new Float64Array(m), GdS = new Float64Array(m), Ru = new Float64Array(m),
-        Rq = new Float64Array(m), Ruv = new Float64Array(m), r = new Float64Array(m);
+        Rq = new Float64Array(m), Ruv = new Float64Array(m), r = new Float64Array(m),
+        sg = new Float64Array(m), sgr = new Float64Array(m);
   for (let i = 0; i < m; i++){
     const f = clip(fv5(xs[i])), fp = clip(fp5(xs[i]));
     r[i] = P5.y - f; L[i] = r[i]*r[i]; rn[i] = Math.abs(r[i]);
@@ -2014,14 +2156,19 @@ function sim5(){
     GdS[i] = clip(Xt[i]*sSp);
     const sF = fp > 0 ? 1 : fp < 0 ? -1 : 0;
     Ru[i] = clip(r[i]*sF);
-    Rq[i] = clip(r[i]*(fp*Pv*Sp > 0 ? 1 : fp*Pv*Sp < 0 ? -1 : 0));
+    const sQ = fp*Pv*Sp > 0 ? 1 : fp*Pv*Sp < 0 ? -1 : 0;
+    Rq[i] = clip(r[i]*sQ);
+    sg[i] = sQ;
+    sgr[i] = r[i] > 0 ? 1 : r[i] < 0 ? -1 : 0;
     Ruv[i] = clip(r[i]*(fp*Pv*UPHI5 > 0 ? 1 : fp*Pv*UPHI5 < 0 ? -1 : 0));
   }
   const Sm = new Float64Array(Math.max(0, m-1));
   // midpoint curvature with P frozen at the iterate — recomputing P at the midpoint
   // blows up where the hop's gradient nearly vanishes
   for (let i = 0; i+1 < m; i++) Sm[i] = clip(pre5(xs[i]) * S5(0.5*(xs[i]+xs[i+1])));
-  return { xs: xs.subarray(0,m), r, L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv, n, div,
+  return { xs: xs.subarray(0,m), r, L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv,
+           CK: lagCosArrays(sg, new Float64Array(m), m),
+           RK: lagCosArrays(sgr, new Float64Array(m), m), n, div,
            conv: !div && L[m-1] < 1e-10 };
 }
 
@@ -2219,11 +2366,14 @@ function sim6(){
   const m = n+1, clip = v => Math.max(-1e150, Math.min(1e150, v));
   const L = new Float64Array(m), rn = new Float64Array(m), S = new Float64Array(m),
         Xt = new Float64Array(m), GdS = new Float64Array(m), Ru = new Float64Array(m),
-        Rq = new Float64Array(m), Ruv = new Float64Array(m);
+        Rq = new Float64Array(m), Ruv = new Float64Array(m),
+        uS1 = new Float64Array(m), uS2 = new Float64Array(m),
+        rr1 = new Float64Array(m), rr2 = new Float64Array(m);
   let pv1 = null, pv2 = 0;
   for (let i = 0; i < m; i++){
     const H = hess6(X1[i], X2[i]);
     L[i] = Math.min(H.f1*H.f1 + H.r2*H.r2, 1e300); rn[i] = Math.sqrt(L[i]);
+    if (rn[i] > 1e-300){ rr1[i] = -H.f1/rn[i]; rr2[i] = H.r2/rn[i]; }
     const P = pre6(H), Q = symSqrt2(P.p11, P.p12, P.p22);
     const b11 = Q.q11*H.h11 + Q.q12*H.h12, b12 = Q.q11*H.h12 + Q.q12*H.h22;
     const b21 = Q.q12*H.h11 + Q.q22*H.h12, b22 = Q.q12*H.h12 + Q.q22*H.h22;
@@ -2249,6 +2399,7 @@ function sim6(){
     const jq1 = H.d1*pq1 + H.d2*pq2, jq2 = mu*(H.ct*pq1 + H.st*pq2);
     const nq = Math.hypot(jq1, jq2);
     Rq[i] = nq > 1e-12 ? clip((-H.f1*jq1 + H.r2*jq2)/nq) : 0;
+    if (nq > 1e-12){ uS1[i] = jq1/nq; uS2[i] = jq2/nq; }
     const pu1 = P.p11*UPHI6a + P.p12*UPHI6b, pu2 = P.p12*UPHI6a + P.p22*UPHI6b;
     const jr1 = H.d1*pu1 + H.d2*pu2, jr2 = mu*(H.ct*pu1 + H.st*pu2);
     const nr = Math.hypot(jr1, jr2);
@@ -2266,7 +2417,9 @@ function sim6(){
     Sm[i] = clip(symEig2(c11*Qi.q11 + c12*Qi.q12, c11*Qi.q12 + c12*Qi.q22,
                          c21*Qi.q12 + c22*Qi.q22).lam);
   }
-  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv, n, div,
+  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv,
+           CK: lagCosArrays(uS1, uS2, m),
+           RK: lagCosArrays(rr1, rr2, m), n, div,
            conv: !div && L[m-1] < 1e-10 };
 }
 
@@ -2449,6 +2602,8 @@ function drawAdaptive(px, RR, t, lr){
   drawSymlogStrip($(px + 's6'), RR, t, RR.Ru, PAL.sharpmid);
   drawSymlogStrip($(px + 's7'), RR, t, RR.Rq, PAL.accent);
   drawSymlogStrip($(px + 's8'), RR, t, RR.Ruv, PAL.nt[2]);
+  drawCosStrip($(px + 's9'), RR, t, RR.CK);
+  drawCosStrip($(px + 's10'), RR, t, RR.RK);
 }
 function statusAdaptive(RR, t, lr){
   const up = Math.min(Math.round(t), RR.n);
@@ -2607,6 +2762,8 @@ bindStrip($('c5s5'), i => `t=${i}\n(Pg)·∇̂S_P=${fmt(R5.GdS[i])}`, apply5);
 bindStrip($('c5s6'), i => `t=${i}\nr·û=${fmt(R5.Ru[i])}`, apply5);
 bindStrip($('c5s7'), i => `t=${i}\nr·(JP∇̂S_P)=${fmt(R5.Rq[i])}`, apply5);
 bindStrip($('c5s8'), i => `t=${i}\nr·(JPu)=${fmt(R5.Ruv[i])}`, apply5);
+bindStrip($('c5s9'), i => `t=${i}\ncos(J∇S): k1=${fmt(R5.CK[0][i])} k2=${fmt(R5.CK[1][i])} k5=${fmt(R5.CK[2][i])} k10=${fmt(R5.CK[3][i])}`, apply5);
+bindStrip($('c5s10'), i => `t=${i}\ncos(r): l1=${fmt(R5.RK[0][i])} l2=${fmt(R5.RK[1][i])} l5=${fmt(R5.RK[2][i])} l10=${fmt(R5.RK[3][i])}`, apply5);
 bindStrip($('c6s1'), i => `t=${i}\nL=${fmt(R6.L[i])}`, apply6);
 bindStrip($('c6s2'), i => `t=${i}\nλ(PH)=${fmt(R6.S[i])}\n2/η=${fmt(2/P6.lr)}`, apply6);
 bindStrip($('c6s3'), i => `t=${i}\n‖r‖=${fmt(R6.rn[i])}`, apply6);
@@ -2615,11 +2772,13 @@ bindStrip($('c6s5'), i => `t=${i}\n(Pg)·∇̂S_P=${fmt(R6.GdS[i])}`, apply6);
 bindStrip($('c6s6'), i => `t=${i}\nr·û=${fmt(R6.Ru[i])}`, apply6);
 bindStrip($('c6s7'), i => `t=${i}\nr·(JP∇̂S_P)=${fmt(R6.Rq[i])}`, apply6);
 bindStrip($('c6s8'), i => `t=${i}\nr·(JPu)=${fmt(R6.Ruv[i])}`, apply6);
+bindStrip($('c6s9'), i => `t=${i}\ncos(J∇S): k1=${fmt(R6.CK[0][i])} k2=${fmt(R6.CK[1][i])} k5=${fmt(R6.CK[2][i])} k10=${fmt(R6.CK[3][i])}`, apply6);
+bindStrip($('c6s10'), i => `t=${i}\ncos(r): l1=${fmt(R6.RK[0][i])} l2=${fmt(R6.RK[1][i])} l5=${fmt(R6.RK[2][i])} l10=${fmt(R6.RK[3][i])}`, apply6);
 $('p5csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R5.n; i++)
-    rows.push([i, R5.xs[i], R5.r[i], R5.L[i], R5.S[i], R5.Xt[i], R5.GdS[i], R5.Ru[i], R5.Rq[i], R5.Ruv[i]].join(','));
-  const blob = new Blob(['t,x,r,L,lamPH,xT,pgDotGradSP,rDotU,rDotJPGradS,rDotJPu\n' + rows.join('\n')], { type: 'text/csv' });
+    rows.push([i, R5.xs[i], R5.r[i], R5.L[i], R5.S[i], R5.Xt[i], R5.GdS[i], R5.Ru[i], R5.Rq[i], R5.Ruv[i], R5.CK[0][i], R5.CK[1][i], R5.CK[2][i], R5.CK[3][i], R5.RK[0][i], R5.RK[1][i], R5.RK[2][i], R5.RK[3][i]].join(','));
+  const blob = new Blob(['t,x,r,L,lamPH,xT,pgDotGradSP,rDotU,rDotJPGradS,rDotJPu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10\n' + rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'eos_adaptive_1d.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
@@ -2627,8 +2786,8 @@ $('p5csv').addEventListener('click', () => {
 $('p6csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R6.n; i++)
-    rows.push([i, R6.x1[i], R6.x2[i], R6.L[i], R6.S[i], R6.Xt[i], R6.GdS[i], R6.Ru[i], R6.Rq[i], R6.Ruv[i]].join(','));
-  const blob = new Blob(['t,w1,w2,L,lamPH,xT,pgDotGradSP,rDotU,rDotJPGradS,rDotJPu\n' + rows.join('\n')], { type: 'text/csv' });
+    rows.push([i, R6.x1[i], R6.x2[i], R6.L[i], R6.S[i], R6.Xt[i], R6.GdS[i], R6.Ru[i], R6.Rq[i], R6.Ruv[i], R6.CK[0][i], R6.CK[1][i], R6.CK[2][i], R6.CK[3][i], R6.RK[0][i], R6.RK[1][i], R6.RK[2][i], R6.RK[3][i]].join(','));
+  const blob = new Blob(['t,w1,w2,L,lamPH,xT,pgDotGradSP,rDotU,rDotJPGradS,rDotJPu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10\n' + rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'eos_adaptive_valley.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
@@ -2658,8 +2817,8 @@ $('tab6').addEventListener('click', () => switchTab(6));
 /* ---------- CSV / hash ---------- */
 $('csvb').addEventListener('click', () => {
   const rows = [];
-  for (let i = 0; i <= R.n; i++) rows.push([i, R.xs[i], R.f[i], R.r[i], R.L[i], R.S[i], R.Xt[i], R.GdS[i], R.Ru[i], R.Rq[i], R.Ruv[i]].join(','));
-  const blob = new Blob(['t,x,f,r,L,S,xT,gDotGradS,rDotU,rDotJGradS,rDotJu\n' + rows.join('\n')], { type: 'text/csv' });
+  for (let i = 0; i <= R.n; i++) rows.push([i, R.xs[i], R.f[i], R.r[i], R.L[i], R.S[i], R.Xt[i], R.GdS[i], R.Ru[i], R.Rq[i], R.Ruv[i], R.CK[0][i], R.CK[1][i], R.CK[2][i], R.CK[3][i], R.RK[0][i], R.RK[1][i], R.RK[2][i], R.RK[3][i]].join(','));
+  const blob = new Blob(['t,x,f,r,L,S,xT,gDotGradS,rDotU,rDotJGradS,rDotJu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10\n' + rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'eos_concave.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
