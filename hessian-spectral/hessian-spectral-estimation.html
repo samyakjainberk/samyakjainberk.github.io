@@ -986,6 +986,11 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
       <div><canvas id="ts-scree-GN" width="620" height="450" class="hidden"></canvas><div class="legend" id="ts-scree-GN-legend"></div></div>
       <div><canvas id="ts-scree-F" width="620" height="450" class="hidden"></canvas><div class="legend" id="ts-scree-F-legend"></div></div>
     </div>
+<div class="row3">
+      <div><canvas id="ts-errs-H" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-errs-H-legend"></div></div>
+      <div><canvas id="ts-errs-GN" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-errs-GN-legend"></div></div>
+      <div><canvas id="ts-errs-F" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-errs-F-legend"></div></div>
+    </div>
     <div id="ts-stats"></div>
     <canvas id="ts-loss" width="1760" height="420" class="hidden"></canvas>
     <div class="legend" id="ts-loss-legend"></div>
@@ -999,12 +1004,7 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
       <div><canvas id="ts-sharp-GN" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-sharp-GN-legend"></div></div>
       <div><canvas id="ts-sharp-F" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-sharp-F-legend"></div></div>
     </div>
-    <div class="row3">
-      <div><canvas id="ts-errs-H" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-errs-H-legend"></div></div>
-      <div><canvas id="ts-errs-GN" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-errs-GN-legend"></div></div>
-      <div><canvas id="ts-errs-F" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-errs-F-legend"></div></div>
-    </div>
-    <p class="note">One column per quantity (H, \(JJ^\top/n\), \(F = Q \cdot r\)); density and index panels share axes across columns, λ_max and error panels autoscale. Solid = exact / SLQ, dashed = block SLQ (dashed chips in the show strip too); gray dash = \(2/\eta\) (H panel), red marker = slider. Hover any panel to read off values. Axes stay fixed while scrubbing.</p>
+        <p class="note">One column per quantity (H, \(JJ^\top/n\), \(F = Q \cdot r\)); density and index panels share axes across columns, λ_max and error panels autoscale. Solid = exact / SLQ, dashed = block SLQ (dashed chips in the show strip too); gray dash = \(2/\eta\) (H panel), red marker = slider. Hover any panel to read off values. Axes stay fixed while scrubbing.</p>
   </div>
   <div id="sl-tooltip"></div>
   <div id="ts-tooltip"></div>
