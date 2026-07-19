@@ -102,7 +102,7 @@
   .hero{grid-column:1 / -1}
   canvas.plot{width:100%; display:block; touch-action:none; border-radius:6px}
   #chero,#clhero{height:340px}
-  #cs1,#cs2,#cs3,#cs4,#cs5,#cs6,#cs7,#cs8,#c3s1,#c3s2,#c3s3,#c3s4,#c3s5,#c3s6,#c3s7,#c3s8,#c5s1,#c5s2,#c5s3,#c5s4,#c5s5,#c5s6,#c5s7,#c5s8,#c6s1,#c6s2,#c6s3,#c6s4,#c6s5,#c6s6,#c6s7,#c6s8,#cs9,#c3s9,#c5s9,#c6s9,#cs10,#c3s10,#c5s10,#c6s10,#cs11,#c3s11,#c5s11,#c6s11,#cs12,#c3s12,#c5s12,#c6s12,#cs13,#c3s13,#c5s13,#c6s13{height:172px}
+  #cs1,#cs2,#cs3,#cs4,#cs5,#cs6,#cs7,#cs8,#c3s1,#c3s2,#c3s3,#c3s4,#c3s5,#c3s6,#c3s7,#c3s8,#c5s1,#c5s2,#c5s3,#c5s4,#c5s5,#c5s6,#c5s7,#c5s8,#c6s1,#c6s2,#c6s3,#c6s4,#c6s5,#c6s6,#c6s7,#c6s8,#cs9,#c3s9,#c5s9,#c6s9,#cs10,#c3s10,#c5s10,#c6s10,#cs11,#c3s11,#c5s11,#c6s11,#cs12,#c3s12,#c5s12,#c6s12,#cs13,#c3s13,#c5s13,#c6s13,#cs14,#c3s14,#c5s14,#c6s14{height:172px}
   #c3f,#c3L{height:380px}
   #c5f,#c5L{height:340px}
   #c6f,#c6L{height:380px}
@@ -315,6 +315,13 @@
       <canvas class="plot" id="cs13" role="img" aria-label="projection of the top singular vectors of the Jacobian onto the sharpness gradient direction"></canvas>
       <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ = ±x̂</span></div>
     </div>
+    <div class="card">
+      <h3>Jacobian singular directions on the frozen ∇̂S*</h3>
+      <p class="cap">1-D: sign(f′)·sign(S′*) with S′ frozen at the crossing — ±1; compare with the live-∇S version above</p>
+      <canvas class="plot" id="cs14" role="img" aria-label="projection of the Jacobian singular vectors onto the sharpness gradient frozen at the threshold crossing"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ = ±x̂</span></div>
+    </div>
+
 
 
 
@@ -505,6 +512,14 @@
       <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ (top)</span>
         <span><i class="sw" style="background:var(--accent)"></i>v₂</span></div>
     </div>
+    <div class="card">
+      <h3>Jacobian singular directions on the frozen ∇̂S*</h3>
+      <p class="cap">⟨v_k, ∇̂S*⟩ with ∇̂S* FROZEN at the first λ<sub>max</sub> &gt; 2/η crossing (not live at the iterate) — so all motion here is the Jacobian's singular frame rotating against a fixed sharpness direction · sign-continuous · p = 2 ⇒ 2 directions</p>
+      <canvas class="plot" id="c3s14" role="img" aria-label="projection of the Jacobian singular vectors onto the sharpness gradient frozen at the threshold crossing"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ (top)</span>
+        <span><i class="sw" style="background:var(--accent)"></i>v₂</span></div>
+    </div>
+
 
 
 
@@ -680,6 +695,13 @@
       <canvas class="plot" id="c5s13" role="img" aria-label="projection of the top singular vectors of the Jacobian onto the sharpness gradient direction"></canvas>
       <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ = ±x̂</span></div>
     </div>
+    <div class="card">
+      <h3>Jacobian singular directions on the frozen ∇̂S*</h3>
+      <p class="cap">1-D: sign(f′)·sign(S′*) with S′ frozen at the crossing — ±1; compare with the live-∇S version above</p>
+      <canvas class="plot" id="c5s14" role="img" aria-label="projection of the Jacobian singular vectors onto the sharpness gradient frozen at the threshold crossing"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ = ±x̂</span></div>
+    </div>
+
 
 
 
@@ -858,6 +880,14 @@
       <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ (top)</span>
         <span><i class="sw" style="background:var(--accent)"></i>v₂</span></div>
     </div>
+    <div class="card">
+      <h3>Jacobian singular directions on the frozen ∇̂S*</h3>
+      <p class="cap">⟨v_k, ∇̂S*_P⟩ with ∇̂S*_P FROZEN at the first λ(PH) &gt; 2/η crossing — all motion is J's singular frame rotating against a fixed direction · sign-continuous · p = 2 ⇒ 2 directions</p>
+      <canvas class="plot" id="c6s14" role="img" aria-label="projection of the Jacobian singular vectors onto the sharpness gradient frozen at the threshold crossing"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ (top)</span>
+        <span><i class="sw" style="background:var(--accent)"></i>v₂</span></div>
+    </div>
+
 
 
 
@@ -1026,7 +1056,7 @@ function sim(){
         Rq = new Float64Array(m), Ruv = new Float64Array(m),
         sg = new Float64Array(m), sgr = new Float64Array(m), sgS = new Float64Array(m),
         JS1 = new Float64Array(m), T3n = new Float64Array(m), JQn = new Float64Array(m),
-        EV1 = new Float64Array(m);
+        EV1 = new Float64Array(m), EF1 = new Float64Array(m);
   const clip = v => Math.max(-1e150, Math.min(1e150, v));
   const ur = Math.cos(2.399963);   // fixed random scalar direction u (sign is what matters in 1-D)
   // J (f′) and ∇S (S′) frozen at the first S > 2/η crossing — used by the J∇S charts
@@ -1066,13 +1096,14 @@ function sim(){
     // chart 13: J's singular direction on ∇̂S — 1-D: v₁ = ±x̂, ∇̂S = sign(S′) ⇒ ±1
     const sfp = fp > 0 ? 1 : fp < 0 ? -1 : 0, sSl = Sp > 0 ? 1 : Sp < 0 ? -1 : 0;
     EV1[i] = clip(sfp*sSl);
+    EF1[i] = clip(sfp*(SpJ > 0 ? 1 : SpJ < 0 ? -1 : 0));   // chart 14: frozen ∇̂S*
     const sFU = fp*ur > 0 ? 1 : fp*ur < 0 ? -1 : 0;
     Ruv[i] = clip(r[i]*sFU);                       // normalize(J·u) = sign(f′·u)
   }
   const Sm = new Float64Array(Math.max(0, m-1));
   for (let i = 0; i+1 < m; i++) Sm[i] = clip(S1(0.5*(xs[i]+xs[i+1])));
   const gEnd = 2*(f[m-1] - P.y)*clip(fP(xs[m-1]));
-  return { xs: xs.subarray(0, m), f, r, L, S, Sm, rbar, rn, Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, EV: [EV1],
+  return { xs: xs.subarray(0, m), f, r, L, S, Sm, rbar, rn, Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, EV: [EV1], EVF: [EF1],
            CK: lagCosArrays(sg, new Float64Array(m), m),
            RK: lagCosArrays(sgr, new Float64Array(m), m),
            GK1: lagCosArrays(sgS, new Float64Array(m), m)[0], n, div,
@@ -1381,7 +1412,8 @@ function drawAll(){
   drawCosStrip($('cs10'), R, tCur, R.RK);
   drawSymlogStrip($('cs11'), R, tCur, R.JS1, PAL.now);
   drawNormsStrip($('cs12'), R, tCur);
-  drawEvecStrip($('cs13'), R, tCur);
+  drawEvecStrip($('cs13'), R, tCur, R.EV);
+  drawEvecStrip($('cs14'), R, tCur, R.EVF);
   const up = Math.min(Math.round(tCur), R.n);
   const ratio = R.S[up]*P.lr/2;
   let cls = PAL.good, txt = 'stable';
@@ -1566,6 +1598,7 @@ bindStrip($('cs10'), i => `t=${i}\ncos(r): ${cosTip('cs10', KLAGS.map((k, s) => 
 bindStrip($('cs11'), i => `t=${i}\nΣ ∇fᵢ·∇̂S* = ${fmt(R.JS1[i])}`, apply1);
 bindStrip($('cs12'), i => `t=${i}\n‖Σ rᵢ∇³fᵢ[v,v,·]‖ = ${fmt(R.T3n[i])}\n‖Σ (Jv)ᵢ∇²fᵢv‖ = ${fmt(R.JQn[i])}`, apply1);
 bindStrip($('cs13'), i => `t=${i}\nv₁·∇̂S = ${fmt(R.EV[0][i])}`, apply1);
+bindStrip($('cs14'), i => `t=${i}\nv₁·∇̂S* = ${fmt(R.EVF[0][i])}`, apply1);
 
 /* ---------- shared helpers (kept from removed panels) ---------- */
 const GN = 46;
@@ -1663,7 +1696,8 @@ function sim3(){
         rr1 = new Float64Array(m), rr2 = new Float64Array(m),
         ug1 = new Float64Array(m), ug2 = new Float64Array(m),
         JS1 = new Float64Array(m), T3n = new Float64Array(m), JQn = new Float64Array(m),
-        EV1 = new Float64Array(m), EV2 = new Float64Array(m);
+        EV1 = new Float64Array(m), EV2 = new Float64Array(m),
+        EF1 = new Float64Array(m), EF2 = new Float64Array(m);
   // fixed pseudo-random parameter direction u (golden angle; identical every run)
   const uphi = 2.399963, ur1 = Math.cos(uphi), ur2 = Math.sin(uphi);
   const clip3 = v => Math.max(-1e150, Math.min(1e150, v));
@@ -1739,6 +1773,11 @@ function sim3(){
         EV1[i] = clip3((e1*gS1 + e2*gS2)/nS2);
         EV2[i] = clip3((f1v*gS1 + f2v*gS2)/nS2);
       }
+      const nSF = Math.hypot(gj1, gj2);          // chart 14: frozen ∇̂S*
+      if (nSF > 1e-12){
+        EF1[i] = clip3((e1*gj1 + e2*gj2)/nSF);
+        EF2[i] = clip3((f1v*gj1 + f2v*gj2)/nSF);
+      }
     }
     const E_ = P3.a*Math.exp(Math.min(P3.b*(ct*X1[i] + st*(X2[i] - P3.x20)), 60)), b_ = P3.b;
     const uv = ct*vv1 + st*vv2, kA = b_*b_*b_*X1[i]*uv*uv;
@@ -1753,7 +1792,7 @@ function sim3(){
   const Sm = new Float64Array(Math.max(0, m-1));
   for (let i = 0; i+1 < m; i++) Sm[i] = clip3(lam3(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1])));
   return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), f, r2, L, rn, S, Sm,
-           Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, EV: [EV1, EV2], CK: lagCosArrays(uS1, uS2, m),
+           Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, EV: [EV1, EV2], EVF: [EF1, EF2], CK: lagCosArrays(uS1, uS2, m),
            RK: lagCosArrays(rr1, rr2, m),
            GK1: lagCosArrays(ug1, ug2, m)[0], n, div, conv: !div && L[m-1] < 1e-10 };
 }
@@ -2107,7 +2146,8 @@ function drawAll3(){
   drawCosStrip($('c3s10'), R3, t3, R3.RK);
   drawSymlogStrip($('c3s11'), R3, t3, R3.JS1, PAL.now);
   drawNormsStrip($('c3s12'), R3, t3);
-  drawEvecStrip($('c3s13'), R3, t3);
+  drawEvecStrip($('c3s13'), R3, t3, R3.EV);
+  drawEvecStrip($('c3s14'), R3, t3, R3.EVF);
   const up = Math.min(Math.round(t3), R3.n);
   const ratio = R3.S[up]*P3.lr/2;
   let cls = PAL.good, txt = 'stable';
@@ -2226,10 +2266,11 @@ bindStrip($('c3s10'), i => `t=${i}\ncos(r): ${cosTip('c3s10', KLAGS.map((k, s) =
 bindStrip($('c3s11'), i => `t=${i}\nΣ ∇fᵢ·∇̂S* = ${fmt(R3.JS1[i])}`, apply3);
 bindStrip($('c3s12'), i => `t=${i}\n‖Σ rᵢ∇³fᵢ[v,v,·]‖ = ${fmt(R3.T3n[i])}\n‖Σ (Jv)ᵢ∇²fᵢv‖ = ${fmt(R3.JQn[i])}`, apply3);
 bindStrip($('c3s13'), i => `t=${i}\nv₁·∇̂S = ${fmt(R3.EV[0][i])}\nv₂·∇̂S = ${fmt(R3.EV[1][i])}`, apply3);
+bindStrip($('c3s14'), i => `t=${i}\nv₁·∇̂S* = ${fmt(R3.EVF[0][i])}\nv₂·∇̂S* = ${fmt(R3.EVF[1][i])}`, apply3);
 $('p3csv').addEventListener('click', () => {
   const rows = [];
-  for (let i = 0; i <= R3.n; i++) rows.push([i, R3.x1[i], R3.x2[i], R3.f[i], R3.r2[i], R3.L[i], R3.S[i], R3.Xt[i], R3.GdS[i], R3.Ru[i], R3.Rq[i], R3.Ruv[i], R3.CK[0][i], R3.CK[1][i], R3.CK[2][i], R3.CK[3][i], R3.RK[0][i], R3.RK[1][i], R3.RK[2][i], R3.RK[3][i], R3.JS1[i], R3.T3n[i], R3.JQn[i], R3.EV[0][i], R3.EV[1][i]].join(','));
-  const blob = new Blob(['t,w1,w2,f1,r2,L,lamMax,xT,gDotGradS,rDotU,rDotJGradS,rDotJu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10,sumJdS,normT3,normJQ,v1DotGradS,v2DotGradS\n' + rows.join('\n')], { type: 'text/csv' });
+  for (let i = 0; i <= R3.n; i++) rows.push([i, R3.x1[i], R3.x2[i], R3.f[i], R3.r2[i], R3.L[i], R3.S[i], R3.Xt[i], R3.GdS[i], R3.Ru[i], R3.Rq[i], R3.Ruv[i], R3.CK[0][i], R3.CK[1][i], R3.CK[2][i], R3.CK[3][i], R3.RK[0][i], R3.RK[1][i], R3.RK[2][i], R3.RK[3][i], R3.JS1[i], R3.T3n[i], R3.JQn[i], R3.EV[0][i], R3.EV[1][i], R3.EVF[0][i], R3.EVF[1][i]].join(','));
+  const blob = new Blob(['t,w1,w2,f1,r2,L,lamMax,xT,gDotGradS,rDotU,rDotJGradS,rDotJu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10,sumJdS,normT3,normJQ,v1DotGradS,v2DotGradS,v1DotGradSfrozen,v2DotGradSfrozen\n' + rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'eos_theta.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
@@ -2307,7 +2348,7 @@ function drawCosStrip(cv, RR, t, KA, extra){
   cv._map = { A, n: F.n };
 }
 
-function drawEvecStrip(cv, RR, t){
+function drawEvecStrip(cv, RR, t, EA){
   const F = stripFrame(cv, t, RR.n), ctx = F.ctx, A = F.A;
   const lo = -1.15, hi = 1.15;
   A.y = v => A.t + (hi - clamp(v, lo, hi))/(hi - lo)*A.h;
@@ -2315,8 +2356,8 @@ function drawEvecStrip(cv, RR, t){
   ctx.strokeStyle = PAL.axis; ctx.lineWidth = 1.2;
   ctx.beginPath(); ctx.moveTo(A.l, A.y(0)); ctx.lineTo(A.l+A.w, A.y(0)); ctx.stroke();
   const cols = [PAL.sharp, PAL.accent, PAL.now, PAL.sharpmid, PAL.nt[2]];
-  for (let s = 0; s < RR.EV.length; s++)
-    lineSeries(ctx, A, RR.EV[s], RR.EV[s].length, F.st, 0, cols[s], F.up+1);
+  for (let s = 0; s < EA.length; s++)
+    lineSeries(ctx, A, EA[s], EA[s].length, F.st, 0, cols[s], F.up+1);
   cursorLine(ctx, A, A.x(F.up));
   cv._map = { A, n: F.n };
 }
@@ -2412,7 +2453,7 @@ function sim5(){
         Rq = new Float64Array(m), Ruv = new Float64Array(m), r = new Float64Array(m),
         sg = new Float64Array(m), sgr = new Float64Array(m), sgS = new Float64Array(m),
         JS1 = new Float64Array(m), T3n = new Float64Array(m), JQn = new Float64Array(m),
-        EV1 = new Float64Array(m);
+        EV1 = new Float64Array(m), EF1 = new Float64Array(m);
   for (let i = 0; i < m; i++){
     const f = clip(fv5(xs[i])), fp = clip(fp5(xs[i]));
     r[i] = P5.y - f; L[i] = r[i]*r[i]; rn[i] = Math.abs(r[i]);
@@ -2437,13 +2478,14 @@ function sim5(){
     JQn[i] = clip(Math.abs(fp*P5.b*fp));
     const sfp = fp > 0 ? 1 : fp < 0 ? -1 : 0, sSl = Sp > 0 ? 1 : Sp < 0 ? -1 : 0;
     EV1[i] = clip(sfp*sSl);
+    EF1[i] = clip(sfp*(SpJ > 0 ? 1 : SpJ < 0 ? -1 : 0));   // chart 14: frozen ∇̂S*_P
     Ruv[i] = clip(r[i]*(fp*Pv*UPHI5 > 0 ? 1 : fp*Pv*UPHI5 < 0 ? -1 : 0));
   }
   const Sm = new Float64Array(Math.max(0, m-1));
   // midpoint curvature with P frozen at the iterate — recomputing P at the midpoint
   // blows up where the hop's gradient nearly vanishes
   for (let i = 0; i+1 < m; i++) Sm[i] = clip(pre5(xs[i]) * S5(0.5*(xs[i]+xs[i+1])));
-  return { xs: xs.subarray(0,m), r, L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, EV: [EV1],
+  return { xs: xs.subarray(0,m), r, L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, EV: [EV1], EVF: [EF1],
            CK: lagCosArrays(sg, new Float64Array(m), m),
            RK: lagCosArrays(sgr, new Float64Array(m), m),
            GK1: lagCosArrays(sgS, new Float64Array(m), m)[0], n, div,
@@ -2649,7 +2691,8 @@ function sim6(){
         rr1 = new Float64Array(m), rr2 = new Float64Array(m),
         ug1 = new Float64Array(m), ug2 = new Float64Array(m),
         JS1 = new Float64Array(m), T3n = new Float64Array(m), JQn = new Float64Array(m),
-        EV1 = new Float64Array(m), EV2 = new Float64Array(m);
+        EV1 = new Float64Array(m), EV2 = new Float64Array(m),
+        EF1 = new Float64Array(m), EF2 = new Float64Array(m);
   // J and ∇S_P frozen at the first λ(PH) > 2/η crossing — used by the JP∇S_P charts
   let tcJ = Infinity, dc1 = 0, dc2 = 0, gc1 = 0, gc2 = 0;
   for (let i = 0; i < m; i++){
@@ -2726,6 +2769,11 @@ function sim6(){
         EV1[i] = clip((e1*gS1 + e2*gS2)/nS2);
         EV2[i] = clip((f1v*gS1 + f2v*gS2)/nS2);
       }
+      const nSF = Math.hypot(gj1, gj2);          // chart 14: frozen ∇̂S*_P
+      if (nSF > 1e-12){
+        EF1[i] = clip((e1*gj1 + e2*gj2)/nSF);
+        EF2[i] = clip((f1v*gj1 + f2v*gj2)/nSF);
+      }
     }
     const eH = symEig2(H.h11, H.h12, H.h22);
     const E_ = P6.a*Math.exp(Math.min(P6.b*(H.ct*X1[i] + H.st*X2[i]), 60)), b_ = P6.b;
@@ -2750,7 +2798,7 @@ function sim6(){
     Sm[i] = clip(symEig2(c11*Qi.q11 + c12*Qi.q12, c11*Qi.q12 + c12*Qi.q22,
                          c21*Qi.q12 + c22*Qi.q22).lam);
   }
-  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, EV: [EV1, EV2],
+  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, EV: [EV1, EV2], EVF: [EF1, EF2],
            CK: lagCosArrays(uS1, uS2, m),
            RK: lagCosArrays(rr1, rr2, m),
            GK1: lagCosArrays(ug1, ug2, m)[0], n, div,
@@ -2940,7 +2988,8 @@ function drawAdaptive(px, RR, t, lr){
   drawCosStrip($(px + 's10'), RR, t, RR.RK);
   drawSymlogStrip($(px + 's11'), RR, t, RR.JS1, PAL.now);
   drawNormsStrip($(px + 's12'), RR, t);
-  drawEvecStrip($(px + 's13'), RR, t);
+  drawEvecStrip($(px + 's13'), RR, t, RR.EV);
+  drawEvecStrip($(px + 's14'), RR, t, RR.EVF);
 }
 function statusAdaptive(RR, t, lr){
   const up = Math.min(Math.round(t), RR.n);
@@ -3104,6 +3153,7 @@ bindStrip($('c5s10'), i => `t=${i}\ncos(r): ${cosTip('c5s10', KLAGS.map((k, s) =
 bindStrip($('c5s11'), i => `t=${i}\nΣ ∇fᵢ·∇̂S* = ${fmt(R5.JS1[i])}`, apply5);
 bindStrip($('c5s12'), i => `t=${i}\n‖Σ rᵢ∇³fᵢ[v,v,·]‖ = ${fmt(R5.T3n[i])}\n‖Σ (Jv)ᵢ∇²fᵢv‖ = ${fmt(R5.JQn[i])}`, apply5);
 bindStrip($('c5s13'), i => `t=${i}\nv₁·∇̂S = ${fmt(R5.EV[0][i])}`, apply5);
+bindStrip($('c5s14'), i => `t=${i}\nv₁·∇̂S* = ${fmt(R5.EVF[0][i])}`, apply5);
 bindStrip($('c6s1'), i => `t=${i}\nL=${fmt(R6.L[i])}`, apply6);
 bindStrip($('c6s2'), i => `t=${i}\nλ(PH)=${fmt(R6.S[i])}\n2/η=${fmt(2/P6.lr)}`, apply6);
 bindStrip($('c6s3'), i => `t=${i}\n‖r‖=${fmt(R6.rn[i])}`, apply6);
@@ -3117,11 +3167,12 @@ bindStrip($('c6s10'), i => `t=${i}\ncos(r): ${cosTip('c6s10', KLAGS.map((k, s) =
 bindStrip($('c6s11'), i => `t=${i}\nΣ ∇fᵢ·∇̂S* = ${fmt(R6.JS1[i])}`, apply6);
 bindStrip($('c6s12'), i => `t=${i}\n‖Σ rᵢ∇³fᵢ[v,v,·]‖ = ${fmt(R6.T3n[i])}\n‖Σ (Jv)ᵢ∇²fᵢv‖ = ${fmt(R6.JQn[i])}`, apply6);
 bindStrip($('c6s13'), i => `t=${i}\nv₁·∇̂S = ${fmt(R6.EV[0][i])}\nv₂·∇̂S = ${fmt(R6.EV[1][i])}`, apply6);
+bindStrip($('c6s14'), i => `t=${i}\nv₁·∇̂S* = ${fmt(R6.EVF[0][i])}\nv₂·∇̂S* = ${fmt(R6.EVF[1][i])}`, apply6);
 $('p5csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R5.n; i++)
-    rows.push([i, R5.xs[i], R5.r[i], R5.L[i], R5.S[i], R5.Xt[i], R5.GdS[i], R5.Ru[i], R5.Rq[i], R5.Ruv[i], R5.CK[0][i], R5.CK[1][i], R5.CK[2][i], R5.CK[3][i], R5.RK[0][i], R5.RK[1][i], R5.RK[2][i], R5.RK[3][i], R5.JS1[i], R5.T3n[i], R5.JQn[i], R5.EV[0][i]].join(','));
-  const blob = new Blob(['t,x,r,L,lamPH,xT,pgDotGradSP,rDotU,rDotJPGradS,rDotJPu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10,sumJdS,normT3,normJQ,v1DotGradSP\n' + rows.join('\n')], { type: 'text/csv' });
+    rows.push([i, R5.xs[i], R5.r[i], R5.L[i], R5.S[i], R5.Xt[i], R5.GdS[i], R5.Ru[i], R5.Rq[i], R5.Ruv[i], R5.CK[0][i], R5.CK[1][i], R5.CK[2][i], R5.CK[3][i], R5.RK[0][i], R5.RK[1][i], R5.RK[2][i], R5.RK[3][i], R5.JS1[i], R5.T3n[i], R5.JQn[i], R5.EV[0][i], R5.EVF[0][i]].join(','));
+  const blob = new Blob(['t,x,r,L,lamPH,xT,pgDotGradSP,rDotU,rDotJPGradS,rDotJPu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10,sumJdS,normT3,normJQ,v1DotGradSP,v1DotGradSPfrozen\n' + rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'eos_adaptive_1d.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
@@ -3129,8 +3180,8 @@ $('p5csv').addEventListener('click', () => {
 $('p6csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R6.n; i++)
-    rows.push([i, R6.x1[i], R6.x2[i], R6.L[i], R6.S[i], R6.Xt[i], R6.GdS[i], R6.Ru[i], R6.Rq[i], R6.Ruv[i], R6.CK[0][i], R6.CK[1][i], R6.CK[2][i], R6.CK[3][i], R6.RK[0][i], R6.RK[1][i], R6.RK[2][i], R6.RK[3][i], R6.JS1[i], R6.T3n[i], R6.JQn[i], R6.EV[0][i], R6.EV[1][i]].join(','));
-  const blob = new Blob(['t,w1,w2,L,lamPH,xT,pgDotGradSP,rDotU,rDotJPGradS,rDotJPu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10,sumJdS,normT3,normJQ,v1DotGradSP,v2DotGradSP\n' + rows.join('\n')], { type: 'text/csv' });
+    rows.push([i, R6.x1[i], R6.x2[i], R6.L[i], R6.S[i], R6.Xt[i], R6.GdS[i], R6.Ru[i], R6.Rq[i], R6.Ruv[i], R6.CK[0][i], R6.CK[1][i], R6.CK[2][i], R6.CK[3][i], R6.RK[0][i], R6.RK[1][i], R6.RK[2][i], R6.RK[3][i], R6.JS1[i], R6.T3n[i], R6.JQn[i], R6.EV[0][i], R6.EV[1][i], R6.EVF[0][i], R6.EVF[1][i]].join(','));
+  const blob = new Blob(['t,w1,w2,L,lamPH,xT,pgDotGradSP,rDotU,rDotJPGradS,rDotJPu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10,sumJdS,normT3,normJQ,v1DotGradSP,v2DotGradSP,v1DotGradSPfrozen,v2DotGradSPfrozen\n' + rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'eos_adaptive_valley.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
@@ -3160,8 +3211,8 @@ $('tab6').addEventListener('click', () => switchTab(6));
 /* ---------- CSV / hash ---------- */
 $('csvb').addEventListener('click', () => {
   const rows = [];
-  for (let i = 0; i <= R.n; i++) rows.push([i, R.xs[i], R.f[i], R.r[i], R.L[i], R.S[i], R.Xt[i], R.GdS[i], R.Ru[i], R.Rq[i], R.Ruv[i], R.CK[0][i], R.CK[1][i], R.CK[2][i], R.CK[3][i], R.RK[0][i], R.RK[1][i], R.RK[2][i], R.RK[3][i], R.JS1[i], R.T3n[i], R.JQn[i], R.EV[0][i]].join(','));
-  const blob = new Blob(['t,x,f,r,L,S,xT,gDotGradS,rDotU,rDotJGradS,rDotJu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10,sumJdS,normT3,normJQ,v1DotGradS\n' + rows.join('\n')], { type: 'text/csv' });
+  for (let i = 0; i <= R.n; i++) rows.push([i, R.xs[i], R.f[i], R.r[i], R.L[i], R.S[i], R.Xt[i], R.GdS[i], R.Ru[i], R.Rq[i], R.Ruv[i], R.CK[0][i], R.CK[1][i], R.CK[2][i], R.CK[3][i], R.RK[0][i], R.RK[1][i], R.RK[2][i], R.RK[3][i], R.JS1[i], R.T3n[i], R.JQn[i], R.EV[0][i], R.EVF[0][i]].join(','));
+  const blob = new Blob(['t,x,f,r,L,S,xT,gDotGradS,rDotU,rDotJGradS,rDotJu,cosJ1,cosJ2,cosJ5,cosJ10,cosR1,cosR2,cosR5,cosR10,sumJdS,normT3,normJQ,v1DotGradS,v1DotGradSfrozen\n' + rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'eos_concave.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
