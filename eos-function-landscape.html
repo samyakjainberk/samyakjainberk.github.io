@@ -559,10 +559,10 @@
         </select></div>
       <div class="row"><label for="p6th">angle θ (degrees)</label><input id="p6th" type="number" min="0" max="90" step="0.1" value="90"></div>
       <div class="row"><label for="p6a">a &nbsp;(valley sharpness √)</label><input id="p6a" type="number" step="any" value="2.5"></div>
-      <div class="row"><label for="p6b">b &nbsp;(sharpness gradient)</label><input id="p6b" type="number" step="any" value="0.05"></div>
+      <div class="row"><label for="p6b">b &nbsp;(sharpness gradient)</label><input id="p6b" type="number" step="any" value="0.08"></div>
       <div class="row"><label for="p6mu">μ &nbsp;(pull strength)</label><input id="p6mu" type="number" step="any" value="0.3"></div>
       <div class="row"><label for="p6y2">y₂ &nbsp;(second target)</label><input id="p6y2" type="number" step="any" value="2"></div>
-      <div class="row"><label for="p6x10">init w₁</label><input id="p6x10" type="number" step="any" value="1"></div>
+      <div class="row"><label for="p6x10">init w₁</label><input id="p6x10" type="number" step="any" value="1.5"></div>
       <div class="row"><label for="p6lr">learning rate η</label><input id="p6lr" type="number" step="any" value="0.1"></div>
       <input id="p6lrs" type="range" min="0" max="1000" value="0" aria-label="learning rate slider">
       <div class="row"><label for="p6T">iterations</label><input id="p6T" type="number" min="10" max="20000" step="10" value="600"></div>
@@ -2159,7 +2159,7 @@ function drawLand5(cv, kind, XR){
 }
 
 /* ---------- panel 6 : tilted valley, preconditioned ---------- */
-const P6 = { opt:'spec', th:90, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:1.0, lr:0.1, T:600 };
+const P6 = { opt:'spec', th:90, a:2.5, b:0.08, mu:0.3, y2:2.0, x10:1.5, lr:0.1, T:600 };
 let R6 = null, t6 = 0, playing6 = false;
 function trig6(){ const t = P6.th*Math.PI/180; return { ct: Math.cos(t), st: Math.sin(t) }; }
 function hess6(x1, x2){
@@ -2565,10 +2565,10 @@ const PRESETS5 = [
 const PRESETS6 = [
   { n:'Big locked ride · plain GD', d:'η=0.1: the θ-lab default reproduced — permanent period-2 oscillation (every tail step flips w₁), λ pinned at 2/η = 20, loss plateaued at L ≈ 3.89 forever',
     v:{ opt:'gd', th:90, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, lr:0.1, T:3000 } },
-  { n:'Default · big locked ride · spectral GD', d:'η=0.1, w₁(0)=1: the full EoS arc — λ(PH) starts at 1.0 (5% of 2/η = 20), progressively sharpens, crosses at t≈31, then self-stabilizes: locked at 20.0 (95% of steps within ±15%) while the loss falls 10 → 0.03',
-    v:{ opt:'spec', th:90, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:1.0, lr:0.1, T:600 } },
-  { n:'Big locked ride · signed GD', d:'η=0.02: λ(PH) starts at 6.7, crosses 2/η = 100 at t≈7, then self-tunes — median locks at 100.0 exactly (spiky at the turning points where a gradient coordinate crosses zero) while the loss rides down to ≈ 1.2e−3',
-    v:{ opt:'sign', th:90, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, lr:0.02, T:1000 } },
+  { n:'Default · big locked ride · spectral GD', d:'η=0.1, b=0.08, w₁(0)=1.5: the textbook arc — λ(PH) climbs smoothly 0.7 → 20 over ~33 steps, one catapult overshoot to ≈27, then pins at 2/η = 20 (median 20.002, 95% of steps within 3%) for the rest of the run while the loss falls 18 → 0.05',
+    v:{ opt:'spec', th:90, a:2.5, b:0.08, mu:0.3, y2:2.0, x10:1.5, lr:0.1, T:600 } },
+  { n:'Big locked ride · signed GD', d:'η=0.02, w₁(0)=0.35: λ(PH) rises from 2.9 (3% of 2/η = 100), crosses at t≈17, and the median self-tunes to 100.0 exactly — but per-coordinate normalization makes the locked cycle alternate between ≈0.7× and ≈1.7× of the threshold (that zig-zag IS the signed-GD edge; spectral shows the clean version)',
+    v:{ opt:'sign', th:90, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.35, lr:0.02, T:1000 } },
   { n:'Locked out, not locked in · GN catapult cycle', d:'η=1.02: GN has no gentle ride — λ(PH) ≈ 2 everywhere means η < 1 converges and η > 1 recurrently catapults, L swinging between ~1e3 and ~1e21 without ever settling or diverging',
     v:{ opt:'gn', th:90, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, lr:1.02, T:3000 } },
   { n:'Gauss–Newton · breaks the ceiling outright', d:'η=0.9: λ(PH) ≈ 2.00, machine-zero convergence to the full fit that plain GD could never reach',
