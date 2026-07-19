@@ -276,6 +276,7 @@
       <p class="cap">cos(J∇S(t), J∇S(t+k)) for k = 1, 2, 5, 10 · in 1-D this is sign(f′S′)(t)·sign(f′S′)(t+k) = ±1 — drops to −1 mark direction reversals</p>
       <canvas class="plot" id="cs9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
       <div class="legend">
+        <span><i class="sw" style="background:var(--zero)"></i>∇S itself (param space) · k = 1</span>
         <span><i class="sw" style="background:var(--sharp)"></i>k = 1</span>
         <span><i class="sw" style="background:var(--now)"></i>k = 2</span>
         <span><i class="sw" style="background:var(--accent)"></i>k = 5</span>
@@ -438,9 +439,10 @@
     </div>
     <div class="card">
       <h3>Direction memory of J∇S — cos(û(t), û(t+k))</h3>
-      <p class="cap">û = normalize(J∇S), lags k = 1, 2, 5, 10 · during the locked ride odd lags sit near −1 (the vector mirror-swings every step) while even lags return to +1; during the approach all lags stay at +1</p>
+      <p class="cap">û = normalize(J∇S), lags k = 1, 2, 5, 10 · green: ∇S in parameter space (k = 1) stays ≈ +1 — the Damian-et-al. invariant; the swing lives only in the pushforward: J’s anisotropy amplifies the tiny oscillating part of ∇S, and J’s entry ∂f₁/∂w₂ = E·b·w₁ flips with the oscillation</p>
       <canvas class="plot" id="c3s9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
       <div class="legend">
+        <span><i class="sw" style="background:var(--zero)"></i>∇S itself (param space) · k = 1</span>
         <span><i class="sw" style="background:var(--sharp)"></i>k = 1</span>
         <span><i class="sw" style="background:var(--now)"></i>k = 2</span>
         <span><i class="sw" style="background:var(--accent)"></i>k = 5</span>
@@ -592,6 +594,7 @@
       <p class="cap">cos(JP∇S_P(t), JP∇S_P(t+k)) for k = 1, 2, 5, 10 · 1-D: ±1 sign products — drops to −1 mark direction reversals</p>
       <canvas class="plot" id="c5s9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
       <div class="legend">
+        <span><i class="sw" style="background:var(--zero)"></i>∇S itself (param space) · k = 1</span>
         <span><i class="sw" style="background:var(--sharp)"></i>k = 1</span>
         <span><i class="sw" style="background:var(--now)"></i>k = 2</span>
         <span><i class="sw" style="background:var(--accent)"></i>k = 5</span>
@@ -742,9 +745,10 @@
     </div>
     <div class="card">
       <h3>Direction memory of JP∇S_P — cos(û(t), û(t+k))</h3>
-      <p class="cap">û = normalize(J·P·∇S_P), lags k = 1, 2, 5, 10 · odd-lag ≈ −1 with even-lag ≈ +1 is the period-2 mirror swing of the locked ride</p>
+      <p class="cap">û = normalize(J·P·∇S_P), lags k = 1, 2, 5, 10 · green: ∇S_P in parameter space (k = 1) — near-constant; the swing comes from the Jacobian pushforward, not from the sharpness gradient</p>
       <canvas class="plot" id="c6s9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
       <div class="legend">
+        <span><i class="sw" style="background:var(--zero)"></i>∇S itself (param space) · k = 1</span>
         <span><i class="sw" style="background:var(--sharp)"></i>k = 1</span>
         <span><i class="sw" style="background:var(--now)"></i>k = 2</span>
         <span><i class="sw" style="background:var(--accent)"></i>k = 5</span>
@@ -921,7 +925,7 @@ function sim(){
         S = new Float64Array(m), rbar = new Float64Array(m), Xt = new Float64Array(m),
         rn = new Float64Array(m), GdS = new Float64Array(m), Ru = new Float64Array(m),
         Rq = new Float64Array(m), Ruv = new Float64Array(m),
-        sg = new Float64Array(m), sgr = new Float64Array(m);
+        sg = new Float64Array(m), sgr = new Float64Array(m), sgS = new Float64Array(m);
   const clip = v => Math.max(-1e150, Math.min(1e150, v));
   const ur = Math.cos(2.399963);   // fixed random scalar direction u (sign is what matters in 1-D)
   for (let i = 0; i < m; i++){
@@ -934,6 +938,7 @@ function sim(){
     const h_ = 1e-5*(1 + Math.abs(xs[i]));
     const Sp = (S1(xs[i]+h_) - S1(xs[i]-h_))/(2*h_);
     const sSp = Sp > 0 ? 1 : Sp < 0 ? -1 : 0;
+    sgS[i] = sSp;
     GdS[i] = clip(Xt[i]*sSp);                      // g·∇̂S, ∇̂S = sign(S′)
     const sF = fp > 0 ? 1 : fp < 0 ? -1 : 0;
     Ru[i] = clip(r[i]*sF);                         // û = normalize(J·v1) = sign(f′)
@@ -949,7 +954,8 @@ function sim(){
   const gEnd = 2*(f[m-1] - P.y)*clip(fP(xs[m-1]));
   return { xs, f, r, L, S, Sm, rbar, rn, Xt, GdS, Ru, Rq, Ruv,
            CK: lagCosArrays(sg, new Float64Array(m), m),
-           RK: lagCosArrays(sgr, new Float64Array(m), m), n, div,
+           RK: lagCosArrays(sgr, new Float64Array(m), m),
+           GK1: lagCosArrays(sgS, new Float64Array(m), m)[0], n, div,
            conv: !div && L[m-1] < 1e-10,
            stalled: !div && Math.abs(gEnd) < 1e-9 && L[m-1] > 1e-6 };
 }
@@ -1250,7 +1256,7 @@ function drawAll(){
   drawSymlogStrip($('cs6'), R, tCur, R.Ru, PAL.sharpmid);
   drawSymlogStrip($('cs7'), R, tCur, R.Rq, PAL.accent);
   drawSymlogStrip($('cs8'), R, tCur, R.Ruv, PAL.nt[2]);
-  drawCosStrip($('cs9'), R, tCur, R.CK);
+  drawCosStrip($('cs9'), R, tCur, R.CK, R.GK1);
   drawCosStrip($('cs10'), R, tCur, R.RK);
   const up = Math.min(Math.round(tCur), R.n);
   const ratio = R.S[up]*P.lr/2;
@@ -1527,7 +1533,8 @@ function sim3(){
         Xt = new Float64Array(m), GdS = new Float64Array(m),
         Ru = new Float64Array(m), Rq = new Float64Array(m), Ruv = new Float64Array(m),
         uS1 = new Float64Array(m), uS2 = new Float64Array(m),
-        rr1 = new Float64Array(m), rr2 = new Float64Array(m);
+        rr1 = new Float64Array(m), rr2 = new Float64Array(m),
+        ug1 = new Float64Array(m), ug2 = new Float64Array(m);
   // fixed pseudo-random parameter direction u (golden angle; identical every run)
   const uphi = 2.399963, ur1 = Math.cos(uphi), ur2 = Math.sin(uphi);
   const clip3 = v => Math.max(-1e150, Math.min(1e150, v));
@@ -1550,6 +1557,7 @@ function sim3(){
     const gS1 = (lam3(X1[i]+h3_, X2[i]) - lam3(X1[i]-h3_, X2[i]))/(2*h3_);
     const gS2 = (lam3(X1[i], X2[i]+h3_) - lam3(X1[i], X2[i]-h3_))/(2*h3_);
     const nS = Math.hypot(gS1, gS2);
+    if (nS > 1e-12){ ug1[i] = gS1/nS; ug2[i] = gS2/nS; }
     GdS[i] = nS > 1e-12 ? clip3((H.g1*gS1 + H.g2*gS2)/nS) : 0;
     // function-space residual vector rvec = (−f1, r2); J rows: ∇f1 = (d1,d2), ∇f2 = μ(ct,st)
     const ju1 = H.d1*vv1 + H.d2*vv2, ju2 = mu*(ct*vv1 + st*vv2);
@@ -1567,7 +1575,8 @@ function sim3(){
   for (let i = 0; i+1 < m; i++) Sm[i] = clip3(lam3(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1])));
   return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), f, r2, L, rn, S, Sm,
            Xt, GdS, Ru, Rq, Ruv, CK: lagCosArrays(uS1, uS2, m),
-           RK: lagCosArrays(rr1, rr2, m), n, div, conv: !div && L[m-1] < 1e-10 };
+           RK: lagCosArrays(rr1, rr2, m),
+           GK1: lagCosArrays(ug1, ug2, m)[0], n, div, conv: !div && L[m-1] < 1e-10 };
 }
 function arrowHead(ctx, x, y, ux, uy){
   const nrm = Math.hypot(ux, uy) || 1; ux /= nrm; uy /= nrm;
@@ -1915,7 +1924,7 @@ function drawAll3(){
   drawSymlogStrip($('c3s6'), R3, t3, R3.Ru, PAL.sharpmid);
   drawSymlogStrip($('c3s7'), R3, t3, R3.Rq, PAL.accent);
   drawSymlogStrip($('c3s8'), R3, t3, R3.Ruv, PAL.nt[2]);
-  drawCosStrip($('c3s9'), R3, t3, R3.CK);
+  drawCosStrip($('c3s9'), R3, t3, R3.CK, R3.GK1);
   drawCosStrip($('c3s10'), R3, t3, R3.RK);
   const up = Math.min(Math.round(t3), R3.n);
   const ratio = R3.S[up]*P3.lr/2;
@@ -2091,7 +2100,7 @@ function lagCosArrays(u1, u2, m){
     return C;
   });
 }
-function drawCosStrip(cv, RR, t, KA){
+function drawCosStrip(cv, RR, t, KA, extra){
   const F = stripFrame(cv, t, RR.n), ctx = F.ctx, A = F.A;
   const lo = -1.15, hi = 1.15;
   A.y = v => A.t + (hi - clamp(v, lo, hi))/(hi - lo)*A.h;
@@ -2101,6 +2110,7 @@ function drawCosStrip(cv, RR, t, KA){
   const cols = [PAL.sharp, PAL.now, PAL.accent, PAL.nt[2]];
   for (let s = 0; s < KA.length; s++)
     lineSeries(ctx, A, KA[s], KA[s].length, F.st, 0, cols[s], F.up+1);
+  if (extra) lineSeries(ctx, A, extra, extra.length, F.st, 0, PAL.zero, F.up+1);
   cursorLine(ctx, A, A.x(F.up));
   cv._map = { A, n: F.n };
 }
@@ -2155,7 +2165,7 @@ function sim5(){
   const L = new Float64Array(m), rn = new Float64Array(m), S = new Float64Array(m),
         Xt = new Float64Array(m), GdS = new Float64Array(m), Ru = new Float64Array(m),
         Rq = new Float64Array(m), Ruv = new Float64Array(m), r = new Float64Array(m),
-        sg = new Float64Array(m), sgr = new Float64Array(m);
+        sg = new Float64Array(m), sgr = new Float64Array(m), sgS = new Float64Array(m);
   for (let i = 0; i < m; i++){
     const f = clip(fv5(xs[i])), fp = clip(fp5(xs[i]));
     r[i] = P5.y - f; L[i] = r[i]*r[i]; rn[i] = Math.abs(r[i]);
@@ -2165,6 +2175,7 @@ function sim5(){
     const h_ = 1e-5*(1 + Math.abs(xs[i]));
     const Sp = (lamP5(xs[i]+h_) - lamP5(xs[i]-h_))/(2*h_);
     const sSp = Sp > 0 ? 1 : Sp < 0 ? -1 : 0;
+    sgS[i] = sSp;
     GdS[i] = clip(Xt[i]*sSp);
     const sF = fp > 0 ? 1 : fp < 0 ? -1 : 0;
     Ru[i] = clip(r[i]*sF);
@@ -2180,7 +2191,8 @@ function sim5(){
   for (let i = 0; i+1 < m; i++) Sm[i] = clip(pre5(xs[i]) * S5(0.5*(xs[i]+xs[i+1])));
   return { xs: xs.subarray(0,m), r, L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv,
            CK: lagCosArrays(sg, new Float64Array(m), m),
-           RK: lagCosArrays(sgr, new Float64Array(m), m), n, div,
+           RK: lagCosArrays(sgr, new Float64Array(m), m),
+           GK1: lagCosArrays(sgS, new Float64Array(m), m)[0], n, div,
            conv: !div && L[m-1] < 1e-10 };
 }
 
@@ -2380,7 +2392,8 @@ function sim6(){
         Xt = new Float64Array(m), GdS = new Float64Array(m), Ru = new Float64Array(m),
         Rq = new Float64Array(m), Ruv = new Float64Array(m),
         uS1 = new Float64Array(m), uS2 = new Float64Array(m),
-        rr1 = new Float64Array(m), rr2 = new Float64Array(m);
+        rr1 = new Float64Array(m), rr2 = new Float64Array(m),
+        ug1 = new Float64Array(m), ug2 = new Float64Array(m);
   let pv1 = null, pv2 = 0;
   for (let i = 0; i < m; i++){
     const H = hess6(X1[i], X2[i]);
@@ -2403,6 +2416,7 @@ function sim6(){
     const gS1 = (lamP6(X1[i]+h_, X2[i]) - lamP6(X1[i]-h_, X2[i]))/(2*h_);
     const gS2 = (lamP6(X1[i], X2[i]+h_) - lamP6(X1[i], X2[i]-h_))/(2*h_);
     const nS = Math.hypot(gS1, gS2);
+    if (nS > 1e-12){ ug1[i] = gS1/nS; ug2[i] = gS2/nS; }
     GdS[i] = nS > 1e-12 ? clip((pg1*gS1 + pg2*gS2)/nS) : 0;
     const ju1 = H.d1*vw1 + H.d2*vw2, ju2 = mu*(H.ct*vw1 + H.st*vw2);
     const nu = Math.hypot(ju1, ju2);
@@ -2431,7 +2445,8 @@ function sim6(){
   }
   return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv,
            CK: lagCosArrays(uS1, uS2, m),
-           RK: lagCosArrays(rr1, rr2, m), n, div,
+           RK: lagCosArrays(rr1, rr2, m),
+           GK1: lagCosArrays(ug1, ug2, m)[0], n, div,
            conv: !div && L[m-1] < 1e-10 };
 }
 
@@ -2614,7 +2629,7 @@ function drawAdaptive(px, RR, t, lr){
   drawSymlogStrip($(px + 's6'), RR, t, RR.Ru, PAL.sharpmid);
   drawSymlogStrip($(px + 's7'), RR, t, RR.Rq, PAL.accent);
   drawSymlogStrip($(px + 's8'), RR, t, RR.Ruv, PAL.nt[2]);
-  drawCosStrip($(px + 's9'), RR, t, RR.CK);
+  drawCosStrip($(px + 's9'), RR, t, RR.CK, RR.GK1);
   drawCosStrip($(px + 's10'), RR, t, RR.RK);
 }
 function statusAdaptive(RR, t, lr){
