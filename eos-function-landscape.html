@@ -107,6 +107,9 @@
   #c5f,#c5L{height:340px}
   #c6f,#c6L{height:380px}
   .legend{display:flex; flex-wrap:wrap; gap:11px; margin-top:8px; font-size:11.5px; color:var(--ink2)}
+.legend span.tgl{cursor:pointer; user-select:none; border-radius:6px; padding:1px 4px;}
+.legend span.tgl:hover{background:color-mix(in srgb, currentColor 8%, transparent);}
+.legend span.off{opacity:.35; text-decoration:line-through;}
   .legend span{display:inline-flex; align-items:center; gap:5px}
   .legend .tg{cursor:pointer; user-select:none; border-radius:5px; padding:1px 4px}
   .legend .tg:hover{background:var(--chipbg)}
@@ -775,6 +778,8 @@ const clamp = (v,a,b) => Math.min(b, Math.max(a, v));
 
 /* ---------- palette ---------- */
 let PAL = {};
+/* per-canvas series registry: lets legend entries toggle series drawn via lineSeries */
+const SEQ = {}, SCNT = {}, HID = new Set();
 function readPal(){
   const cs = getComputedStyle(document.documentElement);
   const g = n => cs.getPropertyValue(n).trim();
@@ -835,6 +840,7 @@ function fullRange(arr, pLo, pHi, wide){
   return [Math.max(mn, a - wide*span), Math.min(mx, b + wide*span)];
 }
 function setup(cv){
+  if (cv.id) SEQ[cv.id] = 0;
   const dpr = window.devicePixelRatio || 1;
   const w = cv.clientWidth, h = cv.clientHeight;
   if (cv.width !== Math.round(w*dpr) || cv.height !== Math.round(h*dpr)){
@@ -1156,6 +1162,12 @@ function cursorLine(ctx, A, px){
   ctx.beginPath(); ctx.moveTo(px, A.t); ctx.lineTo(px, A.t+A.h); ctx.stroke();
 }
 function lineSeries(ctx, A, arr, len, st, off, color, upTo){
+  const _id = ctx.canvas && ctx.canvas.id;
+  if (_id){
+    const i = SEQ[_id] = (SEQ[_id] || 0) + 1;
+    SCNT[_id] = Math.max(SCNT[_id] || 0, i);
+    if (HID.has(_id + '|' + (i - 1))) return;
+  }
   ctx.lineJoin = 'round'; ctx.lineWidth = 1.5;
   ctx.strokeStyle = alpha(color, 0.25); ctx.beginPath();
   for (let i = 0; i < len; i += st){ const px = A.x(i+off), py = A.y(arr[i]); i === 0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py); }
@@ -2867,6 +2879,31 @@ function redrawVisible(){
 function clearSurfCaches(){ cacheF3.key = ''; cacheL3.key = ''; cacheF6.key = ''; cacheL6.key = ''; }
 const ro = new ResizeObserver(() => { clearSurfCaches(); redrawVisible(); });
 document.querySelectorAll('canvas.plot').forEach(c => ro.observe(c));
+
+/* ---------- clickable legends: toggle series on multi-line charts ---------- */
+function wireLegends(){
+  document.querySelectorAll('.card').forEach(card => {
+    const cv = card.querySelector('canvas');
+    const lg = card.querySelector('.legend');
+    if (!cv || !lg || !cv.id) return;
+    const n = SCNT[cv.id] || 0;
+    const spans = [...lg.children];
+    if (n < 2 || spans.length !== n) return;          // only when entries map 1:1 to drawn series
+    spans.forEach((sp, i) => {
+      if (sp.classList.contains('tgl')) return;       // idempotent
+      sp.classList.add('tgl');
+      sp.title = 'click to hide/show this series';
+      sp.addEventListener('click', () => {
+        const k = cv.id + '|' + i;
+        if (HID.has(k)) HID.delete(k); else HID.add(k);
+        sp.classList.toggle('off', HID.has(k));
+        redrawVisible();
+      });
+    });
+  });
+}
+setTimeout(wireLegends, 400);
+setInterval(wireLegends, 1500);                        // lazily-drawn tabs get wired once seen
 new MutationObserver(() => { clearSurfCaches(); readPal(); redrawVisible(); })
   .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 if (window.matchMedia){
