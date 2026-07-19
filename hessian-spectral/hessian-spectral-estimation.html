@@ -569,7 +569,7 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
 <table>
   <tr><th>Method</th><th>What you get</th><th>Compute</th></tr>
   <tr><td>Power iteration</td><td>top eigenpair \((\lambda_1, u_1)\)</td><td>\(O(knp)\)</td></tr>
-  <tr><td>Lanczos</td><td>extreme eigenpairs</td><td>\(O(knp)\) \(+\, O(k^2p)\) reorth.</td></tr>
+  <tr><td>Lanczos</td><td>extreme eigenpairs</td><td>\(O(knp)\)</td></tr>
   <tr><td>Block Lanczos</td><td>clustered / degenerate extremes</td><td>\(O(knpb)\)</td></tr>
   <tr><td>Hutchinson</td><td>\(\operatorname{Tr}(A)\)</td><td>\(O(snp)\)</td></tr>
   <tr><td>SLQ</td><td>\(\operatorname{Tr} f(A)\), spectral density</td><td>\(O(sknp)\)</td></tr>
