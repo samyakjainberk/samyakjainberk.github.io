@@ -102,8 +102,10 @@
   .hero{grid-column:1 / -1}
   canvas.plot{width:100%; display:block; touch-action:none; border-radius:6px}
   #chero,#clhero{height:340px}
-  #cs1,#cs2,#cs3,#cs4,#cs5,#cs6,#cs7,#cs8,#c3s1,#c3s2,#c3s3,#c3s4,#c3s5,#c3s6,#c3s7,#c3s8{height:172px}
+  #cs1,#cs2,#cs3,#cs4,#cs5,#cs6,#cs7,#cs8,#c3s1,#c3s2,#c3s3,#c3s4,#c3s5,#c3s6,#c3s7,#c3s8,#c5s1,#c5s2,#c5s3,#c5s4,#c5s5,#c5s6,#c5s7,#c5s8,#c6s1,#c6s2,#c6s3,#c6s4,#c6s5,#c6s6,#c6s7,#c6s8{height:172px}
   #c3f,#c3L{height:380px}
+  #c5f,#c5L{height:340px}
+  #c6f,#c6L{height:380px}
   .legend{display:flex; flex-wrap:wrap; gap:11px; margin-top:8px; font-size:11.5px; color:var(--ink2)}
   .legend span{display:inline-flex; align-items:center; gap:5px}
   .legend .tg{cursor:pointer; user-select:none; border-radius:5px; padding:1px 4px}
@@ -135,7 +137,9 @@
   <h1>The Function-Landscape Picture of the Edge of Stability <span class="sub">— watch GD bounce, sharpen, and self-stabilize on f itself · L = (y − f)²</span></h1>
   <div class="tabs" role="tablist">
     <button id="tab1" role="tab" aria-selected="true">1-D · sharpness ∥ oscillation</button>
-    <button id="tab3" role="tab" aria-selected="false">θ-lab · dial the angle</button>
+    <button id="tab3" role="tab" aria-selected="false">θ-lab · tilted valley</button>
+    <button id="tab5" role="tab" aria-selected="false">Adaptive · 1-D</button>
+    <button id="tab6" role="tab" aria-selected="false">Adaptive · tilted valley</button>
   </div>
 </header>
 
@@ -466,6 +470,280 @@
       sustains a large permanent period-2 bounce instead (the big-locked-ride preset: |w₁| ≈ 0.60 forever).
       Below ≈2%/step the near-fit buries the oscillation seed at the float-precision floor and the regrowth
       stalls numerically — the chip tells you when you are in that regime.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================= PANEL 5 : adaptive optimizers, 1-D ================= -->
+<section class="panel" id="panel5" hidden>
+  <div class="side">
+    <div class="card ctl">
+      <h3>Model &nbsp;·&nbsp; f(x) = −e<sup>b·x</sup></h3>
+      <div class="mdef">The 1-D landscape trained with preconditioned GD: x ← x − η·P·∇L.
+      <b>plain GD</b>: P = I — the baseline; every chart reduces to the ordinary quantities. <b>signed GD</b>: P = 1/|g| → constant step size η. <b>spectral GD</b>: P from
+      kron((GGᵀ)<sup>−¼</sup>, (GᵀG)<sup>−¼</sup>) per layer — in 1-D both reduce to sign(g), so
+      signed ≡ spectral here. <b>Gauss–Newton</b>: P = (JJᵀ)⁻¹ = 1/f′² (damped) — then PH ≈ 2 always
+      and the threshold is η = 1 independent of the landscape.
+      <b>b</b>: curvature growth · <b>y</b>: target · <b>x₀</b>: start · <b>η</b>, <b>T</b>: optimizer.</div>
+      <div class="row"><label for="p5opt">optimizer</label>
+        <select id="p5opt">
+          <option value="gd">plain GD (P = I)</option>
+          <option value="spec">spectral GD</option>
+          <option value="sign">signed GD</option>
+          <option value="gn">Gauss–Newton</option>
+        </select></div>
+      <div class="row"><label for="p5b">b &nbsp;(steepness)</label><input id="p5b" type="number" step="any" value="1"></div>
+      <div class="row"><label for="p5y">target y (&lt;0)</label><input id="p5y" type="number" step="any" value="-3"></div>
+      <div class="row"><label for="p5x0">init x₀</label><input id="p5x0" type="number" step="any" value="-6"></div>
+      <div class="row"><label for="p5lr">learning rate η</label><input id="p5lr" type="number" step="any" value="0.2"></div>
+      <input id="p5lrs" type="range" min="0" max="1000" value="0" aria-label="learning rate slider">
+      <div class="row"><label for="p5T">iterations</label><input id="p5T" type="number" min="10" max="20000" step="10" value="600"></div>
+      <div class="chips" id="p5info"></div>
+    </div>
+    <div class="card ctl">
+      <h3>Presets</h3>
+      <div class="presets" id="p5presets"></div>
+    </div>
+    <div class="card ctl">
+      <h3>At current step</h3>
+      <div class="chips" id="p5read"></div>
+      <div style="margin-top:8px"><button class="linkbtn" id="p5csv">Export trajectory CSV</button></div>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="card transport">
+      <button id="p5play" aria-label="play or pause">▶</button>
+      <input id="p5scrub" type="range" min="0" max="600" value="600" aria-label="gradient step">
+      <span class="tlab num" id="p5tlab">t = 600 / 600</span>
+      <select id="p5speed" aria-label="playback speed">
+        <option value="0.01">1/100×</option><option value="0.02">1/50×</option>
+        <option value="0.04">1/25×</option><option value="0.1">⅒×</option>
+        <option value="0.25">¼×</option><option value="1" selected>1×</option>
+        <option value="4">4×</option><option value="16">16×</option>
+      </select>
+    </div>
+
+
+    <div class="card">
+      <h3>Function landscape f(x)</h3>
+      <p class="cap">f(x) = −e<sup>b·x</sup> · dashed line: target y · red band: λ<sub>max</sub>(PH) &gt; 2/η for the <i>selected preconditioner</i></p>
+      <canvas class="plot" id="c5f" role="img" aria-label="1-D function landscape with preconditioned GD hops as arcs"></canvas>
+      <div class="legend">
+        <span><i class="sw dash" style="color:var(--zero)"></i>target y</span>
+        <span><i class="sw dot" style="background:var(--zero)"></i>crossing f = y</span>
+        <span><i class="sw area" style="background:color-mix(in srgb,var(--unst) 14%, transparent)"></i>λ<sub>max</sub>(PH) &gt; 2/η</span>
+        <span><i class="sw" style="background:linear-gradient(90deg,var(--traj0),var(--traj1))"></i>hops t = 0 → T</span>
+        <span><i class="sw dot" style="background:var(--now)"></i>current</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Loss landscape L(x) = (y − f)²</h3>
+      <p class="cap">same trajectory on the loss curve · with a constant-step method (signed/spectral) the unstable band hugs the crossing — the geometric reason it can never converge; Gauss–Newton flattens λ(PH) → 2 along the whole descent path (for η &lt; 1 the band retreats beyond the crossing, where the residual curvature term takes over)</p>
+      <canvas class="plot" id="c5L" role="img" aria-label="1-D loss landscape with the same preconditioned GD hops"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Training loss</h3>
+      <p class="cap">L · log scale</p>
+      <canvas class="plot" id="c5s1" role="img" aria-label="training loss versus step"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Preconditioned sharpness vs 2/η</h3>
+      <p class="cap">λ<sub>max</sub>(P<sup>½</sup>HP<sup>½</sup>) — stability of w ← w − ηPg requires λ<sub>max</sub>(PH) &lt; 2/η</p>
+      <canvas class="plot" id="c5s2" role="img" aria-label="preconditioned sharpness versus step with threshold"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>λ<sub>max</sub>(PH) at iterate</span>
+        <span><i class="sw" style="background:var(--sharpmid)"></i>at midpoint (P frozen at iterate)</span>
+        <span><i class="sw" style="background:var(--unst)"></i>2/η</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Residual norm ‖r‖</h3>
+      <p class="cap">log scale</p>
+      <canvas class="plot" id="c5s3" role="img" aria-label="residual norm versus step"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>x_t — preconditioned gradient on the top PH-eigenvector</h3>
+      <p class="cap">(Pg)·v̂₁ with v₁ the top eigenvector of P<sup>½</sup>HP<sup>½</sup> mapped to parameter space · signed, symlog</p>
+      <canvas class="plot" id="c5s4" role="img" aria-label="preconditioned gradient projection on top eigenvector versus step"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Preconditioned gradient on ∇̂S_P</h3>
+      <p class="cap">(Pg)·∇̂S_P where S_P = λ<sub>max</sub>(PH) · signed, symlog</p>
+      <canvas class="plot" id="c5s5" role="img" aria-label="preconditioned gradient projection on the preconditioned sharpness gradient versus step"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Residual on the oscillating direction</h3>
+      <p class="cap">r·û with û = normalize(J·v₁) — function-space image of the PH-oscillation direction · symlog</p>
+      <canvas class="plot" id="c5s6" role="img" aria-label="residual projection on the oscillating direction versus step"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Residual on JP∇̂S_P</h3>
+      <p class="cap">r·normalize(J·P·∇S_P) — preconditioner-times-Jacobian pushforward of the sharpness gradient · symlog</p>
+      <canvas class="plot" id="c5s7" role="img" aria-label="residual projection on the preconditioned sharpness pushforward versus step"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Residual on a random direction JPu</h3>
+      <p class="cap">r·normalize(J·P·u), u a fixed random parameter direction · the generic baseline · symlog</p>
+      <canvas class="plot" id="c5s8" role="img" aria-label="residual projection on the image of a random direction versus step"></canvas>
+    </div>
+
+    <div class="notes">
+      <p><b>What changes under a preconditioner.</b> The update x ← x − ηPg is linearly stable when
+      λ<sub>max</sub>(PH) &lt; 2/η, so the edge of stability lives in the <i>preconditioned</i> sharpness.
+      <b>Signed GD</b> takes constant-size steps, so it cannot converge: it settles into a limit cycle
+      around the crossing whose preconditioned sharpness self-tunes onto 2/η (at η = 0.2 the measured
+      median λ(PH) is 10.01 vs 2/η = 10). <b>Gauss–Newton</b> rescales the residual dynamics to
+      r ← (1 − 2η)r: λ(PH) ≈ 2 at all times, the threshold is η = 1 <i>regardless of the landscape</i>,
+      and above it the oscillation grows no matter how flat the curve is.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PANEL 6 : adaptive optimizers, tilted valley ================= -->
+<section class="panel" id="panel6" hidden>
+  <div class="side">
+    <div class="card ctl">
+      <h3>Model &nbsp;·&nbsp; f₁ = a·e<sup>b·s</sup>·w₁, &nbsp;f₂ = μ·s</h3>
+      <div class="mdef">The tilted-valley model trained with preconditioned GD: w ← w − η·P·∇L.
+      <b>plain GD</b>: P = I — the θ-lab baseline, for side-by-side comparison. <b>signed GD</b>: P = diag(1/|gᵢ|). <b>spectral GD</b>: P = kron((GGᵀ)<sup>−¼</sup>, (GᵀG)<sup>−¼</sup>)
+      per layer — for the single vector "layer" here this reduces to g → g/‖g‖ (Muon-style
+      orthogonalization). <b>Gauss–Newton</b>: P = (JJᵀ)⁻¹ in parameter space (our row convention:
+      (JᵀJ + εI)⁻¹, ε ≈ 1e−9). Stability: λ<sub>max</sub>(PH) &lt; 2/η. Model knobs as on the θ-lab tab.</div>
+      <div class="row"><label for="p6opt">optimizer</label>
+        <select id="p6opt">
+          <option value="gd">plain GD (P = I)</option>
+          <option value="spec">spectral GD</option>
+          <option value="sign">signed GD</option>
+          <option value="gn">Gauss–Newton</option>
+        </select></div>
+      <div class="row"><label for="p6th">angle θ (degrees)</label><input id="p6th" type="number" min="0" max="90" step="0.1" value="90"></div>
+      <div class="row"><label for="p6a">a &nbsp;(valley sharpness √)</label><input id="p6a" type="number" step="any" value="2.5"></div>
+      <div class="row"><label for="p6b">b &nbsp;(sharpness gradient)</label><input id="p6b" type="number" step="any" value="0.05"></div>
+      <div class="row"><label for="p6mu">μ &nbsp;(pull strength)</label><input id="p6mu" type="number" step="any" value="0.3"></div>
+      <div class="row"><label for="p6y2">y₂ &nbsp;(second target)</label><input id="p6y2" type="number" step="any" value="2"></div>
+      <div class="row"><label for="p6x10">init w₁</label><input id="p6x10" type="number" step="any" value="1"></div>
+      <div class="row"><label for="p6lr">learning rate η</label><input id="p6lr" type="number" step="any" value="0.1"></div>
+      <input id="p6lrs" type="range" min="0" max="1000" value="0" aria-label="learning rate slider">
+      <div class="row"><label for="p6T">iterations</label><input id="p6T" type="number" min="10" max="20000" step="10" value="600"></div>
+      <div class="chips" id="p6info"></div>
+    </div>
+    <div class="card ctl">
+      <h3>Presets</h3>
+      <div class="presets" id="p6presets"></div>
+    </div>
+    <div class="card ctl">
+      <h3>At current step</h3>
+      <div class="chips" id="p6read"></div>
+      <div style="margin-top:8px"><button class="linkbtn" id="p6csv">Export trajectory CSV</button></div>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="card transport">
+      <button id="p6play" aria-label="play or pause">▶</button>
+      <input id="p6scrub" type="range" min="0" max="600" value="600" aria-label="gradient step">
+      <span class="tlab num" id="p6tlab">t = 600 / 600</span>
+      <select id="p6speed" aria-label="playback speed">
+        <option value="0.01">1/100×</option><option value="0.02">1/50×</option>
+        <option value="0.04">1/25×</option><option value="0.1">⅒×</option>
+        <option value="0.25">¼×</option><option value="1" selected>1×</option>
+        <option value="4">4×</option><option value="16">16×</option>
+      </select>
+    </div>
+
+
+    <div class="card">
+      <h3>f₁ landscape — the oscillating output</h3>
+      <p class="cap">surface z = f₁ = a·e<sup>b·s</sup>·w₁ · green: r₁ = 0 valley · amber: full fit (r₁ = r₂ = 0) · drag to rotate</p>
+      <canvas class="plot" id="c6f" role="img" aria-label="f1 landscape with the preconditioned optimizer trajectory"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--zero)"></i>r₁ = 0 valley</span>
+        <span><i class="sw dot" style="background:var(--nt3)"></i>full fit (r = 0)</span>
+        <span><i class="sw area" style="background:color-mix(in srgb,var(--unst) 14%, transparent)"></i>λ<sub>max</sub>(PH) &gt; 2/η</span>
+        <span><i class="sw" style="background:linear-gradient(90deg,var(--traj0),var(--traj1))"></i>iterates t = 0 → T</span>
+        <span><i class="sw dot" style="background:var(--now)"></i>current</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="hd"><h3>Loss landscape L(w₁, w₂)</h3>
+        <label class="toggle"><input type="checkbox" id="p6logz" checked> log z</label></div>
+      <p class="cap">surface z = L = f₁² + (y₂ − μs)² · red tint: λ<sub>max</sub>(PH) &gt; 2/η for the <i>selected preconditioner</i> — switch optimizers and watch the unstable region move · drag to rotate</p>
+      <canvas class="plot" id="c6L" role="img" aria-label="loss landscape with the preconditioned optimizer trajectory"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Training loss</h3>
+      <p class="cap">L · log scale</p>
+      <canvas class="plot" id="c6s1" role="img" aria-label="training loss versus step"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Preconditioned sharpness vs 2/η</h3>
+      <p class="cap">λ<sub>max</sub>(P<sup>½</sup>HP<sup>½</sup>) — stability of w ← w − ηPg requires λ<sub>max</sub>(PH) &lt; 2/η</p>
+      <canvas class="plot" id="c6s2" role="img" aria-label="preconditioned sharpness versus step with threshold"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>λ<sub>max</sub>(PH) at iterate</span>
+        <span><i class="sw" style="background:var(--sharpmid)"></i>at midpoint (P frozen at iterate)</span>
+        <span><i class="sw" style="background:var(--unst)"></i>2/η</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Residual norm ‖r‖</h3>
+      <p class="cap">log scale</p>
+      <canvas class="plot" id="c6s3" role="img" aria-label="residual norm versus step"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>x_t — preconditioned gradient on the top PH-eigenvector</h3>
+      <p class="cap">(Pg)·v̂₁ with v₁ the top eigenvector of P<sup>½</sup>HP<sup>½</sup> mapped to parameter space · signed, symlog</p>
+      <canvas class="plot" id="c6s4" role="img" aria-label="preconditioned gradient projection on top eigenvector versus step"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Preconditioned gradient on ∇̂S_P</h3>
+      <p class="cap">(Pg)·∇̂S_P where S_P = λ<sub>max</sub>(PH) · signed, symlog</p>
+      <canvas class="plot" id="c6s5" role="img" aria-label="preconditioned gradient projection on the preconditioned sharpness gradient versus step"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Residual on the oscillating direction</h3>
+      <p class="cap">r·û with û = normalize(J·v₁) — function-space image of the PH-oscillation direction · symlog</p>
+      <canvas class="plot" id="c6s6" role="img" aria-label="residual projection on the oscillating direction versus step"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Residual on JP∇̂S_P</h3>
+      <p class="cap">r·normalize(J·P·∇S_P) — preconditioner-times-Jacobian pushforward of the sharpness gradient · symlog</p>
+      <canvas class="plot" id="c6s7" role="img" aria-label="residual projection on the preconditioned sharpness pushforward versus step"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Residual on a random direction JPu</h3>
+      <p class="cap">r·normalize(J·P·u), u a fixed random parameter direction · the generic baseline · symlog</p>
+      <canvas class="plot" id="c6s8" role="img" aria-label="residual projection on the image of a random direction versus step"></canvas>
+    </div>
+
+    <div class="notes">
+      <p><b>Preconditioners break the EoS fitting ceiling.</b> On the θ-lab tab this model (y₂ = 2) is
+      stuck forever at L ≈ 3.9 because the full fit needs sharpness above 2/η. The adaptive optimizers walk
+      through: <b>spectral GD</b> at η = 0.1 rides its own preconditioned edge — λ(PH) = ‖H‖/‖g‖ locks
+      exactly at 2/η = 20 — while the loss keeps falling to ~3e−2 near the full fit; <b>signed GD</b> does
+      the same per-coordinate; <b>Gauss–Newton</b> ignores the sharpness ladder entirely (λ(PH) ≈ 2),
+      converging to machine zero for any η &lt; 1 and diverging for η &gt; 1. Constant-step methods cannot
+      fully converge — their loss floor scales with η².</p>
     </div>
   </div>
 </section>
@@ -865,10 +1143,15 @@ function lineSeries(ctx, A, arr, len, st, off, color, upTo){
   for (let i = 0; i < Math.min(upTo, len); i += st){ const px = A.x(i+off), py = A.y(arr[i]); first ? ctx.moveTo(px,py) : ctx.lineTo(px,py); first = false; }
   ctx.stroke();
 }
-function drawSharpStrip(cv, RR, t, lr){
+function drawSharpStrip(cv, RR, t, lr, iterRange){
   const F = stripFrame(cv, t, RR.n), ctx = F.ctx, A = F.A;
   const thr = 2/lr;
-  let lo = Math.min(pctl(RR.S,2), pctl(RR.Sm,2), thr, 0), hi = Math.max(pctl(RR.S,98), pctl(RR.Sm,98), thr);
+  // iterRange: scale the axis from the iterate series only — preconditioned midpoint
+  // values can spike (near-vanishing hop gradients) and would flatten the whole chart
+  let lo = iterRange ? Math.min(pctl(RR.S,2), thr, 0)
+                     : Math.min(pctl(RR.S,2), pctl(RR.Sm,2), thr, 0);
+  let hi = iterRange ? Math.max(pctl(RR.S,98), thr)
+                     : Math.max(pctl(RR.S,98), pctl(RR.Sm,98), thr);
   if (!(hi > lo)){ lo -= 1; hi += 1; }
   const pad = 0.10*(hi-lo); lo -= pad; hi += pad;
   A.y = v => A.t + (hi - clamp(v, lo, hi))/(hi - lo)*A.h;
@@ -1065,6 +1348,18 @@ function tick(){
     $('p3scrub').value = t3;
     if (t3 >= R3.n){ playing3 = false; $('p3play').textContent = '▶'; }
     drawAll3();
+  }
+  if (playing5 && R5){
+    t5 = stepAdvance(t5, R5.n, +$('p5speed').value);
+    $('p5scrub').value = t5;
+    if (t5 >= R5.n){ playing5 = false; $('p5play').textContent = '▶'; }
+    drawAll5();
+  }
+  if (playing6 && R6){
+    t6 = stepAdvance(t6, R6.n, +$('p6speed').value);
+    $('p6scrub').value = t6;
+    if (t6 >= R6.n){ playing6 = false; $('p6play').textContent = '▶'; }
+    drawAll6();
   }
   requestAnimationFrame(tick);
 }
@@ -1735,17 +2030,709 @@ function drawSymlogStrip(cv, RR, t, arr, color){
   cv._map = { A, n: F.n };
 }
 
+
+/* ================= PANELS 5 & 6 : adaptive (preconditioned) optimizers ================= */
+function symEig2(a11, a12, a22){
+  const lam = 0.5*(a11+a22) + Math.hypot(0.5*(a11-a22), a12);
+  let v1 = a12, v2 = lam - a11;
+  const w1 = lam - a22, w2 = a12;
+  if (Math.hypot(w1, w2) > Math.hypot(v1, v2)){ v1 = w1; v2 = w2; }
+  const nn = Math.hypot(v1, v2);
+  return { lam, v1: nn > 1e-300 ? v1/nn : 1, v2: nn > 1e-300 ? v2/nn : 0 };
+}
+function symSqrt2(p11, p12, p22){
+  const e = symEig2(p11, p12, p22);
+  const lam1 = Math.max(e.lam, 0), lam2 = Math.max(p11 + p22 - e.lam, 0);
+  const s1 = Math.sqrt(lam1), s2 = Math.sqrt(lam2), va = e.v1, vb = e.v2;
+  return { q11: s1*va*va + s2*vb*vb, q12: (s1 - s2)*va*vb, q22: s1*vb*vb + s2*va*va };
+}
+const UPHI5 = Math.cos(2.399963), UPHI6a = Math.cos(2.399963), UPHI6b = Math.sin(2.399963);
+
+/* ---------- panel 5 : 1-D exp, preconditioned ---------- */
+const P5 = { opt:'sign', b:1, y:-3, x0:-6, lr:0.2, T:600 };
+let R5 = null, t5 = 0, playing5 = false;
+function fv5(x){ const e = P5.b*x; return -(e > 60 ? Infinity : Math.exp(e)); }
+function fp5(x){ const e = P5.b*x; return -P5.b*(e > 60 ? Infinity : Math.exp(e)); }
+function S5(x){
+  const e = P5.b*x, E = e > 60 ? Infinity : Math.exp(e);
+  return 2*P5.b*P5.b*E*E + 2*(-E - P5.y)*(-P5.b*P5.b*E);
+}
+function pre5(x){
+  if (P5.opt === 'gd') return 1;
+  const fp = fp5(x);
+  if (P5.opt === 'gn') return 1/(fp*fp + 1e-9);
+  const g = 2*(fv5(x) - P5.y)*fp;
+  return 1/(Math.abs(g) + 1e-12);
+}
+function lamP5(x){ return pre5(x)*S5(x); }
+function sim5(){
+  const T = P5.T;
+  const xs = new Float64Array(T+1); xs[0] = P5.x0;
+  let x = P5.x0, n = T, div = false;
+  for (let t = 0; t < T; t++){
+    const f = fv5(x), fp = fp5(x);
+    if (!isFinite(f) || !isFinite(fp)){ n = t; div = true; break; }
+    const g = 2*(f - P5.y)*fp;
+    x = x - P5.lr*pre5(x)*g;
+    if (!isFinite(x) || Math.abs(x) > 1e9){ n = t; div = true; break; }
+    xs[t+1] = x;
+  }
+  const m = n+1, clip = v => Math.max(-1e150, Math.min(1e150, v));
+  const L = new Float64Array(m), rn = new Float64Array(m), S = new Float64Array(m),
+        Xt = new Float64Array(m), GdS = new Float64Array(m), Ru = new Float64Array(m),
+        Rq = new Float64Array(m), Ruv = new Float64Array(m), r = new Float64Array(m);
+  for (let i = 0; i < m; i++){
+    const f = clip(fv5(xs[i])), fp = clip(fp5(xs[i]));
+    r[i] = P5.y - f; L[i] = r[i]*r[i]; rn[i] = Math.abs(r[i]);
+    S[i] = clip(lamP5(xs[i]));
+    const g = 2*(f - P5.y)*fp, Pv = pre5(xs[i]);
+    Xt[i] = clip(Pv*g);
+    const h_ = 1e-5*(1 + Math.abs(xs[i]));
+    const Sp = (lamP5(xs[i]+h_) - lamP5(xs[i]-h_))/(2*h_);
+    const sSp = Sp > 0 ? 1 : Sp < 0 ? -1 : 0;
+    GdS[i] = clip(Xt[i]*sSp);
+    const sF = fp > 0 ? 1 : fp < 0 ? -1 : 0;
+    Ru[i] = clip(r[i]*sF);
+    Rq[i] = clip(r[i]*(fp*Pv*Sp > 0 ? 1 : fp*Pv*Sp < 0 ? -1 : 0));
+    Ruv[i] = clip(r[i]*(fp*Pv*UPHI5 > 0 ? 1 : fp*Pv*UPHI5 < 0 ? -1 : 0));
+  }
+  const Sm = new Float64Array(Math.max(0, m-1));
+  // midpoint curvature with P frozen at the iterate — recomputing P at the midpoint
+  // blows up where the hop's gradient nearly vanishes
+  for (let i = 0; i+1 < m; i++) Sm[i] = clip(pre5(xs[i]) * S5(0.5*(xs[i]+xs[i+1])));
+  return { xs: xs.subarray(0,m), r, L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv, n, div,
+           conv: !div && L[m-1] < 1e-10 };
+}
+
+
+/* ----- panel-5 landscape charts (function + loss view, preconditioned unstable band) ----- */
+function xRange5(){
+  const [qlo, qhi] = fullRange(R5.xs, 1, 99, 3);
+  let lo = Math.min(qlo, P5.x0), hi = Math.max(qhi, P5.x0);
+  const c = -P5.y;
+  if (c > 0 && Math.abs(P5.b) > 1e-12){
+    const xc = Math.log(c)/P5.b, sp0 = hi - lo || 1;
+    if (xc > lo - 2*sp0 && xc < hi + 2*sp0){ lo = Math.min(lo, xc); hi = Math.max(hi, xc); }
+  }
+  const span = hi - lo || 1;
+  return { lo: lo - 0.12*span, hi: hi + 0.12*span };
+}
+function drawLand5(cv, kind, XR){
+  const { ctx, w, h } = setup(cv);
+  const A = area(w, h);
+  const up = Math.min(Math.round(t5), R5.n);
+  const c = -P5.y;
+  const lo = XR.lo, hi = XR.hi;
+  const V = i => kind === 'f' ? P5.y - R5.r[i] : R5.L[i];   // f = y − r
+  const curveAt = x => {
+    const fv = Math.max(-1e100, Math.min(1e100, fv5(x)));
+    if (kind === 'f') return fv;
+    const d = Math.min(1e75, Math.abs(fv - P5.y)); return d*d;
+  };
+  const N = 400, cxs = [], cys = [];
+  for (let i = 0; i <= N; i++){ const x = lo + (hi-lo)*i/N; cxs.push(x); cys.push(curveAt(x)); }
+  let ylo, yhi;
+  if (kind === 'f'){
+    ylo = P5.y; yhi = P5.y;
+    for (const v of cys){ if (v > -1e100){ if (v < ylo) ylo = v; if (v > yhi) yhi = v; } }
+    for (let i = 0; i <= up; i++){ const v = V(i); if (v > -1e100){ if (v < ylo) ylo = v; if (v > yhi) yhi = v; } }
+    const yp = 0.10*(yhi - ylo || 1); ylo -= yp; yhi += yp;
+  } else {
+    yhi = Math.max(pctl(R5.L, 99.5), c > 0 ? c*c : 0, 1e-12) * 1.25;
+    ylo = -0.05*yhi;
+  }
+  A.x = x => A.l + (x - lo)/(hi - lo)*A.w;
+  A.y = v => A.t + (yhi - v)/(yhi - ylo)*A.h;
+  // unstable band for THIS preconditioner: λmax(PH)(x) > 2/η, found by scanning
+  ctx.fillStyle = alpha(PAL.unst, 0.09);
+  const thr = 2/P5.lr;
+  let runA = null;
+  for (let i = 0; i <= N; i++){
+    const lam = lamP5(cxs[i]);
+    const un = isFinite(lam) && lam > thr && i < N;
+    if (un && runA === null) runA = cxs[i];
+    if (!un && runA !== null){
+      const px1 = clamp(A.x(runA), A.l, A.l+A.w), px2 = clamp(A.x(cxs[i]), A.l, A.l+A.w);
+      ctx.fillRect(px1, A.t, Math.max(px2 - px1, 1), A.h);
+      runA = null;
+    }
+  }
+  axes(ctx, A, ticks(lo,hi,7), ticks(ylo,yhi,5), fmt, fmt);
+  if (kind === 'f'){
+    ctx.strokeStyle = PAL.zero; ctx.setLineDash([5,4]); ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(A.l, A.y(P5.y)); ctx.lineTo(A.l+A.w, A.y(P5.y)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = PAL.ink2; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+    ctx.fillText('y', A.l + 6, A.y(P5.y) - 3);
+  } else if (c > 0 && c*c < yhi){
+    ctx.strokeStyle = PAL.muted; ctx.setLineDash([2,4]); ctx.lineWidth = 1.1;
+    ctx.beginPath(); ctx.moveTo(A.l, A.y(c*c)); ctx.lineTo(A.l+A.w, A.y(c*c)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = PAL.muted; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+    ctx.fillText('y²', A.l + 6, A.y(c*c) - 2);
+  }
+  // curve
+  ctx.strokeStyle = PAL.ink2; ctx.lineWidth = 1.8; ctx.lineJoin = 'round'; ctx.beginPath();
+  for (let i = 0; i <= N; i++){
+    const px = A.x(cxs[i]), py = clamp(A.y(cys[i]), A.t-40, A.t+A.h+40);
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  // crossing marker f(x*) = y
+  if (c > 0 && Math.abs(P5.b) > 1e-12){
+    const xc = Math.log(c)/P5.b;
+    if (xc > lo && xc < hi){
+      ctx.fillStyle = PAL.zero; ctx.beginPath();
+      ctx.arc(A.x(xc), A.y(kind === 'f' ? P5.y : 0), 4, 0, 7); ctx.fill();
+      ctx.strokeStyle = PAL.surface; ctx.lineWidth = 2; ctx.stroke();
+    }
+  }
+  // hop arcs, colored early -> late
+  const st = decim(up, 2000);
+  const arcs = st === 1 && up <= 800;
+  const arrows = up <= 90;
+  for (let i = 0; i + st <= up; i += st){
+    const x1 = A.x(R5.xs[i]), y1 = clamp(A.y(V(i)), A.t-40, A.t+A.h+40);
+    const x2 = A.x(R5.xs[i+st]), y2 = clamp(A.y(V(i+st)), A.t-40, A.t+A.h+40);
+    ctx.strokeStyle = trajCol(R5.n ? i/R5.n : 0);
+    ctx.lineWidth = 1.3;
+    if (arcs){
+      const d = Math.hypot(x2-x1, y2-y1);
+      const lift = Math.min(46, 8 + 0.30*d);
+      const cxm = (x1+x2)/2, cym = (y1+y2)/2 - lift;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.quadraticCurveTo(cxm, cym, x2, y2); ctx.stroke();
+      if (arrows){
+        let vx = x2 - cxm, vy = y2 - cym;
+        const vn = Math.hypot(vx, vy) || 1; vx /= vn; vy /= vn;
+        ctx.beginPath();
+        ctx.moveTo(x2 - 7*vx + 3.5*vy, y2 - 7*vy - 3.5*vx);
+        ctx.lineTo(x2, y2);
+        ctx.lineTo(x2 - 7*vx - 3.5*vy, y2 - 7*vy + 3.5*vx);
+        ctx.stroke();
+      }
+    } else {
+      ctx.globalAlpha = 0.5;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+  // landing dots
+  for (let i = 0; i <= up; i += st){
+    ctx.fillStyle = trajCol(R5.n ? i/R5.n : 0);
+    ctx.beginPath();
+    ctx.arc(A.x(R5.xs[i]), clamp(A.y(V(i)), A.t-40, A.t+A.h+40), 2.3, 0, 7);
+    ctx.fill();
+  }
+  // current point + drop line
+  const base = kind === 'f' ? P5.y : 0;
+  const xC = A.x(R5.xs[up]), yC = clamp(A.y(V(up)), A.t-40, A.t+A.h+40);
+  ctx.strokeStyle = alpha(PAL.ink2, 0.8); ctx.setLineDash([3,3]); ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(xC, yC); ctx.lineTo(xC, A.y(base)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = PAL.ink2; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText(kind === 'f' ? 'r' : 'L', xC + 5, (yC + A.y(base))/2);
+  ctx.fillStyle = PAL.now; ctx.beginPath(); ctx.arc(xC, yC, 5.5, 0, 7); ctx.fill();
+  ctx.strokeStyle = PAL.surface; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = PAL.muted; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+  ctx.fillText('x', A.l + A.w, A.t + A.h - 4);
+}
+
+/* ---------- panel 6 : tilted valley, preconditioned ---------- */
+const P6 = { opt:'spec', th:90, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:1.0, lr:0.1, T:600 };
+let R6 = null, t6 = 0, playing6 = false;
+function trig6(){ const t = P6.th*Math.PI/180; return { ct: Math.cos(t), st: Math.sin(t) }; }
+function hess6(x1, x2){
+  const { ct, st } = trig6();
+  const s = ct*x1 + st*x2;
+  const E = P6.a*Math.exp(Math.min(P6.b*s, 60)), b = P6.b, mu = P6.mu;
+  const f1v = E*x1, r2v = P6.y2 - mu*s;
+  const d1 = E*(1 + b*ct*x1), d2 = E*b*st*x1;
+  const f11 = E*b*ct*(2 + b*ct*x1), f12 = E*b*st*(1 + b*ct*x1), f22 = E*b*b*st*st*x1;
+  return { f1: f1v, r2: r2v, d1, d2, ct, st,
+           g1: 2*f1v*d1 - 2*r2v*mu*ct,
+           g2: 2*f1v*d2 - 2*r2v*mu*st,
+           h11: 2*(d1*d1 + f1v*f11) + 2*mu*mu*ct*ct,
+           h22: 2*(d2*d2 + f1v*f22) + 2*mu*mu*st*st,
+           h12: 2*(d1*d2 + f1v*f12) + 2*mu*mu*ct*st };
+}
+function pre6(H){
+  const mu = P6.mu;
+  if (P6.opt === 'gd')
+    return { p11: 1, p12: 0, p22: 1 };
+  if (P6.opt === 'sign')
+    return { p11: 1/(Math.abs(H.g1) + 1e-12), p12: 0, p22: 1/(Math.abs(H.g2) + 1e-12) };
+  if (P6.opt === 'gn'){
+    const m11 = H.d1*H.d1 + mu*mu*H.ct*H.ct, m22 = H.d2*H.d2 + mu*mu*H.st*H.st;
+    const m12 = H.d1*H.d2 + mu*mu*H.ct*H.st;
+    const eps = 1e-9*(1 + m11 + m22);
+    const a11 = m11 + eps, a22 = m22 + eps;
+    const det = a11*a22 - m12*m12;
+    if (isFinite(det) && Math.abs(det) > 1e-280)
+      return { p11: a22/det, p12: -m12/det, p22: a11/det };
+  }
+  const sc = 1/(Math.hypot(H.g1, H.g2) + 1e-12);
+  return { p11: sc, p12: 0, p22: sc };
+}
+function lamP6(x1, x2){
+  const H = hess6(x1, x2), P = pre6(H);
+  const Q = symSqrt2(P.p11, P.p12, P.p22);
+  const b11 = Q.q11*H.h11 + Q.q12*H.h12, b12 = Q.q11*H.h12 + Q.q12*H.h22;
+  const b21 = Q.q12*H.h11 + Q.q22*H.h12, b22 = Q.q12*H.h12 + Q.q22*H.h22;
+  const a11 = b11*Q.q11 + b12*Q.q12, a12 = b11*Q.q12 + b12*Q.q22, a22 = b21*Q.q12 + b22*Q.q22;
+  return symEig2(a11, a12, a22).lam;
+}
+function sim6(){
+  const T = P6.T, mu = P6.mu;
+  const X1 = new Float64Array(T+1), X2 = new Float64Array(T+1);
+  let x1 = P6.x10, x2 = 0, n = T, div = false;
+  X1[0] = x1; X2[0] = x2;
+  for (let t = 0; t < T; t++){
+    const H = hess6(x1, x2);
+    if (!isFinite(H.g1) || !isFinite(H.g2)){ n = t; div = true; break; }
+    const P = pre6(H);
+    x1 = x1 - P6.lr*(P.p11*H.g1 + P.p12*H.g2);
+    x2 = x2 - P6.lr*(P.p12*H.g1 + P.p22*H.g2);
+    if (!isFinite(x1) || !isFinite(x2) || Math.max(Math.abs(x1), Math.abs(x2)) > 1e9){ n = t; div = true; break; }
+    X1[t+1] = x1; X2[t+1] = x2;
+  }
+  const m = n+1, clip = v => Math.max(-1e150, Math.min(1e150, v));
+  const L = new Float64Array(m), rn = new Float64Array(m), S = new Float64Array(m),
+        Xt = new Float64Array(m), GdS = new Float64Array(m), Ru = new Float64Array(m),
+        Rq = new Float64Array(m), Ruv = new Float64Array(m);
+  let pv1 = null, pv2 = 0;
+  for (let i = 0; i < m; i++){
+    const H = hess6(X1[i], X2[i]);
+    L[i] = Math.min(H.f1*H.f1 + H.r2*H.r2, 1e300); rn[i] = Math.sqrt(L[i]);
+    const P = pre6(H), Q = symSqrt2(P.p11, P.p12, P.p22);
+    const b11 = Q.q11*H.h11 + Q.q12*H.h12, b12 = Q.q11*H.h12 + Q.q12*H.h22;
+    const b21 = Q.q12*H.h11 + Q.q22*H.h12, b22 = Q.q12*H.h12 + Q.q22*H.h22;
+    const a11 = b11*Q.q11 + b12*Q.q12, a12 = b11*Q.q12 + b12*Q.q22, a22 = b21*Q.q12 + b22*Q.q22;
+    const eA = symEig2(a11, a12, a22);
+    S[i] = clip(eA.lam);
+    let vw1 = Q.q11*eA.v1 + Q.q12*eA.v2, vw2 = Q.q12*eA.v1 + Q.q22*eA.v2;
+    const nv = Math.hypot(vw1, vw2);
+    if (nv > 1e-300){ vw1 /= nv; vw2 /= nv; } else { vw1 = 1; vw2 = 0; }
+    if (pv1 !== null && vw1*pv1 + vw2*pv2 < 0){ vw1 = -vw1; vw2 = -vw2; }
+    pv1 = vw1; pv2 = vw2;
+    const pg1 = P.p11*H.g1 + P.p12*H.g2, pg2 = P.p12*H.g1 + P.p22*H.g2;
+    Xt[i] = clip(pg1*vw1 + pg2*vw2);
+    const h_ = 1e-5*(1 + Math.abs(X1[i]) + Math.abs(X2[i]));
+    const gS1 = (lamP6(X1[i]+h_, X2[i]) - lamP6(X1[i]-h_, X2[i]))/(2*h_);
+    const gS2 = (lamP6(X1[i], X2[i]+h_) - lamP6(X1[i], X2[i]-h_))/(2*h_);
+    const nS = Math.hypot(gS1, gS2);
+    GdS[i] = nS > 1e-12 ? clip((pg1*gS1 + pg2*gS2)/nS) : 0;
+    const ju1 = H.d1*vw1 + H.d2*vw2, ju2 = mu*(H.ct*vw1 + H.st*vw2);
+    const nu = Math.hypot(ju1, ju2);
+    Ru[i] = nu > 1e-300 ? clip((-H.f1*ju1 + H.r2*ju2)/nu) : 0;
+    const pq1 = P.p11*gS1 + P.p12*gS2, pq2 = P.p12*gS1 + P.p22*gS2;
+    const jq1 = H.d1*pq1 + H.d2*pq2, jq2 = mu*(H.ct*pq1 + H.st*pq2);
+    const nq = Math.hypot(jq1, jq2);
+    Rq[i] = nq > 1e-12 ? clip((-H.f1*jq1 + H.r2*jq2)/nq) : 0;
+    const pu1 = P.p11*UPHI6a + P.p12*UPHI6b, pu2 = P.p12*UPHI6a + P.p22*UPHI6b;
+    const jr1 = H.d1*pu1 + H.d2*pu2, jr2 = mu*(H.ct*pu1 + H.st*pu2);
+    const nr = Math.hypot(jr1, jr2);
+    Ruv[i] = nr > 1e-300 ? clip((-H.f1*jr1 + H.r2*jr2)/nr) : 0;
+  }
+  const Sm = new Float64Array(Math.max(0, m-1));
+  // midpoint curvature with P frozen at the iterate — recomputing P at the midpoint
+  // blows up where the hop's gradient nearly vanishes
+  for (let i = 0; i+1 < m; i++){
+    const Hm = hess6(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1]));
+    const Pi = pre6(hess6(X1[i], X2[i]));
+    const Qi = symSqrt2(Pi.p11, Pi.p12, Pi.p22);
+    const c11 = Qi.q11*Hm.h11 + Qi.q12*Hm.h12, c12 = Qi.q11*Hm.h12 + Qi.q12*Hm.h22;
+    const c21 = Qi.q12*Hm.h11 + Qi.q22*Hm.h12, c22 = Qi.q12*Hm.h12 + Qi.q22*Hm.h22;
+    Sm[i] = clip(symEig2(c11*Qi.q11 + c12*Qi.q12, c11*Qi.q12 + c12*Qi.q22,
+                         c21*Qi.q12 + c22*Qi.q22).lam);
+  }
+  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv, n, div,
+           conv: !div && L[m-1] < 1e-10 };
+}
+
+
+/* ----- panel-6 3-D landscape surfaces (same engine as θ-lab, preconditioned unstable tint) ----- */
+function f6(x1, x2){
+  const { ct, st } = trig6();
+  const s = ct*x1 + st*x2;
+  return P6.a*Math.exp(Math.min(P6.b*s, 60))*x1;
+}
+function L6full(x1, x2){
+  const { ct, st } = trig6();
+  const s = ct*x1 + st*x2;
+  const E = P6.a*Math.exp(Math.min(P6.b*s, 60));
+  const f1v = E*x1, r2v = P6.y2 - P6.mu*s;
+  return Math.min(f1v*f1v + r2v*r2v, 1e300);
+}
+const cam6 = { al: -0.95, ph: 0.50 };
+const cacheF6 = { cv: document.createElement('canvas'), key: '' };
+const cacheL6 = { cv: document.createElement('canvas'), key: '' };
+let surf6 = null;
+function buildSurf6(){
+  const xs = R6.x1, ys = R6.x2;
+  const [q1l, q1h] = fullRange(xs, 2, 98, 3), [q2l, q2h] = fullRange(ys, 2, 98, 3);
+  let l1 = Math.min(q1l, P6.x10, 0), h1 = Math.max(q1h, P6.x10, 0);
+  let l2 = Math.min(q2l, 0), h2 = Math.max(q2h, 0);
+  const s1 = (h1-l1 || 2), s2 = (h2-l2 || 2);
+  l1 -= 0.25*s1; h1 += 0.25*s1; l2 -= 0.25*s2; h2 += 0.25*s2;
+  const w1 = h1-l1, w2 = h2-l2;
+  if (w1 < 0.3*w2){ const cc = 0.5*(l1+h1), half = 0.15*w2; l1 = cc-half; h1 = cc+half; }
+  if (w2 < 0.3*w1){ const cc = 0.5*(l2+h2), half = 0.15*w1; l2 = cc-half; h2 = cc+half; }
+  const F = [], LM = [], UN = [];
+  const thr = 2/P6.lr;
+  for (let i = 0; i <= GN; i++){
+    F.push([]); LM.push([]);
+    const x1 = l1 + (h1-l1)*i/GN;
+    for (let j = 0; j <= GN; j++){
+      const x2 = l2 + (h2-l2)*j/GN;
+      const fv = Math.max(-1e100, Math.min(1e100, f6(x1, x2)));
+      F[i].push(fv); LM[i].push(L6full(x1, x2));
+    }
+  }
+  for (let i = 0; i < GN; i++){
+    UN.push([]);
+    for (let j = 0; j < GN; j++){
+      const x1 = l1 + (h1-l1)*(i+0.5)/GN, x2 = l2 + (h2-l2)*(j+0.5)/GN;
+      const lam = lamP6(x1, x2);
+      UN[i].push(isFinite(lam) && lam > thr);
+    }
+  }
+  // residual = 0 valley is exactly the line w1 = 0
+  const segs = [];
+  if (l1 < 0 && h1 > 0)
+    for (let j = 0; j < GN; j++)
+      segs.push([[0, l2 + (h2-l2)*j/GN], [0, l2 + (h2-l2)*(j+1)/GN]]);
+  surf6 = { l1, h1, l2, h2, F, LM, UN, segs };
+}
+function proj6(u, v, z, s, cx, cyv){
+  const ca = Math.cos(cam6.al), sa = Math.sin(cam6.al);
+  const cp = Math.cos(cam6.ph), sp = Math.sin(cam6.ph);
+  const wv = u*ca + v*sa, tv = -u*sa + v*ca;
+  return [cx + s*tv, cyv - s*(z*cp - wv*sp), wv*cp + z*sp];
+}
+function drawSurf6(cv, kind){
+  const cache = kind === 'f' ? cacheF6 : cacheL6;
+  const logz = kind === 'L' && $('p6logz').checked;
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  if (w < 10 || h < 10) return;
+  const key = [kind, w, h, dpr, cam6.al.toFixed(3), cam6.ph.toFixed(3), logz, PAL.ink,
+    surf6.l1, surf6.h1, surf6.l2, surf6.h2, P6.th, P6.a, P6.b, P6.mu, P6.y2, P6.lr, P6.opt].join('|');
+  const G = kind === 'f' ? surf6.F : surf6.LM;
+  const zf = logz ? (v => Math.log10(1 + Math.max(0, v))) : (v => v);
+  let zlo = Infinity, zhi = -Infinity;
+  for (let i = 0; i <= GN; i++) for (let j = 0; j <= GN; j++){
+    const z = zf(G[i][j]); if (z < zlo) zlo = z; if (z > zhi) zhi = z;
+  }
+  if (!(zhi > zlo)) zhi = zlo + 1;
+  const ZH = 0.85;
+  const nz = v => (zf(v) - zlo)/(zhi - zlo)*ZH;
+  const NX = x => -1 + 2*(x - surf6.l1)/(surf6.h1 - surf6.l1);
+  const NY = x => -1 + 2*(x - surf6.l2)/(surf6.h2 - surf6.l2);
+  const s = Math.min(w, h)/3.05, cx = w/2, cyv = h*0.56;
+  const P3d = (x1, x2, zv) => proj6(NX(x1), NY(x2), nz(zv), s, cx, cyv);
+  const floorz = logz ? Math.pow(10, zlo) - 1 : zlo;
+
+  if (cache.key !== key){
+    cache.key = key;
+    cache.cv.width = Math.round(w*dpr); cache.cv.height = Math.round(h*dpr);
+    const ctx = cache.cv.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,w,h);
+    ctx.strokeStyle = PAL.axis; ctx.lineWidth = 1;
+    const corners = [[surf6.l1,surf6.l2],[surf6.h1,surf6.l2],[surf6.h1,surf6.h2],[surf6.l1,surf6.h2]];
+    ctx.beginPath();
+    corners.forEach((c,i) => { const p = P3d(c[0], c[1], floorz); i===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]); });
+    ctx.closePath(); ctx.stroke();
+    const quads = [];
+    for (let i = 0; i < GN; i++) for (let j = 0; j < GN; j++){
+      const x1a = surf6.l1 + (surf6.h1-surf6.l1)*i/GN, x1b = surf6.l1 + (surf6.h1-surf6.l1)*(i+1)/GN;
+      const x2a = surf6.l2 + (surf6.h2-surf6.l2)*j/GN, x2b = surf6.l2 + (surf6.h2-surf6.l2)*(j+1)/GN;
+      const pa = P3d(x1a,x2a,G[i][j]), pb = P3d(x1b,x2a,G[i+1][j]),
+            pc = P3d(x1b,x2b,G[i+1][j+1]), pd = P3d(x1a,x2b,G[i][j+1]);
+      const zn = (nz(G[i][j]) + nz(G[i+1][j]) + nz(G[i+1][j+1]) + nz(G[i][j+1]))/(4*ZH);
+      quads.push({ pa, pb, pc, pd, zn, un: surf6.UN[i][j],
+        depth: (pa[2]+pb[2]+pc[2]+pd[2])/4 });
+    }
+    quads.sort((q1,q2) => q1.depth - q2.depth);
+    for (const q of quads){
+      ctx.beginPath();
+      ctx.moveTo(q.pa[0], q.pa[1]); ctx.lineTo(q.pb[0], q.pb[1]);
+      ctx.lineTo(q.pc[0], q.pc[1]); ctx.lineTo(q.pd[0], q.pd[1]); ctx.closePath();
+      ctx.fillStyle = mix(PAL.surflo, PAL.surfhi, clamp(q.zn, 0, 1));
+      ctx.fill();
+      if (q.un){ ctx.fillStyle = alpha(PAL.unst, 0.13); ctx.fill(); }
+      ctx.strokeStyle = alpha(PAL.muted, 0.18); ctx.lineWidth = 0.5; ctx.stroke();
+    }
+    ctx.strokeStyle = PAL.zero; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    for (const sg of surf6.segs){
+      const p1 = P3d(sg[0][0], sg[0][1], 0), p2 = P3d(sg[1][0], sg[1][1], 0);
+      ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
+    }
+    // full-fit point (r1 = r2 = 0): z = 0 on both surfaces
+    if (P6.th > 0.5 && Math.abs(P6.mu) > 1e-12){
+      const wfit = (P6.y2/P6.mu)/Math.sin(P6.th*Math.PI/180);
+      if (isFinite(wfit) && wfit > surf6.l2 && wfit < surf6.h2 && surf6.l1 < 0 && surf6.h1 > 0){
+        const pf = P3d(0, wfit, 0);
+        ctx.fillStyle = PAL.nt[2]; ctx.beginPath(); ctx.arc(pf[0], pf[1], 5, 0, 7); ctx.fill();
+        ctx.strokeStyle = PAL.surface; ctx.lineWidth = 2; ctx.stroke();
+      }
+    }
+    ctx.fillStyle = PAL.muted; ctx.font = '11px ui-monospace,Menlo,Consolas,monospace';
+    ctx.textAlign = 'center';
+    const m1 = P3d(surf6.h1, surf6.l2, floorz), m2 = P3d(surf6.l1, surf6.h2, floorz);
+    ctx.fillText('w₁', m1[0] + 14, m1[1] + 14);
+    ctx.fillText('w₂', m2[0] - 14, m2[1] + 14);
+    ctx.textAlign = 'left';
+    ctx.fillText(`w₁∈[${fmt(surf6.l1)}, ${fmt(surf6.h1)}]  w₂∈[${fmt(surf6.l2)}, ${fmt(surf6.h2)}]`, 8, h - 8);
+    ctx.textAlign = 'right';
+    ctx.fillText((kind === 'f' ? 'f₁' : (logz ? 'log₁₀(1+L)' : 'L')) + `∈[${fmt(zlo)}, ${fmt(zhi)}]`, w - 8, h - 8);
+  }
+  const { ctx } = setup(cv);
+  ctx.drawImage(cache.cv, 0, 0, w, h);
+  const up = Math.min(Math.round(t6), R6.n);
+  const st = decim(up, 2500);
+  const zof = i => kind === 'f' ? f6(R6.x1[i], R6.x2[i]) : R6.L[i];
+  const inD = i => R6.x1[i] >= surf6.l1 && R6.x1[i] <= surf6.h1 && R6.x2[i] >= surf6.l2 && R6.x2[i] <= surf6.h2;
+  const zcl = v => clamp(zf(v), zlo, zhi);
+  ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+  let prev = null;
+  for (let i = 0; i <= up; i += st){
+    if (!inD(i)){ prev = null; continue; }
+    const p = proj6(NX(R6.x1[i]), NY(R6.x2[i]), (zcl(zof(i)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
+    if (prev){
+      ctx.strokeStyle = alpha(PAL.traj1, 0.35);
+      ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(p[0], p[1]); ctx.stroke();
+    }
+    prev = p;
+  }
+  for (let i = 0; i <= up; i += st){
+    if (!inD(i)) continue;
+    const p = proj6(NX(R6.x1[i]), NY(R6.x2[i]), (zcl(zof(i)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
+    ctx.fillStyle = trajCol(R6.n ? i/R6.n : 0);
+    ctx.beginPath(); ctx.arc(p[0], p[1], 2.4, 0, 7); ctx.fill();
+  }
+  if (inD(up)){
+    const p = proj6(NX(R6.x1[up]), NY(R6.x2[up]), (zcl(zof(up)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
+    ctx.fillStyle = PAL.now; ctx.beginPath(); ctx.arc(p[0], p[1], 5.5, 0, 7); ctx.fill();
+    ctx.strokeStyle = PAL.surface; ctx.lineWidth = 2; ctx.stroke();
+  }
+}
+
+/* ---------- panels 5/6 drawing + wiring ---------- */
+function drawAdaptive(px, RR, t, lr){
+  drawLogStrip($(px + 's1'), RR, t, RR.L, 0, PAL.accent);
+  drawSharpStrip($(px + 's2'), RR, t, lr, true);
+  drawLogStrip($(px + 's3'), RR, t, RR.rn, 0, PAL.accent);
+  drawSymlogStrip($(px + 's4'), RR, t, RR.Xt, PAL.sharp);
+  drawSymlogStrip($(px + 's5'), RR, t, RR.GdS, PAL.now);
+  drawSymlogStrip($(px + 's6'), RR, t, RR.Ru, PAL.sharpmid);
+  drawSymlogStrip($(px + 's7'), RR, t, RR.Rq, PAL.accent);
+  drawSymlogStrip($(px + 's8'), RR, t, RR.Ruv, PAL.nt[2]);
+}
+function statusAdaptive(RR, t, lr){
+  const up = Math.min(Math.round(t), RR.n);
+  const ratio = RR.S[up]*lr/2;
+  let cls = PAL.good, txt = 'stable';
+  if (RR.div){ cls = PAL.crit; txt = 'diverged'; }
+  else if (ratio > 1.06){ cls = PAL.crit; txt = 'unstable here'; }
+  else if (ratio >= 0.985){ cls = PAL.warn; txt = 'edge of stability'; }
+  return { up, ratio, cls, txt };
+}
+function drawAll5(){
+  if (!R5) return;
+  readPal();
+  const XR5 = xRange5();
+  drawLand5($('c5f'), 'f', XR5);
+  drawLand5($('c5L'), 'L', XR5);
+  drawAdaptive('c5', R5, t5, P5.lr);
+  const st5 = statusAdaptive(R5, t5, P5.lr);
+  $('p5read').innerHTML =
+    chip('t', st5.up) + chip('x', fmt(R5.xs[st5.up])) + chip('L', fmt(R5.L[st5.up])) +
+    chip('λ(PH)', fmt(R5.S[st5.up])) +
+    `<span class="pill" style="background:${st5.cls}">η·λ(PH)/2 = ${fmt(st5.ratio)} · ${st5.txt}</span>`;
+  let info = chip('2/η', fmt(2/P5.lr));
+  if (P5.opt === 'gn') info += `<span class="chip">GN: λ(PH) ≈ 2 ⇒ threshold <b>η = 1</b></span>`;
+  else if (P5.opt === 'gd') info += `<span class="chip">plain GD: P = I — λ(PH) = S, the ordinary edge of stability</span>`;
+  else info += `<span class="chip">constant-step method: loss floor ∝ η²</span>`;
+  if (R5.div) info += `<span class="chip" style="color:${PAL.crit}"><b>diverged at t=${R5.n}</b></span>`;
+  else if (R5.conv) info += `<span class="chip" style="color:${PAL.good}"><b>converged</b></span>`;
+  $('p5info').innerHTML = info;
+  $('p5tlab').textContent = `t = ${st5.up} / ${R5.n}`;
+}
+function drawAll6(){
+  if (!R6) return;
+  readPal();
+  if (surf6){ drawSurf6($('c6f'), 'f'); drawSurf6($('c6L'), 'L'); }
+  drawAdaptive('c6', R6, t6, P6.lr);
+  const st6 = statusAdaptive(R6, t6, P6.lr);
+  $('p6read').innerHTML =
+    chip('t', st6.up) + chip('w₁', fmt(R6.x1[st6.up])) + chip('w₂', fmt(R6.x2[st6.up])) +
+    chip('L', fmt(R6.L[st6.up])) + chip('λ(PH)', fmt(R6.S[st6.up])) +
+    `<span class="pill" style="background:${st6.cls}">η·λ(PH)/2 = ${fmt(st6.ratio)} · ${st6.txt}</span>`;
+  let info = chip('2/η', fmt(2/P6.lr)) + chip('full-fit s = y₂/μ', fmt(P6.y2/(P6.mu || 1e-12)));
+  if (P6.opt === 'gn') info += `<span class="chip">GN: λ(PH) ≈ 2 ⇒ threshold <b>η = 1</b>, any sharpness</span>`;
+  else if (P6.opt === 'gd') info += `<span class="chip">plain GD: P = I — this is exactly the θ-lab dynamics</span>`;
+  if (R6.div) info += `<span class="chip" style="color:${PAL.crit}"><b>diverged at t=${R6.n}</b></span>`;
+  else if (R6.conv) info += `<span class="chip" style="color:${PAL.good}"><b>converged</b></span>`;
+  $('p6info').innerHTML = info;
+  $('p6tlab').textContent = `t = ${st6.up} / ${R6.n}`;
+}
+function recompute5(keepT){
+  R5 = sim5();
+  $('p5scrub').max = R5.n;
+  t5 = keepT ? Math.min(t5, R5.n) : R5.n;
+  $('p5scrub').value = t5;
+  drawAll5(); saveHash();
+}
+function recompute6(keepT){
+  R6 = sim6();
+  buildSurf6();
+  $('p6scrub').max = R6.n;
+  t6 = keepT ? Math.min(t6, R6.n) : R6.n;
+  $('p6scrub').value = t6;
+  drawAll6(); saveHash();
+}
+const BIND5 = [['p5b','b'],['p5y','y'],['p5x0','x0'],['p5lr','lr'],['p5T','T']];
+const BIND6 = [['p6th','th'],['p6a','a'],['p6b','b'],['p6mu','mu'],['p6y2','y2'],['p6x10','x10'],['p6lr','lr'],['p6T','T']];
+function syncInputs5(){
+  for (const [id, k] of BIND5) $(id).value = P5[k];
+  $('p5lrs').value = lr2slider(P5.lr); $('p5opt').value = P5.opt;
+}
+function syncInputs6(){
+  for (const [id, k] of BIND6) $(id).value = P6[k];
+  $('p6lrs').value = lr2slider(P6.lr); $('p6opt').value = P6.opt;
+}
+function wireAdaptive(binds, PP, pid, recompute_){
+  for (const [id, k] of binds){
+    $(id).addEventListener('input', () => {
+      const v = parseFloat($(id).value);
+      if (!isFinite(v)) return;
+      if (k === 'T') PP.T = clamp(Math.round(v), 10, 20000);
+      else if (k === 'lr'){ if (v <= 0) return; PP.lr = v; $(pid + 'lrs').value = lr2slider(v); }
+      else if (k === 'th') PP.th = clamp(v, 0, 90);
+      else PP[k] = v;
+      recompute_(true);
+    });
+  }
+  $(pid + 'lrs').addEventListener('input', () => {
+    PP.lr = parseFloat(slider2lr(+$(pid + 'lrs').value).toPrecision(3));
+    $(pid + 'lr').value = PP.lr;
+    recompute_(true);
+  });
+  $(pid + 'opt').addEventListener('change', () => {
+    const v = $(pid + 'opt').value;
+    PP.opt = (v === 'sign' || v === 'gn' || v === 'gd') ? v : 'spec';
+    recompute_(true);
+  });
+}
+wireAdaptive(BIND5, P5, 'p5', recompute5);
+wireAdaptive(BIND6, P6, 'p6', recompute6);
+const PRESETS5 = [
+  { n:'Ride forever · plain GD', d:'η=0.115: the ordinary edge of stability — S hugs 2/η = 17.4 and the bounded oscillation never ends (tail L ≈ 0.07–0.1 out to t=3000)',
+    v:{ opt:'gd', b:1, y:-3, x0:-2, lr:0.115, T:3000 } },
+  { n:'Default · ride forever · signed/spectral', d:'η=0.2, x₀=−6: the full EoS arc — λ(PH) starts NEGATIVE deep in the flat region, sharpens, crosses 2/η = 10 at t≈36, then locks (median 11.4, 100% of remaining steps within ±15%) in a permanent cycle',
+    v:{ opt:'sign', b:1, y:-3, x0:-6, lr:0.2, T:600 } },
+  { n:'Ride forever · Gauss–Newton', d:'η=1.02: just past GN’s landscape-independent threshold η = 1 — a bounded oscillation with L ≈ 0.34–0.9 that persists to t=3000',
+    v:{ opt:'gn', b:1, y:-3, x0:-2, lr:1.02, T:3000 } },
+  { n:'Signed · tighter cycle (η ↓)', d:'η=0.05: the cycle shrinks (loss floor ∝ η²) but never converges; λ(PH) spikes as |g| → 0 at the turning points',
+    v:{ opt:'sign', b:1, y:-3, x0:-2, lr:0.05, T:600 } },
+  { n:'Gauss–Newton · converges for η < 1', d:'η=0.9: r ← (1 − 2η)r with λ(PH) ≈ 2.00 flat — curvature is invisible to GN; machine-zero fit in a few dozen steps',
+    v:{ opt:'gn', b:1, y:-3, x0:-2, lr:0.9, T:200 } },
+  { n:'Gauss–Newton at its edge (η just past 1)', d:'η=1.02: bounded oscillation with L ≈ 0.6–0.9 — the EoS analog at GN’s landscape-independent threshold η = 1',
+    v:{ opt:'gn', b:1, y:-3, x0:-2, lr:1.02, T:800 } },
+];
+const PRESETS6 = [
+  { n:'Big locked ride · plain GD', d:'η=0.1: the θ-lab default reproduced — permanent period-2 oscillation (every tail step flips w₁), λ pinned at 2/η = 20, loss plateaued at L ≈ 3.89 forever',
+    v:{ opt:'gd', th:90, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, lr:0.1, T:3000 } },
+  { n:'Default · big locked ride · spectral GD', d:'η=0.1, w₁(0)=1: the full EoS arc — λ(PH) starts at 1.0 (5% of 2/η = 20), progressively sharpens, crosses at t≈31, then self-stabilizes: locked at 20.0 (95% of steps within ±15%) while the loss falls 10 → 0.03',
+    v:{ opt:'spec', th:90, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:1.0, lr:0.1, T:600 } },
+  { n:'Big locked ride · signed GD', d:'η=0.02: λ(PH) starts at 6.7, crosses 2/η = 100 at t≈7, then self-tunes — median locks at 100.0 exactly (spiky at the turning points where a gradient coordinate crosses zero) while the loss rides down to ≈ 1.2e−3',
+    v:{ opt:'sign', th:90, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, lr:0.02, T:1000 } },
+  { n:'Locked out, not locked in · GN catapult cycle', d:'η=1.02: GN has no gentle ride — λ(PH) ≈ 2 everywhere means η < 1 converges and η > 1 recurrently catapults, L swinging between ~1e3 and ~1e21 without ever settling or diverging',
+    v:{ opt:'gn', th:90, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, lr:1.02, T:3000 } },
+  { n:'Gauss–Newton · breaks the ceiling outright', d:'η=0.9: λ(PH) ≈ 2.00, machine-zero convergence to the full fit that plain GD could never reach',
+    v:{ opt:'gn', th:90, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, lr:0.9, T:300 } },
+  { n:'Gauss–Newton past η = 1 · diverges', d:'η=1.05: the residual multiplier |1 − 2η| > 1 in every mode — the loss explodes past 1e18 within 200 steps, no matter how flat the landscape',
+    v:{ opt:'gn', th:90, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, lr:1.05, T:200 } },
+];
+for (const [list, host, PP, sync_, rec_] of [[PRESETS5, 'p5presets', P5, syncInputs5, recompute5],
+                                             [PRESETS6, 'p6presets', P6, syncInputs6, recompute6]]){
+  for (const pr of list){
+    const btn = document.createElement('button');
+    btn.innerHTML = `${pr.n}<span class="d">${pr.d}</span>`;
+    btn.addEventListener('click', () => { Object.assign(PP, pr.v); sync_(); rec_(false); });
+    $(host).appendChild(btn);
+  }
+}
+$('p5scrub').addEventListener('input', () => { t5 = +$('p5scrub').value; drawAll5(); });
+$('p6scrub').addEventListener('input', () => { t6 = +$('p6scrub').value; drawAll6(); });
+$('p5play').addEventListener('click', () => {
+  if (playing5){ playing5 = false; $('p5play').textContent = '▶'; return; }
+  if (t5 >= R5.n){ t5 = 0; $('p5scrub').value = 0; }
+  playing5 = true; $('p5play').textContent = '❚❚';
+});
+$('p6play').addEventListener('click', () => {
+  if (playing6){ playing6 = false; $('p6play').textContent = '▶'; return; }
+  if (t6 >= R6.n){ t6 = 0; $('p6scrub').value = 0; }
+  playing6 = true; $('p6play').textContent = '❚❚';
+});
+const apply5 = i => { t5 = i; $('p5scrub').value = i; drawAll5(); };
+const apply6 = i => { t6 = i; $('p6scrub').value = i; drawAll6(); };
+bindStrip($('c5s1'), i => `t=${i}\nL=${fmt(R5.L[i])}`, apply5);
+bindStrip($('c5s2'), i => `t=${i}\nλ(PH)=${fmt(R5.S[i])}\n2/η=${fmt(2/P5.lr)}`, apply5);
+bindStrip($('c5s3'), i => `t=${i}\n‖r‖=${fmt(R5.rn[i])}`, apply5);
+bindStrip($('c5s4'), i => `t=${i}\nx_t=${fmt(R5.Xt[i])}`, apply5);
+bindStrip($('c5s5'), i => `t=${i}\n(Pg)·∇̂S_P=${fmt(R5.GdS[i])}`, apply5);
+bindStrip($('c5s6'), i => `t=${i}\nr·û=${fmt(R5.Ru[i])}`, apply5);
+bindStrip($('c5s7'), i => `t=${i}\nr·(JP∇̂S_P)=${fmt(R5.Rq[i])}`, apply5);
+bindStrip($('c5s8'), i => `t=${i}\nr·(JPu)=${fmt(R5.Ruv[i])}`, apply5);
+bindStrip($('c6s1'), i => `t=${i}\nL=${fmt(R6.L[i])}`, apply6);
+bindStrip($('c6s2'), i => `t=${i}\nλ(PH)=${fmt(R6.S[i])}\n2/η=${fmt(2/P6.lr)}`, apply6);
+bindStrip($('c6s3'), i => `t=${i}\n‖r‖=${fmt(R6.rn[i])}`, apply6);
+bindStrip($('c6s4'), i => `t=${i}\nx_t=${fmt(R6.Xt[i])}`, apply6);
+bindStrip($('c6s5'), i => `t=${i}\n(Pg)·∇̂S_P=${fmt(R6.GdS[i])}`, apply6);
+bindStrip($('c6s6'), i => `t=${i}\nr·û=${fmt(R6.Ru[i])}`, apply6);
+bindStrip($('c6s7'), i => `t=${i}\nr·(JP∇̂S_P)=${fmt(R6.Rq[i])}`, apply6);
+bindStrip($('c6s8'), i => `t=${i}\nr·(JPu)=${fmt(R6.Ruv[i])}`, apply6);
+$('p5csv').addEventListener('click', () => {
+  const rows = [];
+  for (let i = 0; i <= R5.n; i++)
+    rows.push([i, R5.xs[i], R5.r[i], R5.L[i], R5.S[i], R5.Xt[i], R5.GdS[i], R5.Ru[i], R5.Rq[i], R5.Ruv[i]].join(','));
+  const blob = new Blob(['t,x,r,L,lamPH,xT,pgDotGradSP,rDotU,rDotJPGradS,rDotJPu\n' + rows.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'eos_adaptive_1d.csv'; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
+$('p6csv').addEventListener('click', () => {
+  const rows = [];
+  for (let i = 0; i <= R6.n; i++)
+    rows.push([i, R6.x1[i], R6.x2[i], R6.L[i], R6.S[i], R6.Xt[i], R6.GdS[i], R6.Ru[i], R6.Rq[i], R6.Ruv[i]].join(','));
+  const blob = new Blob(['t,w1,w2,L,lamPH,xT,pgDotGradSP,rDotU,rDotJPGradS,rDotJPu\n' + rows.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'eos_adaptive_valley.csv'; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
+$('p6logz').addEventListener('change', () => { cacheL6.key = ''; drawAll6(); });
+bindRotate($('c6f'), cam6, drawAll6, () => true);
+bindRotate($('c6L'), cam6, drawAll6, () => true);
+
 /* ---------- tabs ---------- */
 function switchTab(nb){
   $('panel1').hidden = nb !== 1;
   $('panel3').hidden = nb !== 3;
+  $('panel5').hidden = nb !== 5;
+  $('panel6').hidden = nb !== 6;
   $('tab1').setAttribute('aria-selected', nb === 1);
   $('tab3').setAttribute('aria-selected', nb === 3);
-  if (nb === 1) drawAll(); else drawAll3();
+  $('tab5').setAttribute('aria-selected', nb === 5);
+  $('tab6').setAttribute('aria-selected', nb === 6);
+  if (nb === 1) drawAll(); else if (nb === 3) drawAll3(); else if (nb === 5) drawAll5(); else drawAll6();
   saveHash();
 }
 $('tab1').addEventListener('click', () => switchTab(1));
 $('tab3').addEventListener('click', () => switchTab(3));
+$('tab5').addEventListener('click', () => switchTab(5));
+$('tab6').addEventListener('click', () => switchTab(6));
 
 /* ---------- CSV / hash ---------- */
 $('csvb').addEventListener('click', () => {
@@ -1761,7 +2748,8 @@ function saveHash(){
   clearTimeout(hashTimer);
   hashTimer = setTimeout(() => {
     try {
-      const st = { p: P, p3: P3, tab: !$('panel3').hidden ? 3 : 1 };
+      const tab = !$('panel3').hidden ? 3 : !$('panel5').hidden ? 5 : !$('panel6').hidden ? 6 : 1;
+      const st = { p: P, p3: P3, p5: P5, p6: P6, tab };
       history.replaceState(null, '', '#' + encodeURIComponent(JSON.stringify(st)));
     } catch(e){ /* sandboxed */ }
   }, 300);
@@ -1771,7 +2759,9 @@ function loadHash(){
     const st = JSON.parse(decodeURIComponent(location.hash.slice(1)));
     if (st && st.p) Object.assign(P, st.p);
     if (st && st.p3) Object.assign(P3, st.p3);
-    return st && st.tab === 3 ? 3 : 1;
+    if (st && st.p5) Object.assign(P5, st.p5);
+    if (st && st.p6) Object.assign(P6, st.p6);
+    return st && [3,5,6].includes(st.tab) ? st.tab : 1;
   } catch(e){ return 1; }
 }
 
@@ -1780,15 +2770,21 @@ readPal();
 const initTab = loadHash();
 syncInputs();
 syncInputs3();
+syncInputs5();
+syncInputs6();
 recompute(false);
 recompute3(false);
+recompute5(false);
+recompute6(false);
 if (initTab !== 1) switchTab(initTab);
 requestAnimationFrame(tick);
 function redrawVisible(){
   if (!$('panel1').hidden) drawAll();
   if (!$('panel3').hidden) drawAll3();
+  if (!$('panel5').hidden) drawAll5();
+  if (!$('panel6').hidden) drawAll6();
 }
-function clearSurfCaches(){ cacheF3.key = ''; cacheL3.key = ''; }
+function clearSurfCaches(){ cacheF3.key = ''; cacheL3.key = ''; cacheF6.key = ''; cacheL6.key = ''; }
 const ro = new ResizeObserver(() => { clearSurfCaches(); redrawVisible(); });
 document.querySelectorAll('canvas.plot').forEach(c => ro.observe(c));
 new MutationObserver(() => { clearSurfCaches(); readPal(); redrawVisible(); })
