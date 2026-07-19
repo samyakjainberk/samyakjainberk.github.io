@@ -1,0 +1,471 @@
+% ============================================================
+% LaTeX source for the blogpost "Peeking at the Hessian".
+% Sections map one to one to hessian-spectral-estimation.html.
+% The interactive widget exists only on the web page.
+% Edit freely on Overleaf and share back; the blogpost can be
+% regenerated from this file.
+% ============================================================
+\documentclass[11pt]{article}
+
+\usepackage[margin=1.1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{booktabs}
+\usepackage{algpseudocode}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, linkcolor=blue!50!black, urlcolor=blue!50!black]{hyperref}
+
+\newtheorem*{claimbox}{Claim}
+\newtheorem*{resultbox}{Result}
+\newtheorem*{remarkbox}{Remark}
+
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\lab}{\href{https://samyakjainberk.github.io/hessian-spectral/}{interactive widget}} % update URL
+
+\title{Peeking at the Hessian:\\ HVPs, Lanczos, and Stochastic Quadrature}
+\author{Samyak Jain}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+\emph{How to learn about the eigenvalues of a matrix you can never write down.}
+\end{center}
+
+\medskip
+
+\textbf{Motivation:} The Hessian of a neural network's loss is a $p \times p$ matrix, where $p$ is the number of parameters. For a model with 100 million parameters that is about \emph{40 petabytes} in float32, which is almost impossible to compute in closed form. But its spectrum can capture a lot of rich structure which influences the learning dynamics. Therefore, understanding the eigenspectrum of the hessian is important.
+
+The good news is that there are tools which prevent us from computing the closed form $p \times p$ version of the hessian, yet we can understand its eigenspectrum. Everything in this doc is built from one primitive, the \textbf{Hessian-vector product}, which costs less than three gradient iterations. In this blogpost, we walk up the ladder of algorithms aiming to estimate the eigenvalues, statistics of eigenvalues like trace and eigenspectrum. At the end we play around with an \lab{} to build a deep intuition for each one, on random matrices and on real (small) neural net Hessians.
+
+\tableofcontents
+
+\section{Setup and notation}
+
+Throughout, we work with a loss $L(w) = \frac{1}{n}\sum_{i=1}^n \ell(w; x_i)$ over
+\begin{itemize}
+  \item $n$: number of training samples,
+  \item $p$: number of parameters,
+\end{itemize}
+and we care about the (symmetric) Hessian $H = \nabla^2 L(w) \in \mathbb{R}^{p\times p}$, with eigendecomposition $H = \sum_i \lambda_i u_i u_i^\top$, eigenvalues ordered $|\lambda_1| \ge |\lambda_2| \ge \cdots$. Most of what follows holds for any symmetric matrix. We write $A$ when the discussion is generic and $H$ when the Hessian cost model matters.
+
+For compute counts we use the standard dense network: a forward pass costs roughly $np$ operations, since every parameter does one multiply and accumulate per sample.
+
+\section{Hessian-vector products and the cost of autodiff}
+
+\subsection{A backward pass costs twice a forward pass}
+
+Take a deep linear chain $x \to W_1 \to W_2 \to \cdots \to f(x)$, with activations $h_i$. The forward pass is one matrix product per layer, $h_i = W_i h_{i-1}$, so about $np$ operations total.
+
+At each layer, backprop has to compute \emph{two} things instead of one:
+\[
+\underbrace{\frac{\partial h_i}{\partial W_i}}_{\text{gradient for the weights}}
+\qquad\text{and}\qquad
+\underbrace{\frac{\partial W_i}{\partial h_{i-1}}}_{\text{signal passed to the previous layer}}
+\]
+Each is a matrix product of the same size as the forward one, so the backward pass costs about $2np$.
+
+\subsection{The Hessian-vector product trick}
+
+We want $Hv = \nabla^2 L(w)\, v$ for an arbitrary vector $v$, without forming $H$. The key identity is
+\[
+Hv \;=\; \nabla_w \big( \nabla_w L(w)^\top v \big),
+\]
+i.e.\ the gradient of the scalar $g(w) = \nabla L(w)^\top v$. Autodiff computes this by differentiating \emph{through the gradient's own computational graph}. A clean way to think about it: the graph that computes the gradient is itself a network whose ``layers'' are the local Jacobians
+\[
+W_i \;\to\; \frac{\partial h_i}{\partial W_i}, \qquad
+h_i \;\to\; \frac{\partial W_{i}}{\partial h_i},
+\]
+and running one more backward pass through that graph. Think of it as replacing the original network with a modified one, $W_i \to \partial h_i / \partial W_i$ and $h_i \to \partial h_{i+1} / \partial h_i$. Now everything is the same as before, one level up. Thus we have:
+\[
+\underbrace{np}_{\text{forward}} \;+\; \underbrace{2np}_{\text{1st backward}} \;+\; \underbrace{2np}_{\text{2nd backward}} \;=\; 5np .
+\]
+
+So \textbf{one HVP costs about $5np$}, less than three gradients. The rule of thumb: \emph{an HVP is a small constant times a gradient.} Memory is $O(p)$ on top of activation storage. One practical caveat: double backward has to retain the first backward's graph for the second pass, which roughly doubles activation memory.
+
+\subsection{Compute of the Full Hessian}
+
+To materialize $H$ we can run $p$ HVPs, one per basis vector. This leads to the following cost:
+\[
+np + 2np + 2np\cdot p \;=\; 3np + 2np^2 ,
+\]
+plus $O(p^2)$ memory just to store the thing. Both are hopeless for any modern network. So the magic of hessian vector product really makes things very much practical.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Operation & Compute & Memory (beyond activations) \\
+\midrule
+Forward pass & $np$ & $O(p)$ \\
+Backward pass (gradient) & $2np$ & $O(p)$ \\
+Hessian-vector product & $5np$ & $O(p)$ \\
+Full Hessian & $3np + 2np^2$ & $O(p^2)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Our main goal now is to understand the structure of eigenvalues of large symmetric matrices while only ever touching the first three rows of this table. For this we dive into power iteration, then Lanczos, block Lanczos, and the stochastic estimators: Hutchinson, stochastic Lanczos quadrature, and the kernel polynomial method.
+
+\section{Power iteration}
+
+The simplest question: what is the top eigenvalue $\lambda_1$ and its eigenvector $u_1$?
+
+Take a random vector $x$ and repeatedly apply $A$, normalizing as you go. Expanding $x$ in the eigenbasis, $x = \sum_i (u_i^\top x)\, u_i$, after $k$ applications:
+\[
+\frac{A^k x}{\|A^k x\|}
+= \frac{\sum_i \lambda_i^k (u_i^\top x)\, u_i}{\big(\sum_i \lambda_i^{2k} (u_i^\top x)^2\big)^{1/2}}
+\;\xrightarrow{\;k \to \infty\;}\; \pm u_1 ,
+\]
+because $(\lambda_i/\lambda_1)^k \to 0$ for every $i > 1$. The $\pm$ is per step: if $\lambda_1 < 0$ the normalized iterate flips sign every iteration, so only the line $\operatorname{span}\{u_1\}$ converges. The error decays geometrically at rate $|\lambda_2/\lambda_1|$, so the closer the second eigenvalue is to the first, the slower the convergence.
+
+\begin{algorithmic}[1]
+\State $x \gets$ random unit vector in $\mathbb{R}^p$
+\For{$t = 1, \dots, k$}
+  \State $x \gets A x$ \Comment{one HVP if $A = H$: $5np$}
+  \State $x \gets x / \|x\|$
+\EndFor
+\State \Return $\hat\lambda = x^\top A x$ (eigenvalue estimation)
+\end{algorithmic}
+
+\textbf{Cost.} $k$ matrix-vector products. For an explicitly stored dense $\sqrt{p} \times \sqrt{p}$ matrix each matvec costs $O(p)$, so this is $O(kp)$. For the Hessian accessed through HVPs it is $O(k \cdot 5np) = O(knp)$. The $p^2$ never appears.
+
+% \subsection*{Caveats}
+% \begin{itemize}
+%   \item \textbf{Degenerate or tied top eigenvalues.} If $|\lambda_1| = |\lambda_2|$ (e.g.\ a repeated eigenvalue, or $\lambda_2 = -\lambda_1$: a large negative eigenvalue tied in magnitude with the top positive one), the iterate converges to some vector inside the tied eigenspace, or oscillates, rather than to a unique eigenvector.
+%   \item \textbf{Magnitude, not sign.} Power iteration finds the eigenvalue largest in \emph{absolute value}. For a Hessian with a large negative eigenvalue this may not be the ``sharpness'' you wanted; a spectral shift (iterate on $A + cI$) fixes it.
+%   \item \textbf{Nilpotent / non-diagonalizable matrices.} The argument above generalizes to any diagonalizable matrix; for defective matrices the analysis needs the Jordan form, and for a nilpotent matrix $A^k x$ is eventually exactly zero. For non-symmetric matrices complex eigenvalues both scale \emph{and rotate} the iterate in the complex plane, which complicates matters. Since our Hessians are symmetric (real eigenvalues, orthogonal eigenvectors) we won't dive deeper into this.
+% \end{itemize}
+
+That is all power iteration is. It gives one eigenpair, and it wastes information: it computes the whole Krylov sequence $x, Ax, A^2x, \dots$ and then throws away everything except the last vector. We will see how lanczos keeps it and this helps in computing multiple top eigenvalues simultaneously.
+
+\section{Lanczos iteration}
+
+\textbf{Key idea.} Instead of keeping only $A^k x$, keep the whole subspace it swept through, the \emph{Krylov subspace}
+\[
+\mathcal{K}_k = \operatorname{span}\{x,\; Ax,\; A^2x,\; \dots,\; A^{k-1}x\}.
+\]
+Intuitively this is the subspace in which $A$ ``acts the most'' starting from a random direction. Project $A$ into $\mathcal{K}_k$ and the top eigenvalues of the small $k \times k$ projected matrix are excellent approximations to the extreme eigenvalues of $A$. From those we can also recover eigenvector estimates.
+
+\subsection{Orthogonalizing the Krylov basis}
+
+The raw vectors $v_1 = x,\; v_2 = Ax,\; \dots,\; v_k = A^{k-1}x$ are a terrible basis: they all lean toward $u_1$, which is exactly what power iteration exploits. So we run Gram--Schmidt, starting from $v_1$:
+\[
+\tilde v_1 = v_1, \qquad
+\tilde v_j = v_j - \sum_{i < j} (v_j^\top \tilde v_i)\, \tilde v_i
+\quad\text{(then normalize)} .
+\]
+Collect the orthonormal basis as $\tilde V = [\tilde v_1\; \tilde v_2\; \cdots\; \tilde v_k] \in \mathbb{R}^{p \times k}$.
+
+\begin{claimbox}[the projected matrix is tridiagonal]
+If $A$ is symmetric, then $T = \tilde V^\top A \tilde V$ is \textbf{tridiagonal}: $\tilde v_j^\top A \tilde v_i = 0$ whenever $|j - i| > 1$.
+
+\emph{Proof sketch.} By construction $\tilde v_j \in \mathcal{K}_j$, so $A \tilde v_j \in \mathcal{K}_{j+1} = \operatorname{span}\{\tilde v_1, \dots, \tilde v_{j+1}\}$. For any $\ell > 1$, the vector $\tilde v_{j+\ell}$ is orthogonal to all of $\mathcal{K}_{j+1}$, because Gram--Schmidt made it so. Hence
+\[
+\tilde v_{j+\ell}^\top A \tilde v_j = 0 \qquad \forall\, \ell > 1,
+\]
+which kills the lower triangle below the first subdiagonal. Symmetry of $A$ transfers the same statement to the upper triangle: $\tilde v_j^\top A \tilde v_{j+\ell} = (\tilde v_{j+\ell}^\top A \tilde v_j)^\top = 0$. \qed
+\end{claimbox}
+
+So the projection has the form
+\[
+T = \tilde V^\top A \tilde V =
+\begin{pmatrix}
+\alpha_1 & \beta_1 & & \\
+\beta_1 & \alpha_2 & \beta_2 & \\
+ & \beta_2 & \ddots & \beta_{k-1} \\
+ & & \beta_{k-1} & \alpha_k
+\end{pmatrix},
+\qquad
+\alpha_i = \tilde v_i^\top A \tilde v_i, \quad
+\beta_i = \tilde v_{i+1}^\top A \tilde v_i .
+\]
+
+While this way is clean and gives an intuitive picture, in practice a more complicated version of Lanczos is used, which will give rise to the exact same $T$ as what we just described, but each steps are different.
+% Because $A \tilde v_j \in \mathcal{K}_{j+1}$, the basis satisfies the \emph{Lanczos relation} $A\tilde V = \tilde V T + \beta_k \tilde v_{k+1} e_k^\top$. The two sides agree column by column for $j < k$, and the rank-one residual in the last column is exactly what defines the next basis vector.
+Basically, if we read off column $j$, we will get: \textbf{three-term recurrence}
+\[
+\beta_j \tilde v_{j+1} = A \tilde v_j - \alpha_j \tilde v_j - \beta_{j-1} \tilde v_{j-1},
+\]
+so in exact arithmetic each new basis vector needs orthogonalization against only the \emph{two} previous ones, not all of them. This is easier to implement as it overcomes the floating point errors which would occur if the Gram-Schmidt was done at the end. Thus the lanczos iteration, which one would find in most places is the following:
+
+\begin{algorithmic}[1]
+\State $v_1 \gets z/\|z\|$; \quad $\beta_0 \gets 0$; \quad $v_0 \gets 0$
+\For{$j = 1, \dots, k$}
+  \State $w \gets A v_j$ \Comment{one HVP: $5np$}
+  \State $\alpha_j \gets v_j^\top w$
+  \State $w \gets w - \alpha_j v_j - \beta_{j-1} v_{j-1}$
+  % \State (in floating point: $w \gets w - V(V^\top w)$, full reorthogonalization)
+  \State $\beta_j \gets \|w\|$; \quad $v_{j+1} \gets w / \beta_j$
+\EndFor
+\State $T \gets \operatorname{tridiag}(\beta;\, \alpha;\, \beta)$
+\end{algorithmic}
+
+% \begin{remarkbox}[floating point warning]
+% The ``orthogonalize once at the end'' view is easy to understand but numerically fragile, and even the three-term recurrence loses orthogonality in floating point: rounding errors let components of converged eigenvectors leak back in, producing spurious duplicate (``ghost'') Ritz values. Practical implementations either reorthogonalize each $w$ against all stored $v_i$ (costing $O(k^2 p)$ total) or use selective reorthogonalization. For spectrum \emph{estimation} (SLQ, below) mild ghosting is often tolerable; for eigenvector extraction it is not.
+% \end{remarkbox}
+
+\subsection{From $T$ to eigenvalues and eigenvectors of $A$}
+
+Diagonalize the small matrix: $T = S \Theta S^\top$ with $\Theta = \operatorname{diag}(\theta_1, \dots, \theta_k)$. If $k = p$ (full run), $\tilde V$ is square and orthogonal, so $\tilde V^\top A \tilde V = T$ rearranges to
+\[
+A = \tilde V T \tilde V^\top = (\tilde V S)\, \Theta\, (\tilde V S)^\top ,
+\]
+an exact eigendecomposition. For $k \ll p$ the same objects are approximations, which are called \textbf{Ritz values} $\theta_i$ and \textbf{Ritz vectors} $y_i = \tilde V s_i$. A useful check on quality is the residual
+\[
+\text{error} = \sum_i \big\| A (\tilde V s_i) - \theta_i (\tilde V s_i) \big\| .
+\]
+% In exact arithmetic each term is free: right-multiplying the Lanczos relation $A\tilde V = \tilde V T + \beta_k \tilde v_{k+1} e_k^\top$ by $s_i$ gives $\| A (\tilde V s_i) - \theta_i (\tilde V s_i)\| = \beta_k |S_{ki}|$, which is $\beta_k$ times the last component of the $i$-th eigenvector of $T$. Both are already produced by the iteration, and this is the standard convergence test in Lanczos codes. Computing the residual explicitly (one extra HVP per Ritz vector) is a good trust check once floating point orthogonality loss sets in, because ghost Ritz pairs look converged by $\beta_k |S_{ki}|$ but fail the explicit check.
+
+\textbf{Cost.} For the Hessian: $k$ HVPs $= O(knp)$, plus $O(k^2 p)$ if we fully reorthogonalize, plus $O(k^2)$ to $O(k^3)$ for the eigendecomposition of the tridiagonal $T$ (negligible: $k$ is tens, $p$ is millions), plus $O(kp)$ per Ritz vector we choose to form. The dominant term in deep learning settings is always the $O(knp)$ of the HVPs.
+
+\section{Block Lanczos}
+
+Plain Lanczos has a blind spot: \textbf{eigenvalue multiplicity}. A single Krylov sequence started from one vector can only ever see a one-dimensional slice of each eigenspace, so eigenvalues that are exactly degenerate (or clustered so tightly that floating point cannot separate them) are found once, not with their multiplicity. Lanczos simply cannot tell them apart unless we run very large number of iterations.
+
+\textbf{Key idea.} Do power iteration on a rank-$b$ subspace instead of a rank-one subspace: start from a random $p \times b$ block $Q$ and build the block Krylov space from $Q, AQ, A^2Q, \dots$. A block of width $b$ can capture up to $b$ copies of a degenerate eigenvalue and cleanly separates tight clusters.
+
+It is the same as Lanczos iteration, but with Gram--Schmidt orthogonalization at two levels:
+\begin{itemize}
+  \item \emph{between} iterates: each new block only needs orthogonalization against the previous \emph{two} blocks, since block tridiagonality gives the same three-term recurrence with $b \times b$ coefficient blocks.
+  \item \emph{within} an iterate: the $b$ columns of each block are orthogonalized against each other (a QR decomposition).
+\end{itemize}
+The projected matrix is then \textbf{block tridiagonal}: the same structure with $b \times b$ blocks in place of scalars. Concretely, with $Q_j \in \mathbb{R}^{p \times b}$ the $j$-th orthonormal block, the three-term recurrence becomes
+\[
+A Q_j = Q_{j-1} B_{j-1}^\top + Q_j A_j + Q_{j+1} B_j,
+\qquad
+A_j = Q_j^\top A Q_j, \quad
+B_j \ \text{from the QR step } W_j = Q_{j+1} B_j,
+\]
+so $T$ has the $A_j$ on its block diagonal and the $B_j$ on the block off-diagonals, and the eigendecomposition of the small $kb \times kb$ matrix $T$ supplies the Ritz pairs exactly as before.
+
+\textbf{Cost.} Per iteration, applying $A$ to the $p \times b$ block is $b$ matvecs, so $b \cdot 5np = O(npb)$ via HVPs. Orthogonalization against the two previous blocks plus the within-block QR adds $O(kpb^2)$ total ($O(k^2 p b^2)$ with full reorthogonalization), and the eigendecomposition of the $kb \times kb$ block tridiagonal matrix costs $O((kb)^2)$ to $O((kb)^3)$. The HVP term $O(knpb)$ dominates the orthogonalization when $n \gg kb$ (the $p$'s cancel).
+
+% \textbf{Rule of thumb:} if you suspect the eigenvalues you care about come in clusters (e.g.\ one outlier per class in a classification Hessian), plain Lanczos will blur them; use a block method.
+
+\bigskip
+Everything so far targets \emph{individual extreme eigenpairs}. The remaining three methods answer \emph{global} questions about the spectrum (traces, densities, counts) using randomness.
+
+\section{The Hutchinson trace estimator}
+
+How do we estimate $\Tr(A) = \sum_i \lambda_i$ when you can only touch $A$ through matvecs? Draw a random probe $z$ with $\mathbb{E}[z z^\top] = I$ (e.g.\ $z \sim \mathcal{N}(0, I)$). Then
+\[
+\mathbb{E}\big[z^\top A z\big]
+= \mathbb{E}\big[\Tr(A z z^\top)\big]
+= \Tr\big(A\, \mathbb{E}[z z^\top]\big)
+= \Tr(A).
+\]
+So the Monte Carlo estimator with $s$ probes is
+\[
+\Tr(A) \;\approx\; \frac{1}{s} \sum_{i=1}^{s} z_i^\top A z_i ,
+\]
+costing $s$ matvecs, so $O(snp)$ for the Hessian. No $p^2$ anywhere.
+
+\begin{remarkbox}[why Rademacher probes]
+In practice $z$ is usually drawn with i.i.d.\ \emph{Rademacher} entries ($\pm 1$ with probability $\tfrac12$) rather than Gaussian. The diagonal of $zz^\top$ is then \emph{exactly} $1$, so no randomness is left on the diagonal: the estimator is exact on the diagonal contribution and only the off-diagonal terms add noise. Concretely, $\operatorname{Var}(z^\top A z) = 2\sum_{i \ne j} A_{ij}^2 = 2\big(\|A\|_F^2 - \sum_i A_{ii}^2\big)$ for Rademacher vs $2\|A\|_F^2$ for Gaussian. The convergence of $\frac1s\sum z_i z_i^\top \to I$ is faster in case of rademacher probes.
+\end{remarkbox}
+
+% \begin{algorithmic}[1]
+% \State $\text{est} \gets 0$
+% \For{$i = 1, \dots, s$}
+%   \State $z \sim \mathrm{Uniform}\{-1, +1\}^p$ \Comment{Rademacher probe}
+%   \State $\text{est} \gets \text{est} + z^\top (A z)$ \Comment{one HVP}
+% \EndFor
+% \State \Return $\text{est} / s$
+% \end{algorithmic}
+
+\section{Stochastic Lanczos Quadrature (SLQ)}
+
+Hutchinson estimates $\Tr(A)$. SLQ generalizes it to \textbf{any spectral function}:
+\[
+\Tr\big(f(A)\big) = \sum_i f(\lambda_i)
+\;=\; \mathbb{E}\big[ z^\top f(A)\, z \big]
+\;\approx\; \frac{1}{s} \sum_{i=1}^s z_i^\top f(A)\, z_i .
+\]
+This covers a lot: $f(t) = \log t$ gives the log determinant, $f(t) = t^2$ gives $\|A\|_F^2$, $f(t) = \mathbf{1}(t \le c)$ counts eigenvalues below a threshold, and $f(t) = \delta_\sigma(t - t_0)$ reads out the \emph{spectral density} near $t_0$.
+
+The only hard part is the quadratic form $z^\top f(A)\, z$. The key secret sauce of SLQ is to approximate
+\[
+z^\top f(A)\, z \;\approx\; \|z\|^2 \sum_{j=1}^{k} \tau_j\, f(\theta_j),
+\qquad \tau_j = (S_{1j})^2 ,
+\]
+where $\theta_j$ and $S$ come from $k$ Lanczos steps on $A$ itself, as we explain next.
+
+%Computing $f(A)$ honestly would need the full eigendecomposition, which is exactly what we cannot afford. SLQ replaces the big matrix with a tiny one.
+
+% \begin{algorithmic}
+% \begin{enumerate}
+% \item Normalize the probe: $v_1 = z / \|z\|$.
+% \item Run $k$ Lanczos steps from $v_1$. This produces the small $k \times k$ tridiagonal matrix $T$. Cost: $k$ HVPs.
+% \item Diagonalize $T = S \Theta S^\top$. Basically free, since $T$ is tiny ($k \sim 30$).
+% \item Output
+% \[
+% z^\top f(A)\, z \;\approx\; \|z\|^2 \sum_{j=1}^{k} \tau_j\, f(\theta_j),
+% \qquad \tau_j = (S_{1j})^2 ,
+% \]
+% where $\theta_j$ are the eigenvalues of $T$ and $S_{1j}$ is the first entry of its $j$-th eigenvector.
+% \end{enumerate}
+% Average the outputs over $s$ probes, exactly like Hutchinson.
+% \end{algorithmic}
+
+%OnStep 4 has a compact reading. The sum $\sum_j \tau_j f(\theta_j)$ is exactly $\big[f(T)\big]_{11}$, the top left entry of $f$ applied to the small matrix. So the whole recipe is: \emph{pretend $T$ is $A$}. We never apply $f$ to the $p \times p$ matrix. We apply it to a $k \times k$ one.
+
+\subsection{Estimating the quadratic form with Lanczos}
+
+Fix one probe $z \sim \mathcal{N}(0, I)$ and normalize it, $v_1 = z/\|z\|$. Let $B = f(A)$. What we want is the quadratic form $v_1^\top B\, v_1$. Since $B$ has the same eigenvectors as $A$ with eigenvalues $f(\lambda_i)$,
+\[
+v_1^\top B\, v_1 = \sum_{i=1}^{p} (u_i^\top v_1)^2\, f(\lambda_i) .
+\]
+So the exact answer is a weighted sum of $f$ over the eigenvalues of $A$, with weights $(u_i^\top v_1)^2$ that sum to one. We cannot afford all $p$ weights, and we only have matvecs with $A$, not with $B$. But it turns out a plain Lanczos run on $A$ is enough:
+
+% \begin{resultbox}[SLQ estimate of the quadratic form]
+% Run $k$ Lanczos steps on $A$ starting from $v_1$ and diagonalize the small tridiagonal matrix, $T = S \Theta S^\top$. Then
+% \[
+% v_1^\top f(A)\, v_1 \;\approx\; \sum_{j=1}^{k} (S_{1j})^2\, f(\theta_j),
+% \]
+% where the Ritz values $\theta_j$ and the eigenvectors $S$ correspond to $A$, \emph{not} to $f(A)$ or $B$.
+%Read it as a $k$-point compression of the weighted spectrum: $\theta_j$ marks a place where the spectrum carries weight, and $(S_{1j})^2$ is the weight the start vector places there. The weights are nonnegative and sum to one.
+% \end{resultbox}
+
+To see why this works, expand $v_1$ in the eigenbasis of $A$. Powers act on eigenvalues,
+\[
+A^n v_1 = \sum_i \lambda_i^n\, (u_i^\top v_1)\, u_i ,
+\]
+so for any $f$ written in its polynomial basis,
+\[
+f(A)\, v_1 = \sum_i f(\lambda_i)\, (u_i^\top v_1)\, u_i
+\qquad\Longrightarrow\qquad
+v_1^\top f(A)\, v_1 = \sum_i f(\lambda_i)\, (u_i^\top v_1)^2 .
+\]
+Note that the Lanczos run hands us exactly these quantities: the Ritz values $\theta_j$ stand in for the eigenvalues $\lambda_i$, and $(S_{1j})^2$ stands in for the weight $(u_j^\top v_1)^2$.
+%The Lanczos side is the same kind of object for the small matrix: $\sum_j (S_{1j})^2 f(\theta_j) = e_1^\top f(T)\, e_1$. And on polynomials the two sides match exactly: $v_1^\top A^n v_1 = e_1^\top T^n e_1$ for every $n \le 2k-1$, because $A^n v_1 = \tilde V\, T^n e_1$ for $n \le k-1$ (powers of $A$ stay inside the Krylov space, where $T$ reproduces them), and any $n \le 2k-1$ splits into two such halves.
+% \begin{remarkbox}
+% A rule with $k$ nodes that integrates every polynomial up to degree $2k-1$ exactly is the \emph{Gauss quadrature rule} of the weighted spectrum, so Lanczos constructs Gauss quadrature automatically. For a general $f$ the error is at most $\max_t |f(t) - q(t)|$ over the spectrum for the best degree-$(2k-1)$ polynomial $q$: geometrically small in $k$ for analytic $f$ (a Gaussian bump, or $\log t$ with $\lambda_{\min} > 0$), slow for hard steps, which is why eigenvalue counting uses a smoothed step.
+% \end{remarkbox}
+Thus repeating the process over multiple probes gives estimates of the form $\Tr(f(A))$, exactly like Hutchinson:
+
+\begin{algorithmic}[1]
+\For{$i = 1, \dots, s$}
+  \State $z \sim \mathcal{N}(0, I)$ (or Rademacher); \quad $v_1 \gets z/\|z\|$
+  \State run $k$ Lanczos steps on $A$ from $v_1$ $\to$ $T^{(i)}$ \Comment{$k$ HVPs}
+  \State diagonalize $T^{(i)} = S \Theta S^\top$
+  \State $q^{(i)} \gets \|z\|^2 \cdot \sum_j (S_{1j})^2 f(\theta_j)$
+\EndFor
+\State \Return $\frac{1}{s} \sum_i q^{(i)}$
+\end{algorithmic}
+
+\subsection{Predicting the spectrum}
+
+The empirical spectral density $\rho(t) = \frac{1}{p}\sum_i \delta(t - \lambda_i)$ is the special case where $f$ is a delta at $t$ (in practice a narrow Gaussian bump is used instead). Basically, $(u_i^\top v_1)^2$ is the weight the probe places on eigenvalue $\lambda_i$; the quadrature estimates these weights at the $k$ Ritz values, and some Gaussian smoothing then turns the weighted nodes into an eigenspectrum:
+\[
+\hat\rho(t) = \frac{1}{s}\sum_{i=1}^{s} \sum_{j=1}^{k} \tau_j^{(i)}\; g_\sigma\big(t - \theta_j^{(i)}\big),
+\qquad \tau_j = (S_{1j})^2 .
+\]
+%Two normalization checks. The weights sum to one per probe, so $\hat\rho$ integrates to one. And $\mathbb{E}\big[(u_i^\top v_1)^2\big] = 1/p$, which supplies exactly the $1/p$ in the definition of $\rho$.
+This is the estimator behind the Hessian eigenspectrum plots in the deep learning literature (Ghorbani et al., PyHessian).
+
+\textbf{Time complexity.} Let $s$ be the number of Hutchinson probes. SLQ costs $O(s \cdot t)$ where $t$ is the Lanczos iteration cost, i.e.\ $O(sknp)$ with HVPs.
+%Typical deep learning numbers are $k \sim 50$--$100$ and $s \sim 10$, so roughly 500 to 1000 HVPs.
+
+\subsection{Further variants of SLQ}
+
+A clear problem with SLQ is that it can saturate over the top eigenvalues multiple times, even if they are not present that frequently: every probe's Krylov space is attracted to the same few outliers, which carry only weight $1/p$ each in the density. There are ways to overcome this:
+\begin{enumerate}
+\item[a)] Orthogonalize in the space of later iterates of Lanczos to determine the dominant subspace, and run SLQ in the remaining space. Block Lanczos can also be used here.
+\item[b)] Run Lanczos with starting vectors orthogonal to the space found previously. This can lead to faster convergence onto parts of the spectrum not seen yet.
+\end{enumerate}
+In summary, the later iterates of Lanczos estimate the top eigenvalues well, but the earlier iterates still find the broader clusters of eigenvalues, which is why SLQ can use Lanczos at all.
+%I also think there are interesting modifications here, like block SLQ, which could resolve clustered eigenvalues quite well.
+Tabs 6 to 9 of the widgets implement exactly these variants. Although the above variants seems intuitive but as per the widgets they don't make much of a difference.
+
+\section{The Kernel Polynomial Method (KPM)}
+
+The Chebyshev polynomials have an interesting property:
+\[
+T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
+\]
+and they are orthogonal on $[-1, 1]$ under the measure $1/\sqrt{1-x^2}$:
+\[
+\int_{-1}^{1} \frac{T_j(x)\, T_k(x)}{\sqrt{1-x^2}}\, dx =
+\begin{cases} 0 & j \ne k, \\ \pi & j = k = 0, \\ \pi/2 & j = k \ge 1. \end{cases}
+\]
+KPM estimates the spectral density directly in this basis. The basis lives on $[-1, 1]$, so first rescale: estimate $\lambda_{\min}$ and $\lambda_{\max}$ with a short Lanczos run and map
+\[
+\tilde A = \frac{2A - (\lambda_{\max} + \lambda_{\min})\, I}{\lambda_{\max} - \lambda_{\min}},
+\]
+so the eigenvalues $\tilde\lambda_i$ of $\tilde A$ land in $[-1, 1]$.
+
+Now write the density in the eigenbasis of Chebyshev polynomials. The general form with measure $1/\sqrt{1-x^2}$ is
+\[
+\tilde\rho(x) = \frac{1}{\sqrt{1-x^2}} \sum_{k=0}^{\infty} a_k\, T_k(x),
+\]
+where $\tilde\rho(x) = \frac1p \sum_i \delta(x - \tilde\lambda_i)$. Finding the coefficients $a_k$ using orthogonality (multiply by $T_j$ and integrate), we get the density estimate:
+
+\begin{resultbox}[KPM density estimate]
+\[
+\hat\rho(x) = \frac{1}{\pi\sqrt{1 - x^2}} \Big[ \hat\mu_0 + 2 \sum_{k=1}^{K} \hat\mu_k\, T_k(x) \Big],
+\qquad
+\hat\mu_k = \frac{1}{p} \Tr\, T_k(\tilde A) .
+\]
+\end{resultbox}
+
+Note that KPM approximates each trace $\Tr\, T_k(\tilde A)$ using Hutchinson, which requires random probes.
+
+\textbf{Time complexity.} With $s$ Hutchinson probes and $K$ KPM iterations the cost is approximately $O(sKp)$ matvec work; with HVPs it increases to $O(sK \cdot 5np) \approx O(sKnp)$. Same shape as SLQ, with $k \leftrightarrow K$.
+
+% \textbf{SLQ or KPM?} Both compress the spectrum into about $k$ numbers per probe. SLQ adapts its nodes to the actual spectrum, so it is great at isolated outliers, the typical Hessian shape. KPM uses fixed nodes with well understood smoothing and needs no reorthogonalization. For Hessians with a few sharp outliers plus a bulk, SLQ usually wins (or deflation followed by KPM on the remainder).
+
+\section{Summary}
+
+All costs assume access to $A = H$ via HVPs at $5np$ each; $k$ = iterations/degree, $s$ = probes, $b$ = block size.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Method & What you get & Compute \\
+\midrule
+Power iteration & top eigenpair $(\lambda_1, u_1)$ & $O(knp)$ \\
+Lanczos & extreme eigenpairs & $O(knp) + O(k^2p)$ reorth. \\
+Block Lanczos & clustered / degenerate extremes & $O(knpb)$ \\
+Hutchinson & $\Tr(A)$ & $O(snp)$ \\
+SLQ & $\Tr f(A)$, spectral density & $O(sknp)$ \\
+KPM & spectral density & $O(sknp)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The through line: a forward pass costs $np$, an HVP costs $5np$, and every question about the Hessian spectrum, from ``what is the sharpness?'' to ``what does the whole density look like?'', reduces to a few hundred or a few thousand HVPs, arranged cleverly.
+
+\section*{References and further reading}
+\begin{itemize}
+  \item B. Pearlmutter. \href{https://doi.org/10.1162/neco.1994.6.1.147}{\emph{Fast exact multiplication by the Hessian.}} Neural Computation, 1994. The $O(np)$ HVP.
+  \item G. Golub, G. Meurant. \href{https://press.princeton.edu/books/hardcover/9780691143415/matrices-moments-and-quadrature-with-applications}{\emph{Matrices, Moments and Quadrature with Applications.}} Princeton, 2010. Lanczos as Gauss quadrature.
+  \item M. Hutchinson. \href{https://doi.org/10.1080/03610918908812806}{\emph{A stochastic estimator of the trace of the influence matrix for Laplacian smoothing splines.}} 1989.
+  \item S. Ubaru, J. Chen, Y. Saad. \href{https://doi.org/10.1137/16M1104974}{\emph{Fast estimation of $\mathrm{tr}(f(A))$ via stochastic Lanczos quadrature.}} SIMAX, 2017.
+  \item L. Lin, Y. Saad, C. Yang. \href{https://doi.org/10.1137/130934283}{\emph{Approximating spectral densities of large matrices.}} SIAM Review, 2016. SLQ and KPM for spectral densities, side by side.
+  \item A. Wei{\ss}e, G. Wellein, A. Alvermann, H. Fehske. \href{https://doi.org/10.1103/RevModPhys.78.275}{\emph{The kernel polynomial method.}} Rev. Mod. Phys., 2006.
+  \item B. Ghorbani, S. Krishnan, Y. Xiao. \href{https://arxiv.org/abs/1901.10159}{\emph{An investigation into neural net optimization via Hessian eigenvalue density.}} ICML 2019. SLQ on deep nets.
+  \item Z. Yao, A. Gholami, K. Keutzer, M. Mahoney. \href{https://arxiv.org/abs/1912.07145}{\emph{PyHessian: neural networks through the lens of the Hessian.}} 2020.
+\end{itemize}
+
+\section{The interactive widget}
+% Web only: this section is an interactive widget on the blogpost. The math
+% definitions below are shared between both versions.
+
+Finally, let's play around with some widgets. Everything in this doc is runnable in the \lab{}, in ten numbered estimator tabs.
+
+There are two matrix sources. The first is a random symmetric matrix (GOE, Wishart, spiked, clustered, or log spaced), with the dimension $p$ as a hyperparameter. The second is the exact Hessian of a small one hidden layer MLP, touched only through HVPs; the architecture, $n$, the activation, and the training are all adjustable. Up to $p = 6000$ the ground truth is the exact eigendecomposition. For larger $p$ the widget uses an SLQ reference spectrum instead, clearly labeled in every chart, so any size runs. Every run also reports how many matvecs it spent.
+
+Each tab shows two main plots. The density plot compares the estimated spectral density with the ground truth. The eigenvalue vs index plot shows $\lambda_i$ against $i$, from largest to smallest, which makes it easy to see how well the top of the spectrum is resolved. For the stochastic estimators this curve comes from inverting the estimated density, $\hat\lambda_i = \hat F^{-1}\big(1 - \tfrac{i - 1/2}{p}\big)$.
+
+Three tabs use ideas we have not defined yet:
+\begin{itemize}
+  \item \textbf{Edge + deflated SLQ} (tab 6). First run a few rounds of Lanczos and collect the converged extreme Ritz vectors into an orthonormal $U$. Then run SLQ on the deflated operator $A' = (I - UU^\top)\, A\, (I - UU^\top)$, with probes kept orthogonal to $U$. The harvested eigenvalues enter the density exactly, and SLQ fills in the rest:
+  \[
+  \hat\rho(t) = \frac{1}{p}\sum_{\theta \in \text{harvested}} g_\sigma(t - \theta) \;+\; \frac{p - m}{p}\, \hat\rho_{\text{SLQ on } A'}(t) .
+  \]
+  \item \textbf{Orthogonalized probes} (tab 7). Before its own Lanczos run, each new probe is projected off everything the earlier probes already explored. This forces exploration of new directions and costs zero extra matvecs.
+  \item \textbf{Block SLQ} (tabs 8 and 9). The probe is a random $p \times b$ block instead of a single vector. Block Lanczos gives a $kb \times kb$ matrix $T = S\Theta S^\top$, and the weights become the squared first block components, $\tau_j = \tfrac{1}{b}\|S_{1:b,\,j}\|^2$, which again sum to one. Tab 9 of the widget combines this with orthogonalized probes.
+\end{itemize}
+
+\end{document}

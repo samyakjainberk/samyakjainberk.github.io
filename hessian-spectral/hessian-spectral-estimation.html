@@ -1,0 +1,2698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Peeking at the Hessian: HVPs, Lanczos, and Stochastic Quadrature</title>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(', '\\)'], ['$', '$']],
+    displayMath: [['\\[', '\\]'], ['$$', '$$']]
+  },
+  options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --bg: #fdfdfb;
+    --fg: #1c1c1c;
+    --muted: #666;
+    --accent: #7a1f1f;
+    --rule: #ddd;
+    --box-bg: #f4f2ec;
+    --box-border: #d8d2c4;
+    --aside-bg: #eef2f5;
+    --aside-border: #b9c8d4;
+    --code-bg: #f0efe9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17181a;
+      --fg: #dedede;
+      --muted: #9a9a9a;
+      --accent: #e07b7b;
+      --rule: #3a3a3a;
+      --box-bg: #202124;
+      --box-border: #3c3d40;
+      --aside-bg: #1d2329;
+      --aside-border: #33454f;
+      --code-bg: #202124;
+    }
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.06rem;
+    line-height: 1.62;
+  }
+  main {
+    max-width: 62rem;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 6rem;
+  }
+  h1, h2, h3 {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    line-height: 1.25;
+  }
+  h1 { font-size: 1.9rem; margin-bottom: 0.4rem; }
+  h2 {
+    font-size: 1.35rem;
+    margin-top: 2.8rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  h3 { font-size: 1.08rem; margin-top: 1.8rem; }
+  .subtitle { color: var(--muted); font-style: italic; margin-top: 0; }
+  a { color: var(--accent); }
+  hr { border: none; border-top: 1px solid var(--rule); margin: 2.5rem 0; }
+  table {
+    border-collapse: collapse;
+    margin: 1.2rem 0;
+    width: 100%;
+    font-size: 0.97rem;
+  }
+  .table-wrap { overflow-x: auto; }
+  th, td {
+    border: 1px solid var(--rule);
+    padding: 0.45rem 0.7rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { font-family: Helvetica, Arial, sans-serif; font-size: 0.88rem; }
+  pre.algo {
+    background: var(--code-bg);
+    border: 1px solid var(--box-border);
+    border-radius: 6px;
+    padding: 0.9rem 1.1rem;
+    overflow-x: auto;
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+  .box {
+    background: var(--box-bg);
+    border: 1px solid var(--box-border);
+    border-radius: 6px;
+    padding: 0.9rem 1.2rem;
+    margin: 1.4rem 0;
+  }
+  .box .box-title {
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: bold;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+  .aside {
+    background: var(--aside-bg);
+    border-left: 3px solid var(--aside-border);
+    border-radius: 0 6px 6px 0;
+    padding: 0.7rem 1.1rem;
+    margin: 1.4rem 0;
+    font-size: 0.97rem;
+  }
+  .aside .aside-title {
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: bold;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  nav.toc {
+    background: var(--box-bg);
+    border: 1px solid var(--box-border);
+    border-radius: 6px;
+    padding: 1rem 1.4rem;
+    margin: 1.8rem 0;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 0.94rem;
+  }
+  nav.toc ol { margin: 0.4rem 0 0; padding-left: 1.3rem; }
+  nav.toc li { margin: 0.18rem 0; }
+  .refs { font-size: 0.94rem; }
+  .refs li { margin-bottom: 0.5rem; }
+  footer { margin-top: 3rem; color: var(--muted); font-size: 0.9rem; }
+  mjx-container { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+
+  /* ───────── interactive widget (scoped) ───────── */
+  #speclab {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14.5px; line-height: 1.5;
+    --surface-1: #fcfcfb; --page: #f9f9f7;
+    --text-primary: #0b0b0b; --text-secondary: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6; --series-2: #008300; --series-3: #e87ba4; --series-4: #eda100;
+    --truth: #52514e;
+  }
+  @media (prefers-color-scheme: dark) {
+    #speclab {
+      --surface-1: #1a1a19; --page: #0d0d0d;
+      --text-primary: #ffffff; --text-secondary: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5; --series-2: #008300; --series-3: #d55181; --series-4: #c98500;
+      --truth: #c3c2b7;
+    }
+  }
+  #speclab * { box-sizing: border-box; }
+  #speclab .card {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem; margin-bottom: 1.1rem;
+    color: var(--text-primary);
+  }
+  #speclab h3 {
+    font-size: 1.02rem; margin: 0 0 0.6rem;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  #speclab .row { display: flex; flex-wrap: wrap; gap: 0.7rem 1.1rem; align-items: flex-end; }
+  #speclab .field { display: flex; flex-direction: column; gap: 2px; }
+  #speclab .field label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  #speclab .field input, #speclab .field select {
+    background: var(--page); color: var(--text-primary);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 4px 8px; font: inherit; width: 7.2em;
+  }
+  #speclab .field input.wide { width: 10em; }
+  #speclab .check { display: flex; align-items: center; gap: 6px; padding-bottom: 4px; }
+  #speclab .check label { font-size: 0.85rem; color: var(--text-secondary); }
+  #speclab button {
+    font: inherit; border-radius: 7px; border: 1px solid var(--border);
+    background: var(--series-1); color: #fff; padding: 6px 16px; cursor: pointer;
+  }
+  #speclab button:disabled { opacity: 0.5; cursor: wait; }
+  #speclab .tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 0.9rem; }
+  #speclab .tabs button {
+    background: var(--page); color: var(--text-secondary); border: 1px solid var(--border);
+    padding: 5px 12px; border-radius: 7px; font-size: 0.88rem;
+  }
+  #speclab .tabs button.active { background: var(--series-1); color: #fff; border-color: transparent; }
+  #speclab .status { font-size: 0.85rem; color: var(--muted); min-height: 1.2em; margin-top: 6px; }
+  #speclab .status.err { color: #d03b3b; }
+  #speclab canvas { width: 100%; height: auto; display: block; margin-top: 0.7rem; }
+  #speclab table.metrics {
+    border-collapse: collapse; margin: 0.8rem 0 0; font-size: 0.85rem; width: 100%;
+  }
+  #speclab table.metrics th, #speclab table.metrics td {
+    border: 1px solid var(--grid); padding: 4px 9px; text-align: right;
+    font-variant-numeric: tabular-nums; font-family: inherit; font-size: 0.85rem;
+  }
+  #speclab table.metrics th { color: var(--muted); font-weight: 600; }
+  #speclab table.metrics td:first-child, #speclab table.metrics th:first-child { text-align: left; }
+  #speclab .legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; margin-top: 0.55rem; font-size: 0.83rem; color: var(--text-secondary); }
+  #speclab .legend .chip { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+  #speclab .legend .lg { cursor: pointer; user-select: none; display: inline-flex; align-items: center; }
+  #speclab .legend .lg input[type=checkbox] { accent-color: var(--series-1); width: 13px; height: 13px; margin: 0 5px 0 0; cursor: pointer; }
+  #speclab .legend .lg.off { opacity: 0.45; text-decoration: line-through; }
+  #speclab .legend .lg.reset { color: var(--series-1); font-weight: 600; }
+  #speclab .legend .lg-cap { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  #speclab .note { font-size: 0.84rem; color: var(--muted); margin: 0.6rem 0 0; }
+  #speclab .kv { display: flex; flex-wrap: wrap; gap: 0.3rem 1.6rem; font-size: 0.88rem; margin-top: 0.5rem; }
+  #speclab .kv span b { font-variant-numeric: tabular-nums; font-weight: 600; }
+  #speclab .hidden { display: none !important; }
+  #speclab input[type=range] { width: 100%; accent-color: var(--series-1); margin: 0.2rem 0 0.1rem; }
+  #ts-card .rowcap { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 0.7rem 0 0.1rem; }
+  #ts-card .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-items: start; margin-top: 0.5rem; }
+  #ts-card .row3.rowhead { margin: 0.9rem 0 -0.3rem; }
+  #ts-card .rowhead span { text-align: center; font-size: 0.8rem; font-weight: 600; }
+  #sl-tooltip, #ts-tooltip {
+    position: fixed; pointer-events: none; z-index: 10; display: none;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 6px;
+    padding: 5px 9px; font-size: 0.8rem; box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+    color: var(--text-primary); max-width: 300px;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Peeking at the Hessian: HVPs, Lanczos, and Stochastic Quadrature</h1>
+<p class="subtitle">How to learn about the eigenvalues of a matrix you can never write down.</p>
+
+<p><strong>Motivation:</strong> The Hessian of a neural network's loss is a \(p \times p\) matrix, where \(p\) is the number of parameters. For a model with 100 million parameters that is about <em>40&nbsp;petabytes</em> in float32, which is almost impossible to compute in closed form. But its spectrum can capture a lot of rich structure which influences the learning dynamics. Therefore, understanding the eigenspectrum of the hessian is important.</p>
+
+<p>The good news is that there are tools which prevent us from computing the closed form \(p \times p\) version of the hessian, yet we can understand its eigenspectrum. Everything in this doc is built from one primitive, the <strong>Hessian-vector product</strong>, which costs less than three gradient iterations. In this blogpost, we walk up the ladder of algorithms aiming to estimate the eigenvalues, statistics of eigenvalues like trace and eigenspectrum. At the end we play around with the <a href="#widgetcosts"><strong>interactive widget</strong></a> to build a deep intuition for each one, on random matrices and on real (small) neural net Hessians:</p>
+
+<nav class="toc">
+<strong>Contents</strong>
+<ol>
+  <li><a href="#setup">Setup and notation</a></li>
+  <li><a href="#hvp">Hessian-vector products and the cost of autodiff</a></li>
+  <li><a href="#power">Power iteration</a></li>
+  <li><a href="#lanczos">Lanczos iteration</a></li>
+  <li><a href="#block">Block Lanczos</a></li>
+  <li><a href="#hutchinson">The Hutchinson trace estimator</a></li>
+  <li><a href="#slq">Stochastic Lanczos Quadrature (SLQ)</a></li>
+  <li><a href="#kpm">The Kernel Polynomial Method (KPM)</a></li>
+  <li><a href="#cheatsheet">Summary</a></li>
+  <li><a href="#widgetcosts">The interactive widget (all ten algorithms, runnable)</a></li>
+</ol>
+</nav>
+
+<h2 id="setup">1. Setup and notation</h2>
+
+<p>Throughout, we work with a loss \(L(w) = \frac{1}{n}\sum_{i=1}^n \ell(w; x_i)\) over</p>
+<ul>
+  <li>\(n\): number of training samples,</li>
+  <li>\(p\): number of parameters,</li>
+</ul>
+<p>and we care about the (symmetric) Hessian \(H = \nabla^2 L(w) \in \mathbb{R}^{p\times p}\), with eigendecomposition \(H = \sum_i \lambda_i u_i u_i^\top\), eigenvalues ordered \(|\lambda_1| \ge |\lambda_2| \ge \cdots\). Most of what follows holds for any symmetric matrix. We write \(A\) when the discussion is generic and \(H\) when the Hessian cost model matters.</p>
+
+<p>For compute counts we'll use the standard dense-network accounting: a forward pass costs roughly \(np\) operations, since every parameter does one multiply-accumulate per sample.</p>
+
+<h2 id="hvp">2. Hessian-vector products and the cost of autodiff</h2>
+
+<h3>A backward pass costs twice a forward pass</h3>
+
+<p>Take a deep linear chain \(x \to W_1 \to W_2 \to \cdots \to f(x)\), with activations \(h_i\). The forward pass is one matrix product per layer, \(h_i = W_i h_{i-1}\), so about \(np\) operations total.</p>
+
+<p>At each layer, backprop has to compute <em>two</em> things instead of one:</p>
+\[
+\underbrace{\frac{\partial h_i}{\partial W_i}}_{\text{gradient for the weights}}
+\qquad\text{and}\qquad
+\underbrace{\frac{\partial W_i}{\partial h_{i-1}}}_{\text{signal passed to the previous layer}}
+\]
+<p>Each is a matrix product of the same size as the forward one, so the backward pass costs about \(2np\).</p>
+
+<h3>The Hessian-vector product trick</h3>
+
+<p>We want \(Hv = \nabla^2 L(w)\, v\) for an arbitrary vector \(v\), without forming \(H\). The key identity is</p>
+\[
+Hv \;=\; \nabla_w \big( \nabla_w L(w)^\top v \big),
+\]
+<p>i.e. the gradient of the scalar \(g(w) = \nabla L(w)^\top v\). Autodiff computes this by differentiating <em>through the gradient's own computational graph</em>. A clean way to think about it: the graph that computes the gradient is itself a network whose "layers" are the local Jacobians</p>
+\[
+W_i \;\to\; \frac{\partial h_i}{\partial W_i}, \qquad
+h_i \;\to\; \frac{\partial W_{i}}{\partial h_i},
+\]
+<p>and running one more backward pass through that graph. Think of it as replacing the original network with a modified one, \(W_i \to \partial h_i / \partial W_i\) and \(h_i \to \partial h_{i+1} / \partial h_i\). Now everything is the same as before, one level up. Thus we have:</p>
+\[
+\underbrace{np}_{\text{forward}} \;+\; \underbrace{2np}_{\text{1st backward}} \;+\; \underbrace{2np}_{\text{2nd backward}} \;=\; 5np .
+\]
+<p>So <strong>one HVP costs about \(5np\)</strong>, less than three gradients. The rule of thumb: <em>an HVP is a small constant times a gradient.</em> Memory is \(O(p)\) on top of activation storage. One practical caveat: double backward has to retain the first backward's graph for the second pass, which roughly doubles activation memory.</p>
+
+<h3>Compute of the Full Hessian</h3>
+
+<p>To materialize \(H\) we can run \(p\) HVPs, one per basis vector. This leads to the following cost:</p>
+\[
+np + 2np + 2np\cdot p \;=\; 3np + 2np^2 ,
+\]
+<p>plus \(O(p^2)\) memory just to store the thing. Both are hopeless for any modern network. So the magic of hessian vector product really makes things very much practical.</p>
+
+<div class="table-wrap">
+<table>
+  <tr><th>Operation</th><th>Compute</th><th>Memory (beyond activations)</th></tr>
+  <tr><td>Forward pass</td><td>\(np\)</td><td>\(O(p)\)</td></tr>
+  <tr><td>Backward pass (gradient)</td><td>\(2np\)</td><td>\(O(p)\)</td></tr>
+  <tr><td>Hessian-vector product</td><td>\(5np\)</td><td>\(O(p)\)</td></tr>
+  <tr><td>Full Hessian</td><td>\(3np + 2np^2\)</td><td>\(O(p^2)\)</td></tr>
+</table>
+</div>
+
+<p>Our main goal now is to understand the structure of eigenvalues of large symmetric matrices while only ever touching the first three rows of this table. For this we'll dive into power iteration, then Lanczos, block Lanczos, and the stochastic estimators: Hutchinson, stochastic Lanczos quadrature, and the kernel polynomial method.</p>
+
+<h2 id="power">3. Power iteration</h2>
+
+<p>The simplest question: what is the top eigenvalue \(\lambda_1\) and its eigenvector \(u_1\)?</p>
+
+<p>Take a random vector \(x\) and repeatedly apply \(A\), normalizing as you go. Expanding \(x\) in the eigenbasis, \(x = \sum_i (u_i^\top x)\, u_i\), after \(k\) applications:</p>
+\[
+\frac{A^k x}{\|A^k x\|}
+= \frac{\sum_i \lambda_i^k (u_i^\top x)\, u_i}{\big(\sum_i \lambda_i^{2k} (u_i^\top x)^2\big)^{1/2}}
+\;\xrightarrow{\;k \to \infty\;}\; \pm u_1 ,
+\]
+<p>because \((\lambda_i/\lambda_1)^k \to 0\) for every \(i \gt 1\). The \(\pm\) is per step: if \(\lambda_1 \lt 0\) the normalized iterate flips sign every iteration, so only the line \(\operatorname{span}\{u_1\}\) converges. The error decays geometrically at rate \(|\lambda_2/\lambda_1|\), so the closer the second eigenvalue is to the first, the slower the convergence.</p>
+
+<pre class="algo">x ← random unit vector in R^p
+repeat k times:
+    x ← A x          # one HVP if A = H:  5np
+    x ← x / ‖x‖
+return  λ̂ = xᵀ A x   (eigenvalue estimation)</pre>
+
+<p><strong>Cost.</strong> \(k\) matrix-vector products. For an explicitly stored dense \(\sqrt{p} \times \sqrt{p}\) matrix each matvec costs \(O(p)\), so this is \(O(kp)\). For the Hessian accessed through HVPs it is \(O(k \cdot 5np) = O(knp)\). The \(p^2\) never appears.</p>
+
+<p>That is all power iteration is. It gives one eigenpair, and it wastes information: it computes the whole Krylov sequence \(x, Ax, A^2x, \dots\) and then throws away everything except the last vector. We will see how lanczos keeps it and this helps in computing multiple top eigenvalues simultaneously.</p>
+
+<h2 id="lanczos">4. Lanczos iteration</h2>
+
+<p><strong>Key idea.</strong> Instead of keeping only \(A^k x\), keep the whole subspace it swept through, the <em>Krylov subspace</em></p>
+\[
+\mathcal{K}_k = \operatorname{span}\{x,\; Ax,\; A^2x,\; \dots,\; A^{k-1}x\}.
+\]
+<p>Intuitively this is the subspace in which \(A\) "acts the most" starting from a random direction. Project \(A\) into \(\mathcal{K}_k\) and the top eigenvalues of the small \(k \times k\) projected matrix are excellent approximations to the extreme eigenvalues of \(A\). From those we can also recover eigenvector estimates.</p>
+
+<h3>Orthogonalizing the Krylov basis</h3>
+
+<p>The raw vectors \(v_1 = x,\; v_2 = Ax,\; \dots,\; v_k = A^{k-1}x\) are a terrible basis: they all lean toward \(u_1\), which is exactly what power iteration exploits. So we run Gram–Schmidt, starting from \(v_1\):</p>
+\[
+\tilde v_1 = v_1, \qquad
+\tilde v_j = v_j - \sum_{i \lt j} (v_j^\top \tilde v_i)\, \tilde v_i
+\quad\text{(then normalize)} .
+\]
+<p>Collect the orthonormal basis as \(\tilde V = [\tilde v_1\; \tilde v_2\; \cdots\; \tilde v_k] \in \mathbb{R}^{p \times k}\).</p>
+
+<div class="box">
+<div class="box-title">Claim: the projected matrix is tridiagonal</div>
+<p>If \(A\) is symmetric, then \(T = \tilde V^\top A \tilde V\) is <strong>tridiagonal</strong>: \(\tilde v_j^\top A \tilde v_i = 0\) whenever \(|j - i| \gt 1\).</p>
+<p><em>Proof sketch.</em> By construction \(\tilde v_j \in \mathcal{K}_j\), so \(A \tilde v_j \in \mathcal{K}_{j+1} = \operatorname{span}\{\tilde v_1, \dots, \tilde v_{j+1}\}\). For any \(\ell \gt 1\), the vector \(\tilde v_{j+\ell}\) is orthogonal to all of \(\mathcal{K}_{j+1}\), because Gram–Schmidt made it so. Hence
+\[
+\tilde v_{j+\ell}^\top A \tilde v_j = 0 \qquad \forall\, \ell \gt 1,
+\]
+which kills the lower triangle below the first subdiagonal. Symmetry of \(A\) transposes the same statement to the upper triangle: \(\tilde v_j^\top A \tilde v_{j+\ell} = (\tilde v_{j+\ell}^\top A \tilde v_j)^\top = 0\). \(\blacksquare\)</p>
+</div>
+
+<p>So the projection has the form</p>
+\[
+T = \tilde V^\top A \tilde V =
+\begin{pmatrix}
+\alpha_1 & \beta_1 & & \\
+\beta_1 & \alpha_2 & \beta_2 & \\
+ & \beta_2 & \ddots & \beta_{k-1} \\
+ & & \beta_{k-1} & \alpha_k
+\end{pmatrix},
+\qquad
+\alpha_i = \tilde v_i^\top A \tilde v_i, \quad
+\beta_i = \tilde v_{i+1}^\top A \tilde v_i .
+\]
+
+<p>While this way is clean and gives an intuitive picture, in practice a more complicated version of Lanczos is used, which will give rise to the exact same \(T\) as what we just described, but each steps are different. Basically, if we read off column \(j\), we will get the <strong>three-term recurrence</strong></p>
+\[
+\beta_j \tilde v_{j+1} = A \tilde v_j - \alpha_j \tilde v_j - \beta_{j-1} \tilde v_{j-1},
+\]
+<p>so in exact arithmetic each new basis vector needs orthogonalization against only the <em>two</em> previous ones, not all of them. This is easier to implement as it overcomes the floating point errors which would occur if the Gram-Schmidt was done at the end. Thus the lanczos iteration, which one would find in most places is the following:</p>
+
+<pre class="algo">v₁ ← z/‖z‖ ;  β₀ ← 0 ;  v₀ ← 0
+for j = 1 … k:
+    w  ← A vⱼ                      # one HVP: 5np
+    αⱼ ← vⱼᵀ w
+    w  ← w − αⱼ vⱼ − β₍ⱼ₋₁₎ v₍ⱼ₋₁₎
+    βⱼ ← ‖w‖ ;  v₍ⱼ₊₁₎ ← w / βⱼ
+T ← tridiag(β; α; β)</pre>
+
+
+
+<h3>From \(T\) to eigenvalues and eigenvectors of \(A\)</h3>
+
+<p>Diagonalize the small matrix: \(T = S \Theta S^\top\) with \(\Theta = \operatorname{diag}(\theta_1, \dots, \theta_k)\). If \(k = p\) (full run), \(\tilde V\) is square and orthogonal, so \(\tilde V^\top A \tilde V = T\) rearranges to</p>
+\[
+A = \tilde V T \tilde V^\top = (\tilde V S)\, \Theta\, (\tilde V S)^\top ,
+\]
+<p>an exact eigendecomposition. For \(k \ll p\) the same objects are approximations, which are called <strong>Ritz values</strong> \(\theta_i\) and <strong>Ritz vectors</strong> \(y_i = \tilde V s_i\). A useful check on quality is the residual</p>
+\[
+\text{error} = \sum_i \big\| A (\tilde V s_i) - \theta_i (\tilde V s_i) \big\| .
+\]
+<p><strong>Cost.</strong> For the Hessian: \(k\) HVPs \(= O(knp)\), plus \(O(k^2 p)\) if we fully reorthogonalize, plus \(O(k^2)\)–\(O(k^3)\) for the eigendecomposition of the tridiagonal \(T\) (negligible: \(k\) is tens, \(p\) is millions), plus \(O(kp)\) per Ritz vector we choose to form. The dominant term in deep learning settings is always the \(O(knp)\) of the HVPs.</p>
+
+<h2 id="block">5. Block Lanczos</h2>
+
+<p>Plain Lanczos has a blind spot: <strong>eigenvalue multiplicity</strong>. A single Krylov sequence started from one vector can only ever see a one-dimensional slice of each eigenspace, so eigenvalues that are exactly degenerate (or clustered so tightly that floating point cannot separate them) are found once, not with their multiplicity. Lanczos simply cannot tell them apart unless we run a very large number of iterations.</p>
+
+<p><strong>Key idea.</strong> Do power iteration on a rank-\(b\) subspace instead of a rank-one subspace: start from a random \(p \times b\) block \(Q\) and build the block Krylov space from \(Q, AQ, A^2Q, \dots\). A block of width \(b\) can capture up to \(b\) copies of a degenerate eigenvalue and cleanly separates tight clusters.</p>
+
+<p>It is the same as Lanczos iteration, but with Gram–Schmidt orthogonalization at two levels:</p>
+<ul>
+  <li><em>between</em> iterates: each new block only needs orthogonalization against the previous <em>two</em> blocks, since block tridiagonality gives the same three-term recurrence with \(b \times b\) coefficient blocks.</li>
+  <li><em>within</em> an iterate: the \(b\) columns of each block are orthogonalized against each other (a QR decomposition).</li>
+</ul>
+<p>The projected matrix is then <strong>block tridiagonal</strong>: the same structure with \(b \times b\) blocks in place of scalars. Concretely, with \(Q_j \in \mathbb{R}^{p \times b}\) the \(j\)-th orthonormal block, the three-term recurrence becomes</p>
+\[
+A Q_j = Q_{j-1} B_{j-1}^\top + Q_j A_j + Q_{j+1} B_j,
+\qquad
+A_j = Q_j^\top A Q_j \ \ (b \times b \text{ symmetric}), \quad
+B_j \ \ (b \times b, \text{ from the QR step } W_j = Q_{j+1} B_j),
+\]
+<p>so \(T\) has the \(A_j\) on its block diagonal and the \(B_j\) on the block off-diagonals, and the eigendecomposition of the small \(kb \times kb\) matrix \(T\) supplies the Ritz pairs exactly as before.</p>
+
+<p><strong>Cost.</strong> Per iteration, applying \(A\) to the \(p \times b\) block is \(b\) matvecs, so \(b \cdot 5np = O(npb)\) via HVPs. Orthogonalization against the two previous blocks plus the within-block QR adds \(O(kpb^2)\) total (\(O(k^2 p b^2)\) with full reorthogonalization), and the eigendecomposition of the \(kb \times kb\) block tridiagonal matrix costs \(O((kb)^2)\) to \(O((kb)^3)\). The HVP term \(O(knpb)\) dominates the orthogonalization when \(n \gg kb\) (the \(p\)'s cancel).</p>
+
+
+
+<hr>
+
+<p>Everything so far targets <em>individual extreme eigenpairs</em>. The remaining three methods answer <em>global</em> questions about the spectrum (traces, densities, counts) using randomness.</p>
+
+<h2 id="hutchinson">6. The Hutchinson trace estimator</h2>
+
+<p>How do we estimate \(\operatorname{Tr}(A) = \sum_i \lambda_i\) when you can only touch \(A\) through matvecs? Draw a random probe \(z\) with \(\mathbb{E}[z z^\top] = I\) (e.g. \(z \sim \mathcal{N}(0, I)\)). Then</p>
+\[
+\mathbb{E}\big[z^\top A z\big]
+= \mathbb{E}\big[\operatorname{Tr}(A z z^\top)\big]
+= \operatorname{Tr}\big(A\, \mathbb{E}[z z^\top]\big)
+= \operatorname{Tr}(A).
+\]
+<p>So the Monte-Carlo estimator with \(s\) probes is</p>
+\[
+\operatorname{Tr}(A) \;\approx\; \frac{1}{s} \sum_{i=1}^{s} z_i^\top A z_i ,
+\]
+<p>costing \(s\) matvecs, so \(O(snp)\) for the Hessian. No \(p^2\) anywhere.</p>
+
+<div class="aside">
+<div class="aside-title">Why Rademacher probes</div>
+In practice \(z\) is usually drawn with i.i.d. <em>Rademacher</em> entries (\(\pm 1\) with probability \(\tfrac12\)) rather than Gaussian. The diagonal of \(zz^\top\) is then <em>exactly</em> \(1\), so no randomness is left on the diagonal: the estimator is exact on the diagonal contribution and only the off-diagonal terms add noise. Concretely, \(\operatorname{Var}(z^\top A z) = 2\sum_{i \ne j} A_{ij}^2 = 2\big(\|A\|_F^2 - \sum_i A_{ii}^2\big)\) for Rademacher vs \(2\|A\|_F^2\) for Gaussian. The convergence of \(\frac1s\sum z_i z_i^\top \to I\) is faster in case of rademacher probes.
+</div>
+
+
+
+<h2 id="slq">7. Stochastic Lanczos Quadrature (SLQ)</h2>
+
+<p>Hutchinson estimates \(\operatorname{Tr}(A)\). SLQ generalizes it to <strong>any spectral function</strong>:</p>
+\[
+\operatorname{Tr}\big(f(A)\big) = \sum_i f(\lambda_i)
+\;=\; \mathbb{E}\big[ z^\top f(A)\, z \big]
+\;\approx\; \frac{1}{s} \sum_{i=1}^s z_i^\top f(A)\, z_i .
+\]
+<p>This covers a lot: \(f(t) = \log t\) gives the log determinant, \(f(t) = t^2\) gives \(\|A\|_F^2\), \(f(t) = \mathbf{1}(t \le c)\) counts eigenvalues below a threshold, and \(f(t) = \delta_\sigma(t - t_0)\) reads out the <em>spectral density</em> near \(t_0\).</p>
+
+<p>The only hard part is the quadratic form \(z^\top f(A)\, z\). The key secret sauce of SLQ is to approximate</p>
+\[
+z^\top f(A)\, z \;\approx\; \|z\|^2 \sum_{j=1}^{k} \tau_j\, f(\theta_j),
+\qquad \tau_j = (S_{1j})^2 ,
+\]
+<p>where \(\theta_j\) and \(S\) come from \(k\) Lanczos steps on \(A\) itself, as we explain next.</p>
+
+<h3>Estimating the quadratic form with Lanczos</h3>
+
+<p>Fix one probe \(z \sim \mathcal{N}(0, I)\) and normalize it, \(v_1 = z/\|z\|\). Let \(B = f(A)\). What we want is the quadratic form \(v_1^\top B\, v_1\). Since \(B\) has the same eigenvectors as \(A\) with eigenvalues \(f(\lambda_i)\),</p>
+\[
+v_1^\top B\, v_1 = \sum_{i=1}^{p} (u_i^\top v_1)^2\, f(\lambda_i) .
+\]
+<p>So the exact answer is a weighted sum of \(f\) over the eigenvalues of \(A\), with weights \((u_i^\top v_1)^2\) that sum to one. We cannot afford all \(p\) weights, and we only have matvecs with \(A\), not with \(B\). But it turns out a plain Lanczos run on \(A\) is enough.</p>
+
+<p>To see why this works, expand \(v_1\) in the eigenbasis of \(A\). Powers act on eigenvalues,</p>
+\[
+A^n v_1 = \sum_i \lambda_i^n\, (u_i^\top v_1)\, u_i ,
+\]
+<p>so for any \(f\) written in its polynomial basis,</p>
+\[
+f(A)\, v_1 = \sum_i f(\lambda_i)\, (u_i^\top v_1)\, u_i
+\qquad\Longrightarrow\qquad
+v_1^\top f(A)\, v_1 = \sum_i f(\lambda_i)\, (u_i^\top v_1)^2 .
+\]
+<p>Note that the Lanczos run hands us exactly these quantities: the Ritz values \(\theta_j\) stand in for the eigenvalues \(\lambda_i\), and \((S_{1j})^2\) stands in for the weight \((u_j^\top v_1)^2\).</p>
+
+<p>Thus repeating the process over multiple probes gives estimates of the form \(\operatorname{Tr}(f(A))\), exactly like Hutchinson:</p>
+
+<pre class="algo">for i = 1 … s:
+    z ~ N(0, I)  (or Rademacher);   v₁ ← z/‖z‖
+    run k Lanczos steps on A from v₁  →  T⁽ⁱ⁾     # k HVPs
+    diagonalize T⁽ⁱ⁾ = S Θ Sᵀ
+    q⁽ⁱ⁾ ← ‖z‖² · Σⱼ (S₁ⱼ)² f(θⱼ)
+return (1/s) Σᵢ q⁽ⁱ⁾</pre>
+
+<h3>Predicting the spectrum</h3>
+
+<p>The empirical spectral density \(\rho(t) = \frac{1}{p}\sum_i \delta(t - \lambda_i)\) is the special case where \(f\) is a delta at \(t\) (in practice a narrow Gaussian bump is used instead). Basically, \((u_i^\top v_1)^2\) is the weight the probe places on eigenvalue \(\lambda_i\); the quadrature estimates these weights at the \(k\) Ritz values, and some Gaussian smoothing then turns the weighted nodes into an eigenspectrum:</p>
+\[
+\hat\rho(t) = \frac{1}{s}\sum_{i=1}^{s} \sum_{j=1}^{k} \tau_j^{(i)}\; g_\sigma\big(t - \theta_j^{(i)}\big),
+\qquad \tau_j = (S_{1j})^2 .
+\]
+<p>This is the estimator behind the Hessian eigenspectrum plots in the deep learning literature (Ghorbani et&nbsp;al., PyHessian).</p>
+
+<p><strong>Time complexity.</strong> Let \(s\) be the number of Hutchinson probes. SLQ costs \(O(s \cdot t)\) where \(t\) is the Lanczos iteration cost, i.e. \(O(sknp)\) with HVPs.</p>
+
+<h3>Further variants of SLQ</h3>
+
+<p>A clear problem with SLQ is that it can saturate over the top eigenvalues multiple times, even if they are not present that frequently: every probe's Krylov space is attracted to the same few outliers, which carry only weight \(1/p\) each in the density. There are ways to overcome this:</p>
+<ul>
+  <li>a) Orthogonalize in the space of later iterates of Lanczos to determine the dominant subspace, and run SLQ in the remaining space. Block Lanczos can also be used here.</li>
+  <li>b) Run Lanczos with starting vectors orthogonal to the space found previously. This can lead to faster convergence onto parts of the spectrum not seen yet.</li>
+</ul>
+<p>In summary, the later iterates of Lanczos estimate the top eigenvalues well, but the earlier iterates still find the broader clusters of eigenvalues, which is why SLQ can use Lanczos at all. Tabs 6 to 9 of the widgets implement exactly these variants. Although the above variants seems intuitive but as per the widgets they don't make much of a difference.</p>
+
+<h2 id="kpm">8. The Kernel Polynomial Method (KPM)</h2>
+
+<p>The Chebyshev polynomials have an interesting property:</p>
+\[
+T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
+\]
+<p>and they are orthogonal on \([-1, 1]\) under the measure \(1/\sqrt{1-x^2}\):</p>
+\[
+\int_{-1}^{1} \frac{T_j(x)\, T_k(x)}{\sqrt{1-x^2}}\, dx =
+\begin{cases} 0 & j \ne k, \\ \pi & j = k = 0, \\ \pi/2 & j = k \ge 1. \end{cases}
+\]
+<p>KPM estimates the spectral density directly in this basis. The basis lives on \([-1, 1]\), so first rescale: estimate \(\lambda_{\min}\) and \(\lambda_{\max}\) with a short Lanczos run and map</p>
+\[
+\tilde A = \frac{2A - (\lambda_{\max} + \lambda_{\min})\, I}{\lambda_{\max} - \lambda_{\min}},
+\]
+<p>so the eigenvalues \(\tilde\lambda_i\) of \(\tilde A\) land in \([-1, 1]\).</p>
+
+<p>Now write the density in the eigenbasis of Chebyshev polynomials. The general form with measure \(1/\sqrt{1-x^2}\) is</p>
+\[
+\tilde\rho(x) = \frac{1}{\sqrt{1-x^2}} \sum_{k=0}^{\infty} a_k\, T_k(x),
+\]
+<p>where \(\tilde\rho(x) = \frac1p \sum_i \delta(x - \tilde\lambda_i)\). Finding the coefficients \(a_k\) using orthogonality (multiply by \(T_j\) and integrate), we get the density estimate:</p>
+
+<div class="box">
+<div class="box-title">KPM density estimate</div>
+\[
+\hat\rho(x) = \frac{1}{\pi\sqrt{1 - x^2}} \Big[ \hat\mu_0 + 2 \sum_{k=1}^{K} \hat\mu_k\, T_k(x) \Big],
+\qquad
+\hat\mu_k = \frac{1}{p} \operatorname{Tr}\, T_k(\tilde A) .
+\]
+</div>
+
+<p>Note that KPM approximates each trace \(\operatorname{Tr}\, T_k(\tilde A)\) using Hutchinson, which requires random probes.</p>
+
+<p><strong>Time complexity.</strong> With \(s\) Hutchinson probes and \(K\) KPM iterations the cost is approximately \(O(sKp)\) matvec work; with HVPs it increases to \(O(sK \cdot 5np) \approx O(sKnp)\). Same shape as SLQ, with \(k \leftrightarrow K\).</p>
+
+<h2 id="cheatsheet">9. Summary</h2>
+
+<p>All costs assume access to \(A = H\) via HVPs at \(5np\) each; \(k\) = iterations/degree, \(s\) = probes, \(b\) = block size.</p>
+
+<div class="table-wrap">
+<table>
+  <tr><th>Method</th><th>What you get</th><th>Compute</th></tr>
+  <tr><td>Power iteration</td><td>top eigenpair \((\lambda_1, u_1)\)</td><td>\(O(knp)\)</td></tr>
+  <tr><td>Lanczos</td><td>extreme eigenpairs</td><td>\(O(knp)\) \(+\, O(k^2p)\) reorth.</td></tr>
+  <tr><td>Block Lanczos</td><td>clustered / degenerate extremes</td><td>\(O(knpb)\)</td></tr>
+  <tr><td>Hutchinson</td><td>\(\operatorname{Tr}(A)\)</td><td>\(O(snp)\)</td></tr>
+  <tr><td>SLQ</td><td>\(\operatorname{Tr} f(A)\), spectral density</td><td>\(O(sknp)\)</td></tr>
+  <tr><td>KPM</td><td>spectral density</td><td>\(O(sknp)\)</td></tr>
+</table>
+</div>
+
+<p>The through line: a forward pass costs \(np\), an HVP costs \(5np\), and every question about the Hessian spectrum, from "what is the sharpness?" to "what does the whole density look like?", reduces to a few hundred or a few thousand HVPs, arranged cleverly.</p>
+
+<h2 id="refs">References &amp; further reading</h2>
+<ul class="refs">
+  <li>B. Pearlmutter. <a href="https://doi.org/10.1162/neco.1994.6.1.147"><em>Fast exact multiplication by the Hessian.</em></a> Neural Computation, 1994. The \(O(np)\) HVP.</li>
+  <li>G. Golub, G. Meurant. <a href="https://press.princeton.edu/books/hardcover/9780691143415/matrices-moments-and-quadrature-with-applications"><em>Matrices, Moments and Quadrature with Applications.</em></a> Princeton, 2010. Lanczos as Gauss quadrature.</li>
+  <li>M. Hutchinson. <a href="https://doi.org/10.1080/03610918908812806"><em>A stochastic estimator of the trace of the influence matrix for Laplacian smoothing splines.</em></a> 1989.</li>
+  <li>S. Ubaru, J. Chen, Y. Saad. <a href="https://doi.org/10.1137/16M1104974"><em>Fast estimation of tr(f(A)) via stochastic Lanczos quadrature.</em></a> SIMAX, 2017.</li>
+  <li>L. Lin, Y. Saad, C. Yang. <a href="https://doi.org/10.1137/130934283"><em>Approximating spectral densities of large matrices.</em></a> SIAM Review, 2016. SLQ and KPM for spectral densities, side by side.</li>
+  <li>A. Weiße, G. Wellein, A. Alvermann, H. Fehske. <a href="https://doi.org/10.1103/RevModPhys.78.275"><em>The kernel polynomial method.</em></a> Rev. Mod. Phys., 2006.</li>
+  <li>B. Ghorbani, S. Krishnan, Y. Xiao. <a href="https://arxiv.org/abs/1901.10159"><em>An investigation into neural net optimization via Hessian eigenvalue density.</em></a> ICML 2019. SLQ on deep nets.</li>
+  <li>Z. Yao, A. Gholami, K. Keutzer, M. Mahoney. <a href="https://arxiv.org/abs/1912.07145"><em>PyHessian: neural networks through the lens of the Hessian.</em></a> 2020.</li>
+</ul>
+
+<h2 id="widgetcosts">10. The interactive widget</h2>
+
+<p>Finally, let's play around with some widgets. Everything above is runnable below, in ten numbered estimator tabs.</p>
+
+<p>There are two matrix sources. The first is a random symmetric matrix (GOE, Wishart, spiked, clustered, or log spaced), with the dimension \(p\) as a hyperparameter. The second is the exact Hessian of a small one hidden layer MLP, touched only through HVPs; the architecture, \(n\), the activation, and the training are all adjustable. Up to \(p = 6000\) the ground truth is the exact eigendecomposition. For larger \(p\) the widget uses an SLQ reference spectrum instead, clearly labeled in every chart, so any size runs. Every run also reports how many matvecs it spent.</p>
+
+<p>Each tab shows two main plots. The density plot compares the estimated spectral density with the ground truth. The eigenvalue vs index plot shows \(\lambda_i\) against \(i\), from largest to smallest, which makes it easy to see how well the top of the spectrum is resolved. For the stochastic estimators this curve comes from inverting the estimated density, \(\hat\lambda_i = \hat F^{-1}\big(1 - \tfrac{i - 1/2}{p}\big)\).</p>
+
+<p>Three tabs use ideas we have not defined yet:</p>
+<ul>
+  <li><strong>Edge + deflated SLQ</strong> (tab 6). First run a few rounds of Lanczos and collect the converged extreme Ritz vectors into an orthonormal \(U\). Then run SLQ on the deflated operator \(A' = (I - UU^\top)\, A\, (I - UU^\top)\), with probes kept orthogonal to \(U\). The harvested eigenvalues enter the density exactly, and SLQ fills in the rest:
+\[
+\hat\rho(t) = \frac{1}{p}\sum_{\theta \in \text{harvested}} g_\sigma(t - \theta) \;+\; \frac{p - m}{p}\, \hat\rho_{\text{SLQ on } A'}(t) .
+\]</li>
+  <li><strong>Orthogonalized probes</strong> (tab 7). Before its own Lanczos run, each new probe is projected off everything the earlier probes already explored. This forces exploration of new directions and costs zero extra matvecs.</li>
+  <li><strong>Block SLQ</strong> (tabs 8 and 9). The probe is a random \(p \times b\) block instead of a single vector. Block Lanczos gives a \(kb \times kb\) matrix \(T = S\Theta S^\top\), and the weights become the squared first block components, \(\tau_j = \tfrac{1}{b}\|S_{1:b,\,j}\|^2\), which again sum to one. Tab 9 of the widget combines this with orthogonalized probes.</li>
+</ul>
+
+
+<div id="speclab">
+  <!-- ═══ matrix source ═══ -->
+  <div class="card">
+    <h3>1 · Matrix source</h3>
+    <div class="tabs" id="srcTabs">
+      <button data-src="random" class="active">Random symmetric matrix</button>
+      <button data-src="hessian">Neural-net Hessian (exact HVPs)</button>
+    </div>
+    <div id="srcRandom">
+      <div class="row">
+        <div class="field"><label>p (dimension)</label><input type="number" id="rp" value="120" min="8" max="8000"></div>
+        <div class="field"><label>ensemble</label>
+          <select id="rens">
+            <option value="goe">GOE (semicircle)</option>
+            <option value="wishart">Wishart (Marchenko–Pastur)</option>
+            <option value="spiked" selected>GOE + spikes (outliers)</option>
+            <option value="bernoulli">Bernoulli 0/1 (symmetric)</option>
+            <option value="clustered">Clustered (multiplicities)</option>
+            <option value="logspaced">Log-spaced (rotated)</option>
+          </select></div>
+        <div class="field ens ens-spiked"><label># spikes</label><input type="number" id="rspikes" value="4" min="0" max="20"></div>
+        <div class="field ens ens-spiked"><label>spike range</label><input type="text" id="rspikerange" value="4, 10"></div>
+        <div class="field ens ens-bernoulli hidden"><label>q = P(entry = 1)</label><input type="number" id="rbq" value="0.5" step="0.05" min="0" max="1"></div>
+        <div class="field ens ens-wishart hidden"><label>aspect n<sub>w</sub>/p</label><input type="number" id="raspect" value="2" step="0.1" min="0.2"></div>
+        <div class="field ens ens-clustered hidden"><label># clusters</label><input type="number" id="rclusters" value="4" min="1" max="12"></div>
+        <div class="field ens ens-clustered hidden"><label>cluster spread</label><input type="number" id="rspread" value="0.0001" step="0.0001"></div>
+        <div class="field ens ens-logspaced hidden"><label>decades</label><input type="number" id="rdecades" value="3" min="1" max="8"></div>
+        <div class="field"><label>seed</label><input type="number" id="rseed" value="1"></div>
+        <button id="buildRandom">Build matrix</button>
+      </div>
+      <p class="note">Ground truth is exact up to p = 6000 (O(p³): about 1 s at p = 1000, minutes near the limit,
+        freezing the tab); beyond that, up to 8000, a clearly labeled SLQ reference is used. Wishart, clustered and
+        log-spaced ensembles are limited to p ≤ 1000 because building them costs O(p³).</p>
+    </div>
+    <div id="srcHessian" class="hidden">
+      <div class="row">
+        <div class="field"><label>input dim</label><input type="number" id="hdin" value="24" min="1" max="256"></div>
+        <div class="field"><label>hidden width</label><input type="number" id="hhid" value="74" min="1" max="512"></div>
+        <div class="field"><label>output dim</label><input type="number" id="hdout" value="2" min="1" max="64"></div>
+        <div class="field"><label>n (samples)</label><input type="number" id="hn" value="64" min="2" max="4096"></div>
+        <div class="field"><label>activation</label>
+          <select id="hact"><option value="tanh">tanh</option><option value="relu">relu</option></select></div>
+        <div class="field"><label>targets</label>
+          <select id="htarget"><option value="teacher">teacher + noise</option><option value="random">random</option></select></div>
+        <div class="field"><label>noise</label><input type="number" id="hnoise" value="0.1" step="0.05" min="0"></div>
+        <div class="field"><label>train steps</label><input type="number" id="hsteps" value="200" min="0" max="20000"></div>
+        <div class="field"><label>learning rate</label><input type="number" id="hlr" value="0.05" step="0.01" min="0"></div>
+        <div class="field"><label>seed</label><input type="number" id="hseed" value="7"></div>
+        <div class="check"><input type="checkbox" id="hforce"><label for="hforce">force exact ground truth (slow above p = 6000)</label></div>
+        <button id="buildHessian">Build Hessian</button>
+      </div>
+      <p class="note">p = h·d<sub>in</sub> + h + d<sub>out</sub>·h + d<sub>out</sub> = <b id="pPreview">—</b>.
+        Default p = 2000 (builds in well under a minute). Up to p = 6000, ground truth is p exact HVPs plus a dense
+        eigendecomposition; above that an SLQ reference, unless you tick force exact and wait. All estimators touch
+        H only through HVPs.</p>
+    </div>
+    <div class="status" id="srcStatus">No matrix built yet. Press a Build button.</div>
+    <div class="kv" id="truthStats"></div>
+  </div>
+
+  <!-- ═══ estimators ═══ -->
+  <div class="card" id="methodsCard" style="opacity:0.45; pointer-events:none">
+    <h3>2 · Estimators</h3>
+    <p class="note" style="margin: -0.2rem 0 0.6rem">Controls are live: changing a setting re-runs its tab.
+      Use the <strong>runs:</strong> strip above a tab's charts to pick runs across all of its plots; drag to zoom,
+      double-click or ↺ to reset. Large probe × k budgets freeze the tab for a few seconds.</p>
+    <div class="tabs" id="methodTabs">
+      <button data-m="full" class="active">1 · Full eigendecomposition</button>
+      <button data-m="power">2 · Power iteration</button>
+      <button data-m="lanczos">3 · Lanczos</button>
+      <button data-m="block">4 · Block Lanczos</button>
+      <button data-m="slq5">5 · SLQ</button>
+      <button data-m="edge">6 · Edge + SLQ</button>
+      <button data-m="slq7">7 · SLQ, orth probes</button>
+      <button data-m="slq8">8 · Block SLQ</button>
+      <button data-m="slq9">9 · Block SLQ + orth</button>
+      <button data-m="kpm">10 · KPM</button>
+    </div>
+
+    <!-- 1 · full eigendecomposition (ground truth) -->
+    <div class="method" id="m-full">
+      <p class="note" id="gt-note">Build a matrix above and the exact spectrum appears here.</p>
+      <canvas id="gt-chart" width="1760" height="480" class="hidden"></canvas>
+      <div class="legend" id="gt-legend"></div>
+      <canvas id="gt-scree" width="1760" height="460" class="hidden"></canvas>
+      <div class="legend" id="gt-scree-legend"></div>
+      <canvas id="gt-conv" width="1760" height="440" class="hidden"></canvas>
+      <div class="legend" id="gt-conv-legend"></div>
+      <div id="gt-table"></div>
+      <p class="note">The exact reference every other tab compares against; estimators 2 to 10 exist to avoid paying its O(p³) + p-HVP cost.</p>
+    </div>
+
+    <div class="method hidden" id="m-power">
+      <div class="row">
+        <div class="field"><label># eigenvalues</label><input type="number" id="pw-num" value="4" min="1" max="16"></div>
+        <div class="field"><label>iterations each</label><input type="number" id="pw-iters" value="150" min="1" max="5000"></div>
+        <div class="field"><label>shift c (iterate on A+cI)</label><input type="number" id="pw-shift" value="0" step="0.5"></div>
+        <div class="field"><label>seed</label><input type="number" id="pw-seed" value="1"></div>
+        <button id="pw-run">Run</button>
+      </div>
+      <p class="note">Largest-|λ| eigenpairs via deflated power iteration; a shift c reorders by |λ+c|.</p>
+      <canvas id="pw-scree" width="1760" height="460" class="hidden"></canvas>
+      <div class="legend" id="pw-scree-legend"></div>
+      <canvas id="pw-conv" width="1760" height="480" class="hidden"></canvas>
+      <div class="legend" id="pw-legend"></div>
+      <div id="pw-table"></div>
+      <div class="status" id="pw-status"></div>
+    </div>
+
+    <div class="method hidden" id="m-lanczos">
+      <div class="row">
+        <div class="field"><label>k values (comma list)</label><input type="text" class="wide" id="lz-ks" value="5, 10, 20, 40"></div>
+        <div class="check"><input type="checkbox" id="lz-reorth" checked><label for="lz-reorth">full re-orthogonalization</label></div>
+        <div class="field"><label>seed</label><input type="number" id="lz-seed" value="2"></div>
+        <button id="lz-run">Run</button>
+      </div>
+      <p class="note">One Lanczos run per k; nodes θⱼ with weights (S₁ⱼ)² give the density. Un-check re-orthogonalization at large k to see ghost eigenvalues.</p>
+      <div class="legend runsel" id="lz-runsel"></div>
+      <canvas id="lz-dens" width="1760" height="520" class="hidden"></canvas>
+      <div class="legend" id="lz-dens-legend"></div>
+      <canvas id="lz-scree" width="1760" height="460" class="hidden"></canvas>
+      <div class="legend" id="lz-scree-legend"></div>
+      <canvas id="lz-conv" width="1760" height="440" class="hidden"></canvas>
+      <div class="legend" id="lz-conv-legend"></div>
+      <div id="lz-table"></div>
+      <div class="status" id="lz-status"></div>
+    </div>
+
+    <div class="method hidden" id="m-block">
+      <div class="row">
+        <div class="field"><label>block sizes b (comma list)</label><input type="text" class="wide" id="bl-bs" value="1, 2, 4"></div>
+        <div class="field"><label>block iterations k</label><input type="number" id="bl-k" value="10" min="1" max="200"></div>
+        <div class="check"><input type="checkbox" id="bl-reorth" checked><label for="bl-reorth">full re-orthogonalization</label></div>
+        <div class="field"><label>seed</label><input type="number" id="bl-seed" value="3"></div>
+        <button id="bl-run">Run</button>
+      </div>
+      <p class="note">k block iterations of width b (k·b matvecs). On the clustered ensemble, b = 1 collapses a multiplicity-m cluster while b ≥ m resolves it.</p>
+      <div class="legend runsel" id="bl-runsel"></div>
+      <canvas id="bl-dens" width="1760" height="520" class="hidden"></canvas>
+      <div class="legend" id="bl-dens-legend"></div>
+      <canvas id="bl-scree" width="1760" height="460" class="hidden"></canvas>
+      <div class="legend" id="bl-scree-legend"></div>
+      <canvas id="bl-conv" width="1760" height="440" class="hidden"></canvas>
+      <div class="legend" id="bl-conv-legend"></div>
+      <div id="bl-table"></div>
+      <div class="status" id="bl-status"></div>
+    </div>
+
+    <!-- 5 · standard SLQ -->
+    <div class="method hidden" id="m-slq5">
+      <div class="row">
+        <div class="field"><label>probes s</label><input type="number" id="sq5-probes" value="12" min="1" max="200"></div>
+        <div class="field"><label>Lanczos steps k</label><input type="number" id="sq5-k" value="25" min="2" max="200"></div>
+        <div class="field"><label>probe distribution</label>
+          <select id="sq5-dist"><option value="rademacher">Rademacher ±1</option><option value="gaussian">Gaussian</option></select></div>
+        <div class="field"><label>smoothing σ (0 = auto)</label><input type="number" id="sq5-sigma" value="0" step="0.01" min="0"></div>
+        <div class="field"><label>seed</label><input type="number" id="sq5-seed" value="4"></div>
+        <button id="sq5-run">Run</button>
+      </div>
+      <p class="note">Per probe: k Lanczos steps, nodes θⱼ, weights (S₁ⱼ)². The L1 chart flattens once probe noise, not quadrature depth, becomes the bottleneck.</p>
+      <canvas id="sq5-chart" width="1760" height="520" class="hidden"></canvas>
+      <div class="legend" id="sq5-legend"></div>
+      <canvas id="sq5-scree" width="1760" height="460" class="hidden"></canvas>
+      <div class="legend" id="sq5-scree-legend"></div>
+      <canvas id="sq5-conv" width="1760" height="440" class="hidden"></canvas>
+      <div class="legend" id="sq5-conv-legend"></div>
+      <div id="sq5-table"></div>
+      <div class="status" id="sq5-status"></div>
+    </div>
+
+    <div class="method hidden" id="m-edge">
+      <div class="row">
+        <div class="field"><label>Lanczos cycles</label><input type="number" id="ed-cycles" value="2" min="1" max="10"></div>
+        <div class="field"><label>k per cycle</label><input type="number" id="ed-kedge" value="30" min="2" max="200"></div>
+        <div class="field"><label>eigenpairs kept / cycle</label><input type="number" id="ed-m" value="3" min="1" max="20"></div>
+        <div class="field"><label>which edge</label>
+          <select id="ed-which"><option value="both">both ends</option><option value="top">top only</option></select></div>
+      </div>
+      <div class="row" style="margin-top:0.5rem">
+        <div class="field"><label>SLQ probes</label><input type="number" id="ed-probes" value="10" min="1" max="200"></div>
+        <div class="field"><label>SLQ k</label><input type="number" id="ed-kslq" value="25" min="2" max="200"></div>
+        <div class="field"><label>probe distribution</label>
+          <select id="ed-dist"><option value="rademacher">Rademacher ±1</option><option value="gaussian">Gaussian</option></select></div>
+        <div class="field"><label>smoothing σ (0 = auto)</label><input type="number" id="ed-sigma" value="0" step="0.01" min="0"></div>
+        <div class="field"><label>seed</label><input type="number" id="ed-seed" value="5"></div>
+        <button id="ed-run">Run</button>
+      </div>
+      <p class="note">Harvested Ritz values enter at their exact positions (weight 1/p, smoothed with the same σ); deflated SLQ fills in the bulk. Plain SLQ is overlaid for comparison.</p>
+      <div class="legend runsel" id="ed-runsel"></div>
+      <canvas id="ed-chart" width="1760" height="520" class="hidden"></canvas>
+      <div class="legend" id="ed-legend"></div>
+      <canvas id="ed-scree" width="1760" height="460" class="hidden"></canvas>
+      <div class="legend" id="ed-scree-legend"></div>
+      <canvas id="ed-conv" width="1760" height="440" class="hidden"></canvas>
+      <div class="legend" id="ed-conv-legend"></div>
+      <div id="ed-table"></div>
+      <div class="status" id="ed-status"></div>
+    </div>
+
+    <!-- 7 · SLQ with orthogonalized probes -->
+    <div class="method hidden" id="m-slq7">
+      <div class="row">
+        <div class="field"><label>probes s</label><input type="number" id="sq7-probes" value="12" min="1" max="200"></div>
+        <div class="field"><label>Lanczos steps k</label><input type="number" id="sq7-k" value="25" min="2" max="200"></div>
+        <div class="field"><label>probe distribution</label>
+          <select id="sq7-dist"><option value="rademacher">Rademacher ±1</option><option value="gaussian">Gaussian</option></select></div>
+        <div class="field"><label>smoothing σ (0 = auto)</label><input type="number" id="sq7-sigma" value="0" step="0.01" min="0"></div>
+        <div class="field"><label>seed</label><input type="number" id="sq7-seed" value="14"></div>
+        <button id="sq7-run">Run</button>
+      </div>
+      <p class="note">Each probe is projected off the Krylov spaces of all earlier probes before its own run, at zero extra matvecs. Standard SLQ is overlaid as the baseline.</p>
+      <div class="legend runsel" id="sq7-runsel"></div>
+      <canvas id="sq7-chart" width="1760" height="520" class="hidden"></canvas>
+      <div class="legend" id="sq7-legend"></div>
+      <canvas id="sq7-scree" width="1760" height="460" class="hidden"></canvas>
+      <div class="legend" id="sq7-scree-legend"></div>
+      <canvas id="sq7-conv" width="1760" height="440" class="hidden"></canvas>
+      <div class="legend" id="sq7-conv-legend"></div>
+      <div id="sq7-table"></div>
+      <div class="status" id="sq7-status"></div>
+    </div>
+
+    <!-- 8 · block SLQ -->
+    <div class="method hidden" id="m-slq8">
+      <div class="row">
+        <div class="field"><label>probes s</label><input type="number" id="sq8-probes" value="12" min="1" max="200"></div>
+        <div class="field"><label>block steps k</label><input type="number" id="sq8-k" value="12" min="2" max="200"></div>
+        <div class="field"><label>block size b</label><input type="number" id="sq8-b" value="3" min="2" max="16"></div>
+        <div class="field"><label>probe distribution</label>
+          <select id="sq8-dist"><option value="rademacher">Rademacher ±1</option><option value="gaussian">Gaussian</option></select></div>
+        <div class="field"><label>smoothing σ (0 = auto)</label><input type="number" id="sq8-sigma" value="0" step="0.01" min="0"></div>
+        <div class="field"><label>seed</label><input type="number" id="sq8-seed" value="24"></div>
+        <button id="sq8-run">Run</button>
+      </div>
+      <p class="note">p×b block probes through k steps of block Lanczos; weights ‖S₁:b,ⱼ‖²/b. Standard SLQ with the same budget is overlaid.</p>
+      <div class="legend runsel" id="sq8-runsel"></div>
+      <canvas id="sq8-chart" width="1760" height="520" class="hidden"></canvas>
+      <div class="legend" id="sq8-legend"></div>
+      <canvas id="sq8-scree" width="1760" height="460" class="hidden"></canvas>
+      <div class="legend" id="sq8-scree-legend"></div>
+      <canvas id="sq8-conv" width="1760" height="440" class="hidden"></canvas>
+      <div class="legend" id="sq8-conv-legend"></div>
+      <div id="sq8-table"></div>
+      <div class="status" id="sq8-status"></div>
+    </div>
+
+    <!-- 9 · block SLQ + orthogonalized probes -->
+    <div class="method hidden" id="m-slq9">
+      <div class="row">
+        <div class="field"><label>probes s</label><input type="number" id="sq9-probes" value="12" min="1" max="200"></div>
+        <div class="field"><label>block steps k</label><input type="number" id="sq9-k" value="12" min="2" max="200"></div>
+        <div class="field"><label>block size b</label><input type="number" id="sq9-b" value="3" min="2" max="16"></div>
+        <div class="field"><label>probe distribution</label>
+          <select id="sq9-dist"><option value="rademacher">Rademacher ±1</option><option value="gaussian">Gaussian</option></select></div>
+        <div class="field"><label>smoothing σ (0 = auto)</label><input type="number" id="sq9-sigma" value="0" step="0.01" min="0"></div>
+        <div class="field"><label>seed</label><input type="number" id="sq9-seed" value="34"></div>
+        <button id="sq9-run">Run</button>
+      </div>
+      <p class="note">Tab 8's block probes, each first orthogonalized against all previous probes (the block analogue of tab 7); both baselines overlaid.</p>
+      <div class="legend runsel" id="sq9-runsel"></div>
+      <canvas id="sq9-chart" width="1760" height="520" class="hidden"></canvas>
+      <div class="legend" id="sq9-legend"></div>
+      <canvas id="sq9-scree" width="1760" height="460" class="hidden"></canvas>
+      <div class="legend" id="sq9-scree-legend"></div>
+      <canvas id="sq9-conv" width="1760" height="440" class="hidden"></canvas>
+      <div class="legend" id="sq9-conv-legend"></div>
+      <div id="sq9-table"></div>
+      <div class="status" id="sq9-status"></div>
+    </div>
+
+    <div class="method hidden" id="m-kpm">
+      <div class="row">
+        <div class="field"><label>degree K</label><input type="number" id="kp-K" value="80" min="4" max="1000"></div>
+        <div class="field"><label>probes s</label><input type="number" id="kp-probes" value="12" min="1" max="200"></div>
+        <div class="field"><label>probe distribution</label>
+          <select id="kp-dist"><option value="rademacher">Rademacher ±1</option><option value="gaussian">Gaussian</option></select></div>
+        <div class="field"><label>seed</label><input type="number" id="kp-seed" value="6"></div>
+        <button id="kp-run">Run</button>
+      </div>
+      <p class="note">Chebyshev moments via Hutchinson, one K-step recurrence per probe; the range is auto-set by a short Lanczos run. Resolution ≈ (λ<sub>max</sub>−λ<sub>min</sub>)/K, so raise K for sharper features.</p>
+      <canvas id="kp-chart" width="1760" height="520" class="hidden"></canvas>
+      <div class="legend" id="kp-legend"></div>
+      <canvas id="kp-scree" width="1760" height="460" class="hidden"></canvas>
+      <div class="legend" id="kp-scree-legend"></div>
+      <canvas id="kp-conv" width="1760" height="440" class="hidden"></canvas>
+      <div class="legend" id="kp-conv-legend"></div>
+      <div id="kp-table"></div>
+      <div class="status" id="kp-status"></div>
+    </div>
+  </div>
+
+  <!-- ═══ training-time spectra (live GPU) ═══ -->
+  <div class="card" id="ts-card">
+    <h3>3 &middot; Training-time spectra (live, on GPU)</h3>
+    <p class="note" style="margin: -0.2rem 0 0.6rem">Trains an MLP live on the GPU server and streams every
+      step's loss; each checkpoint adds the exact spectra of \(H\), \(G = JJ^\top/n\) and \(F = H - G\), with
+      SLQ and block-SLQ error statistics. Datasets: teacher MLP, sparse parity, chebyshev, and CIFAR-10 (10 classes,
+      images pooled to size × size; with \(C\) classes \(J\) stacks all \(n \cdot C\) per-sample-per-class
+      gradients). SLQ (probes × k) and block SLQ (b, s, k) have independent budgets, and spectra are computed every
+      N steps (default every step — fine for small p; at \(p \approx 10{,}000\) one checkpoint costs tens of
+      seconds, so raise N or lower the step count there). The <strong>show</strong> strip controls every chart;
+      without a server, load a saved capture.</p>
+    <div class="rowcap">data</div>
+    <div class="row">
+      <div class="field"><label>dataset</label>
+        <select id="ts-data"><option value="teacher">teacher MLP</option><option value="parity">sparse parity</option><option value="chebyshev">chebyshev</option><option value="cifar10">CIFAR-10 (10 classes)</option></select></div>
+      <div class="field hidden" id="ts-f-parityk"><label>parity k</label><input type="number" id="ts-parityk" value="3" min="1" max="64"></div>
+      <div class="field hidden" id="ts-f-chebydeg"><label>cheby degree</label><input type="number" id="ts-chebydeg" value="4" min="1" max="32"></div>
+      <div class="field hidden" id="ts-f-cifarsz"><label>cifar size</label><input type="number" id="ts-cifarsz" value="8" min="4" max="32"></div>
+      <div class="field"><label>n (samples)</label><input type="number" id="ts-n" value="256" min="2" max="4096"></div>
+      <div class="field" id="ts-f-din"><label>d_in</label><input type="number" id="ts-din" value="16" min="1" max="512"></div>
+    </div>
+    <div class="rowcap">model</div>
+    <div class="row">
+      <div class="field"><label>depth (hidden layers)</label><input type="number" id="ts-depth" value="3" min="1" max="8"></div>
+      <div class="field"><label>width</label><input type="number" id="ts-width" value="66" min="1" max="256"></div>
+      <div class="field"><label>activation</label>
+        <select id="ts-act"><option>tanh</option><option>relu</option><option>gelu</option><option>elu</option><option>linear</option></select></div>
+    </div>
+    <div class="rowcap">training</div>
+    <div class="row">
+      <div class="field"><label>optimizer</label>
+        <select id="ts-opt"><option value="gd">gradient descent</option><option value="signgd">signed GD</option><option value="gn">gauss-newton</option><option value="spectral">spectral GD</option></select></div>
+      <div class="field"><label>learning rate</label><input type="number" id="ts-lr" value="0.05" step="0.005"></div>
+      <div class="field hidden" id="ts-f-damp"><label>GN damping</label><input type="number" id="ts-damp" value="0.001" step="0.001"></div>
+      <div class="field"><label>batch (0 = full)</label><input type="number" id="ts-batch" value="0" min="0" max="4096"></div>
+      <div class="field"><label>steps</label><input type="number" id="ts-steps" value="1500" min="1" max="20000"></div>
+      <div class="field"><label>seed</label><input type="number" id="ts-seed" value="0" min="0"></div>
+    </div>
+    <div class="rowcap">capture</div>
+    <div class="row">
+      <div class="field"><label>spectra every N steps</label><input type="number" id="ts-ckevery" value="1" min="1" max="20000"></div>
+      <div class="field"><label>x-axis (training charts)</label>
+        <select id="ts-xaxis" disabled><option value="steps">training steps</option><option value="wall">wall-clock time</option></select></div>
+    </div>
+    <div class="rowcap">estimators</div>
+    <div class="row">
+      <div class="field"><label>SLQ probes</label><input type="number" id="ts-slqp" value="12" min="1" max="64"></div>
+      <div class="field"><label>SLQ k</label><input type="number" id="ts-slqk" value="60" min="4" max="200"></div>
+      <div class="field"><label>block SLQ b</label><input type="number" id="ts-bslqb" value="4" min="1" max="16"></div>
+      <div class="field"><label>block SLQ blocks s</label><input type="number" id="ts-bslqs" value="3" min="1" max="16"></div>
+      <div class="field"><label>block SLQ k</label><input type="number" id="ts-bslqk" value="30" min="2" max="100"></div>
+    </div>
+    <div class="row" style="margin-top: 0.7rem">
+      <button id="ts-run" disabled>Run on GPU</button>
+      <button id="ts-stopbtn" disabled>Stop</button>
+      <label style="font-size: 0.85rem; color: var(--text-secondary)">load a saved capture:
+        <input type="file" id="ts-file" accept=".json"></label>
+    </div>
+    <div class="status" id="ts-server">checking for a GPU server&hellip;</div>
+    <div class="status" id="ts-status"></div>
+    <div class="kv" id="ts-cfg"></div>
+    <div style="margin-top: 0.5rem">
+      <input type="range" id="ts-slider" min="0" max="0" value="0" step="1">
+      <div class="row" style="justify-content: space-between">
+        <span class="status">iteration: <b id="ts-steplabel">&ndash;</b>
+          <label style="margin-left: 1em; cursor: pointer"><input type="checkbox" id="ts-follow" checked> follow live</label></span>
+        <span class="status" id="ts-cklabel"></span>
+      </div>
+    </div>
+    <div class="legend" id="ts-qsel"></div>
+    <div class="row3 rowhead">
+      <span style="color:#2a78d6">full Hessian H</span>
+      <span style="color:#008300">Gauss-Newton JJᵀ/n</span>
+      <span style="color:#e87ba4">functional Hessian F = Q·r</span>
+    </div>
+    <div class="row3">
+      <div><canvas id="ts-dens-H" width="620" height="470" class="hidden"></canvas><div class="legend" id="ts-dens-H-legend"></div></div>
+      <div><canvas id="ts-dens-GN" width="620" height="470" class="hidden"></canvas><div class="legend" id="ts-dens-GN-legend"></div></div>
+      <div><canvas id="ts-dens-F" width="620" height="470" class="hidden"></canvas><div class="legend" id="ts-dens-F-legend"></div></div>
+    </div>
+    <div class="row3">
+      <div><canvas id="ts-scree-H" width="620" height="450" class="hidden"></canvas><div class="legend" id="ts-scree-H-legend"></div></div>
+      <div><canvas id="ts-scree-GN" width="620" height="450" class="hidden"></canvas><div class="legend" id="ts-scree-GN-legend"></div></div>
+      <div><canvas id="ts-scree-F" width="620" height="450" class="hidden"></canvas><div class="legend" id="ts-scree-F-legend"></div></div>
+    </div>
+    <div id="ts-stats"></div>
+    <canvas id="ts-loss" width="1760" height="420" class="hidden"></canvas>
+    <div class="legend" id="ts-loss-legend"></div>
+    <div class="row3 rowhead">
+      <span style="color:#2a78d6">full Hessian H</span>
+      <span style="color:#008300">Gauss-Newton JJᵀ/n</span>
+      <span style="color:#e87ba4">functional Hessian F = Q·r</span>
+    </div>
+    <div class="row3">
+      <div><canvas id="ts-sharp-H" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-sharp-H-legend"></div></div>
+      <div><canvas id="ts-sharp-GN" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-sharp-GN-legend"></div></div>
+      <div><canvas id="ts-sharp-F" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-sharp-F-legend"></div></div>
+    </div>
+    <div class="row3">
+      <div><canvas id="ts-errs-H" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-errs-H-legend"></div></div>
+      <div><canvas id="ts-errs-GN" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-errs-GN-legend"></div></div>
+      <div><canvas id="ts-errs-F" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-errs-F-legend"></div></div>
+    </div>
+    <p class="note">One column per quantity (H, \(JJ^\top/n\), \(F = Q \cdot r\)); density and index panels share axes across columns, λ_max and error panels autoscale. Thin dashed = block SLQ, gray dash = \(2/\eta\) (H panel), red marker = slider. Axes stay fixed while scrubbing.</p>
+  </div>
+  <div id="sl-tooltip"></div>
+  <div id="ts-tooltip"></div>
+</div>
+
+<footer>
+Written from my handwritten notes on Lanczos and stochastic Lanczos quadrature.
+The widget runs entirely in your browser; its numerics live in <code>spectral-numerics.js</code> alongside this page.
+</footer>
+
+</main>
+
+<script src="spectral-numerics.js"></script>
+<script>
+'use strict';
+/* ═══ Spectral Estimation Widget (scoped to #speclab) ═══ */
+(function () {
+const $ = id => document.getElementById(id);
+const S = window.SpecLab;
+const state = { source: null, redraws: new Map(), runsels: new Map() };
+const speclabEl = $('speclab');
+
+/* charts are drawn paper-style on a plain white background in both page themes */
+const CHART_FIXED = {
+  '--surface-1': '#ffffff',
+  '--grid': '#e7e6e1', '--baseline': '#b9b8ae',
+  '--muted': '#6b6a66', '--text-secondary': '#3f3e3b',
+  '--truth': '#52514e', '--accent': '#7a1f1f',
+  '--series-1': '#2a78d6', '--series-2': '#008300', '--series-3': '#e87ba4', '--series-4': '#eda100',
+};
+function cssVar(name) { return CHART_FIXED[name] || getComputedStyle(speclabEl).getPropertyValue(name).trim(); }
+function seriesColor(i) { return cssVar('--series-' + ((i % 4) + 1)); }
+function fmt(x, d) {
+  if (!isFinite(x)) return '—';
+  if (x === 0) return '0';
+  const a = Math.abs(x);
+  if (a >= 1e5 || a < 1e-4) return x.toExponential(d === undefined ? 2 : d);
+  return x.toFixed(d === undefined ? (a < 1 ? 4 : 3) : d);
+}
+function parseList(str, lo, hi) {
+  return str.split(',').map(s => parseInt(s.trim(), 10))
+    .filter(v => isFinite(v) && v >= lo && v <= hi)
+    .filter((v, i, arr) => arr.indexOf(v) === i);
+}
+const mq = matchMedia('(prefers-color-scheme: dark)');
+if (mq.addEventListener) mq.addEventListener('change', () => state.redraws.forEach(fn => fn()));
+
+/* ── tiny canvas chart lib ── */
+const DPR = 2;
+function plotArea(canvas, pad) {
+  pad = pad || { l: 64, r: 18, t: 16, b: 40 };
+  return { x0: pad.l * DPR, y0: pad.t * DPR,
+           x1: canvas.width - pad.r * DPR, y1: canvas.height - pad.b * DPR };
+}
+function niceTicks(lo, hi, n) {
+  if (!(hi > lo)) { hi = lo + 1; }
+  const span = hi - lo, step0 = span / (n || 6);
+  const mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => span / s <= (n || 6) + 1) || mag * 10;
+  const t = [];
+  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-12 * span; v += step) t.push(v);
+  return t;
+}
+function drawFrame(ctx, pa, xdom, ydom, opts) {
+  opts = opts || {};
+  const { x0, y0, x1, y1 } = pa;
+  const X = v => x0 + (v - xdom[0]) / (xdom[1] - xdom[0]) * (x1 - x0);
+  const Y = v => opts.ylog
+    ? y1 - (Math.log10(v) - Math.log10(ydom[0])) / (Math.log10(ydom[1]) - Math.log10(ydom[0])) * (y1 - y0)
+    : y1 - (v - ydom[0]) / (ydom[1] - ydom[0]) * (y1 - y0);
+  const Xi = px => xdom[0] + (px - x0) / (x1 - x0) * (xdom[1] - xdom[0]);
+  const Yi = opts.ylog
+    ? py => Math.pow(10, Math.log10(ydom[0]) + (y1 - py) / (y1 - y0) * (Math.log10(ydom[1]) - Math.log10(ydom[0])))
+    : py => ydom[0] + (y1 - py) / (y1 - y0) * (ydom[1] - ydom[0]);
+  ctx.font = (11 * DPR) + 'px system-ui, sans-serif';
+  ctx.fillStyle = cssVar('--muted');
+  ctx.strokeStyle = cssVar('--grid');
+  ctx.lineWidth = 1 * DPR;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (const t of niceTicks(xdom[0], xdom[1], 8)) {
+    const px = X(t);
+    if (px < x0 - 1 || px > x1 + 1) continue;
+    ctx.beginPath(); ctx.moveTo(px, y0); ctx.lineTo(px, y1); ctx.stroke();
+    ctx.fillText(fmt(t, Math.abs(t) < 10 && Math.abs(t) > 0 ? 2 : 1), px, y1 + 6 * DPR);
+  }
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  const yt = opts.ylog
+    ? (() => { const t = []; for (let e = Math.ceil(Math.log10(ydom[0])); e <= Math.floor(Math.log10(ydom[1])); e++) t.push(Math.pow(10, e)); return t; })()
+    : niceTicks(ydom[0], ydom[1], 5);
+  for (const t of yt) {
+    const py = Y(t);
+    if (py < y0 - 1 || py > y1 + 1) continue;
+    ctx.beginPath(); ctx.moveTo(x0, py); ctx.lineTo(x1, py); ctx.stroke();
+    ctx.fillText(opts.ylog ? '1e' + Math.round(Math.log10(t)) : fmt(t, 2), x0 - 6 * DPR, py);
+  }
+  ctx.fillStyle = cssVar('--text-secondary');
+  if (opts.xlabel) { ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.fillText(opts.xlabel, (x0 + x1) / 2, pa.y1 + 38 * DPR); }
+  if (opts.ylabel) {
+    ctx.save(); ctx.translate(14 * DPR, (y0 + y1) / 2); ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(opts.ylabel, 0, 0); ctx.restore();
+  }
+  ctx.strokeStyle = cssVar('--baseline');
+  ctx.beginPath(); ctx.moveTo(x0, y1); ctx.lineTo(x1, y1); ctx.stroke();
+  return { X, Y, Xi, Yi };
+}
+function drawLine(ctx, XY, xs, ys, color, width, dash) {
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = (width || 2) * DPR;
+  if (dash) ctx.setLineDash(dash.map(d => d * DPR));
+  ctx.beginPath();
+  let started = false;
+  for (let i = 0; i < xs.length; i++) {
+    if (!isFinite(ys[i])) { started = false; continue; }
+    const px = XY.X(xs[i]), py = XY.Y(ys[i]);
+    if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+  }
+  ctx.stroke(); ctx.restore();
+}
+function drawRug(ctx, XY, xs, y1px, color, h) {
+  ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 1.4 * DPR; ctx.globalAlpha = 0.85;
+  for (const x of xs) {
+    const px = XY.X(x);
+    ctx.beginPath(); ctx.moveTo(px, y1px); ctx.lineTo(px, y1px - (h || 9) * DPR); ctx.stroke();
+  }
+  ctx.restore();
+}
+function clearCanvas(canvas) {
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = cssVar('--surface-1');
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  return ctx;
+}
+
+/* clickable legend: click an entry to hide or show its series;
+   a "reset zoom" button appears whenever the chart is zoomed */
+function legend(el, entries, ui, redraw) {
+  el.innerHTML = (ui && redraw && entries.length ? '<span class="lg-cap">show:</span>' : '') +
+    entries.map(e => {
+    const off = ui && ui.hidden.has(e.label);
+    return `<span class="lg${off ? ' off' : ''}" data-label="${String(e.label).replace(/"/g, '&quot;')}">` +
+      (ui && redraw ? `<input type="checkbox"${off ? '' : ' checked'}>` : '') +
+      `<span class="chip" style="background:${e.color}"></span>${e.label}</span>`;
+  }).join('') +
+    (ui && ui.view && redraw ? '<span class="lg reset">&#8634; reset zoom</span>' : '');
+  if (!ui || !redraw) return;
+  el.querySelectorAll('.lg').forEach(sp => {
+    if (sp.classList.contains('reset')) {
+      sp.onclick = () => { ui.view = null; redraw(); };
+      return;
+    }
+    const inp = sp.querySelector('input');
+    const toggle = () => {
+      const l = sp.getAttribute('data-label');
+      if (ui.hidden.has(l)) ui.hidden.delete(l); else ui.hidden.add(l);
+      redraw();
+    };
+    // one handler drives the state: cancel the native checkbox toggle and
+    // re-render from ui.hidden, so text clicks and box clicks behave the same
+    sp.onclick = (ev) => { ev.preventDefault(); toggle(); };
+    if (inp) inp.onchange = toggle;   // keyboard toggling (no click event)
+  });
+}
+
+const tooltip = $('sl-tooltip');
+/* shared interactions: hover tooltip, drag box-zoom, double-click reset.
+   A mostly-horizontal drag zooms x only; a proper box zooms both axes. */
+function wireChart(canvas, ui, draw, lookup) {
+  let drag = null;
+  const toPx = (ev) => {
+    const r = canvas.getBoundingClientRect();
+    if (!r.width || !r.height) return null;
+    return { x: (ev.clientX - r.left) / r.width * canvas.width,
+             y: (ev.clientY - r.top) / r.height * canvas.height };
+  };
+  canvas.style.cursor = 'crosshair';
+  canvas.onmousedown = (ev) => {
+    const p = toPx(ev);
+    if (p) { drag = { ax: p.x, ay: p.y, bx: p.x, by: p.y }; ev.preventDefault(); }
+  };
+  canvas.onmousemove = (ev) => {
+    const p = toPx(ev);
+    if (!p) return;
+    if (drag) {
+      drag.bx = p.x; drag.by = p.y;
+      draw();
+      const ctx = canvas.getContext('2d');
+      const x = Math.min(drag.ax, drag.bx), y = Math.min(drag.ay, drag.by);
+      const w = Math.abs(drag.bx - drag.ax), h = Math.abs(drag.by - drag.ay);
+      ctx.save();
+      ctx.fillStyle = cssVar('--series-1'); ctx.globalAlpha = 0.12;
+      ctx.fillRect(x, y, w, h);
+      ctx.globalAlpha = 0.8; ctx.strokeStyle = cssVar('--series-1'); ctx.lineWidth = 1 * DPR;
+      ctx.strokeRect(x, y, w, h);
+      ctx.restore();
+      tooltip.style.display = 'none';
+      return;
+    }
+    const html = lookup ? lookup(p.x, p.y) : null;
+    if (!html) { tooltip.style.display = 'none'; return; }
+    tooltip.innerHTML = html;
+    tooltip.style.display = 'block';
+    tooltip.style.left = Math.min(ev.clientX + 14, innerWidth - 310) + 'px';
+    tooltip.style.top = (ev.clientY + 14) + 'px';
+  };
+  const finish = () => {
+    if (!drag) return;
+    const d = drag; drag = null;
+    const dx = Math.abs(d.bx - d.ax), dy = Math.abs(d.by - d.ay);
+    if (canvas._XY && (dx > 12 * DPR || dy > 12 * DPR)) {
+      const XY = canvas._XY;
+      const view = ui.view ? { x: ui.view.x, y: ui.view.y } : {};
+      if (dx > 12 * DPR) view.x = [XY.Xi(Math.min(d.ax, d.bx)), XY.Xi(Math.max(d.ax, d.bx))];
+      if (dy > 12 * DPR) view.y = [XY.Yi(Math.max(d.ay, d.by)), XY.Yi(Math.min(d.ay, d.by))];
+      ui.view = view;
+    }
+    draw();
+  };
+  canvas.onmouseup = finish;
+  canvas.onmouseleave = () => { tooltip.style.display = 'none'; if (drag) finish(); };
+  canvas.ondblclick = () => { ui.view = null; draw(); };
+}
+
+/* per-panel "runs:" checkbox strip: one tick per run, controlling that run
+   across all of the tab's charts (kept in sync with the chart legends) */
+function runSelector(prefix, labels, hiddenSet, ids) {
+  const el = $(prefix + '-runsel');
+  if (!el) return;
+  function render() {
+    el.innerHTML = '<span class="lg-cap">runs:</span>' + labels.map(l =>
+      `<span class="lg${hiddenSet.has(l) ? ' off' : ''}" data-label="${String(l).replace(/"/g, '&quot;')}">` +
+      `<input type="checkbox"${hiddenSet.has(l) ? '' : ' checked'}>${l}</span>`).join('');
+    el.querySelectorAll('.lg').forEach(sp => {
+      const inp = sp.querySelector('input');
+      const toggle = () => {
+        const l = sp.getAttribute('data-label');
+        if (hiddenSet.has(l)) hiddenSet.delete(l); else hiddenSet.add(l);
+        for (const id of ids) { const d = state.redraws.get(id); if (d) d(); }
+        render();
+      };
+      sp.onclick = (ev) => { ev.preventDefault(); toggle(); };
+      if (inp) inp.onchange = toggle;
+    });
+  }
+  state.runsels.set(prefix, render);
+  render();
+}
+
+/* density overlay chart: truth + estimates + optional rug/spikes */
+function densityChart(canvas, legendEl, grid, curves, opts) {
+  opts = opts || {};
+  const ui = { hidden: (opts.sharedHidden || new Set()), view: null };
+  const rugLabel = opts.rug ? eigLabel() + ' (rug)' : null;
+  function draw() {
+    const ctx = clearCanvas(canvas);
+    const pa = plotArea(canvas);
+    const vis = curves.filter(c => !ui.hidden.has(c.label));
+    let ymax = 0;
+    for (const c of vis) for (const v of c.ys) if (isFinite(v)) ymax = Math.max(ymax, v);
+    const xdom = ui.view && ui.view.x ? ui.view.x : [grid[0], grid[grid.length - 1]];
+    const ydom = ui.view && ui.view.y ? [Math.max(0, ui.view.y[0]), ui.view.y[1]] : [0, ymax * 1.08 || 1];
+    const XY = drawFrame(ctx, pa, xdom, ydom, { xlabel: 'eigenvalue', ylabel: 'density' });
+    ctx.save();
+    ctx.beginPath(); ctx.rect(pa.x0, pa.y0, pa.x1 - pa.x0, pa.y1 - pa.y0); ctx.clip();
+    if (opts.rug && !ui.hidden.has(rugLabel)) drawRug(ctx, XY, opts.rug, pa.y1, cssVar('--truth'));
+    for (const c of vis) drawLine(ctx, XY, grid, c.ys, c.color(), c.width || 2, c.dash);
+    if (opts.spikes && !ui.hidden.has(opts.spikes.label)) {
+      ctx.save(); ctx.strokeStyle = opts.spikes.color(); ctx.lineWidth = 2 * DPR;
+      for (const x of opts.spikes.xs) {
+        const px = XY.X(x);
+        ctx.beginPath(); ctx.moveTo(px, pa.y1); ctx.lineTo(px, pa.y0 + 12 * DPR); ctx.stroke();
+      }
+      ctx.restore();
+    }
+    ctx.restore();
+    canvas._XY = XY; canvas._pa = pa; canvas._xdom = xdom;
+    legend(legendEl, curves.map(c => ({ color: c.color(), label: c.label }))
+      .concat(opts.rug ? [{ color: cssVar('--truth'), label: rugLabel }] : [])
+      .concat(opts.spikes ? [{ color: opts.spikes.color(), label: opts.spikes.label }] : []), ui, syncDraw);
+  }
+  const syncDraw = (opts && opts.sync)
+    ? () => {
+        for (const id of opts.sync.ids) { const d = state.redraws.get(id); if (d) d(); }
+        const rs = state.runsels.get(opts.sync.runselId); if (rs) rs();
+      }
+    : draw;
+  draw();
+  canvas.classList.remove('hidden');
+  state.redraws.set(canvas.id, draw);
+  wireChart(canvas, ui, draw, (cx) => {
+    if (!canvas._XY) return null;
+    const t = canvas._XY.Xi(cx);
+    if (t < grid[0] || t > grid[grid.length - 1]) return null;
+    let gi = 0, best = Infinity;
+    for (let i = 0; i < grid.length; i++) { const d = Math.abs(grid[i] - t); if (d < best) { best = d; gi = i; } }
+    return `λ = ${fmt(grid[gi])}<br>` + curves.filter(c => !ui.hidden.has(c.label)).map(c =>
+      `<span style="color:${c.color()}">●</span> ${c.label}: ${fmt(c.ys[gi])}`).join('<br>');
+  });
+  return draw;
+}
+
+/* log-y line chart (convergence curves) */
+function convChart(canvas, legendEl, series, opts) {
+  opts = opts || {};
+  const ui = { hidden: (opts.sharedHidden || new Set()), view: null };
+  function draw() {
+    const ctx = clearCanvas(canvas);
+    const pa = plotArea(canvas, { l: 70, r: 18, t: 16, b: 44 });
+    const vis = series.filter(s => !ui.hidden.has(s.label));
+    let xmax = 1, ymin = Infinity, ymax = 0, anyPositive = false;
+    for (const s of vis) for (let i = 0; i < s.ys.length; i++) {
+      if (isFinite(s.xs[i])) xmax = Math.max(xmax, s.xs[i]);
+      if (!isFinite(s.ys[i]) || s.ys[i] <= 0) continue;
+      anyPositive = true;
+      ymin = Math.min(ymin, s.ys[i]); ymax = Math.max(ymax, s.ys[i]);
+    }
+    if (!anyPositive) { ymin = 1e-16; ymax = 1; }
+    ymin = Math.max(ymin / 2, 1e-17); ymax = ymax * 2;
+    const x0v = opts.x0 !== undefined ? opts.x0 : 1;
+    if (xmax <= x0v) xmax = x0v + 1;
+    const xdom = ui.view && ui.view.x ? ui.view.x : [x0v, xmax];
+    const ydom = ui.view && ui.view.y ? [Math.max(1e-17, ui.view.y[0]), Math.max(1e-16, ui.view.y[1])] : [ymin, ymax];
+    const XY = drawFrame(ctx, pa, xdom, ydom,
+      { ylog: true, xlabel: opts.xlabel || 'iteration', ylabel: opts.ylabel || 'error' });
+    if (!anyPositive) {
+      ctx.fillStyle = cssVar('--text-secondary');
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('all errors are exactly 0 (recovery to machine precision)',
+        (pa.x0 + pa.x1) / 2, (pa.y0 + pa.y1) / 2);
+    }
+    ctx.save();
+    ctx.beginPath(); ctx.rect(pa.x0, pa.y0, pa.x1 - pa.x0, pa.y1 - pa.y0); ctx.clip();
+    for (const s of vis) {
+      const xs = [], ys = [];
+      for (let i = 0; i < s.ys.length; i++) if (isFinite(s.ys[i]) && s.ys[i] > 0) { xs.push(s.xs[i]); ys.push(s.ys[i]); }
+      drawLine(ctx, XY, xs, ys, s.color(), 2, s.dash);
+    }
+    ctx.restore();
+    canvas._XY = XY; canvas._pa = pa; canvas._xdom = xdom;
+    legend(legendEl, series.map(s => ({ color: s.color(), label: s.label })), ui, syncDraw);
+  }
+  const syncDraw = (opts && opts.sync)
+    ? () => {
+        for (const id of opts.sync.ids) { const d = state.redraws.get(id); if (d) d(); }
+        const rs = state.runsels.get(opts.sync.runselId); if (rs) rs();
+      }
+    : draw;
+  draw();
+  canvas.classList.remove('hidden');
+  state.redraws.set(canvas.id, draw);
+  wireChart(canvas, ui, draw, (cx) => {
+    if (!canvas._XY) return null;
+    const xi = Math.round(canvas._XY.Xi(cx));
+    return `${opts.xlabel || 'iteration'} ${xi}<br>` + series.filter(s => !ui.hidden.has(s.label)).map(s => {
+      let v = NaN;
+      for (let i = 0; i < s.xs.length; i++) if (s.xs[i] === xi) v = s.ys[i];
+      return `<span style="color:${s.color()}">●</span> ${s.label}: ${fmt(v)}`;
+    }).join('<br>');
+  });
+  return draw;
+}
+
+/* eigenvalue-vs-index chart: y = eigenvalue, x = index, largest → smallest */
+function screeChart(canvas, legendEl, series, opts) {
+  opts = opts || {};
+  const ui = { hidden: (opts.sharedHidden || new Set()), view: null };
+  function draw() {
+    const ctx = clearCanvas(canvas);
+    const pa = plotArea(canvas, { l: 70, r: 18, t: 16, b: 44 });
+    const vis = series.filter(s => !ui.hidden.has(s.label));
+    let ymin = Infinity, ymax = -Infinity, pmax = 2;
+    for (const s of vis) {
+      pmax = Math.max(pmax, s.xs ? Math.max(...s.xs) : s.values.length);
+      for (const v of s.values) if (isFinite(v)) { ymin = Math.min(ymin, v); ymax = Math.max(ymax, v); }
+    }
+    if (!isFinite(ymin)) { ymin = 0; ymax = 1; }
+    const padY = 0.05 * (ymax - ymin) + 1e-9;
+    const xdom = ui.view && ui.view.x ? ui.view.x : [1, pmax];
+    const ydom = ui.view && ui.view.y ? ui.view.y : [ymin - padY, ymax + padY];
+    const XY = drawFrame(ctx, pa, xdom, ydom,
+      { xlabel: 'eigenvalue index (largest → smallest)', ylabel: 'eigenvalue' });
+    ctx.save();
+    ctx.beginPath(); ctx.rect(pa.x0, pa.y0, pa.x1 - pa.x0, pa.y1 - pa.y0); ctx.clip();
+    for (const s of vis) {
+      if (s.markers) {
+        ctx.fillStyle = s.color();
+        for (let i = 0; i < s.values.length; i++) {
+          const px = XY.X(s.xs ? s.xs[i] : i + 1), py = XY.Y(s.values[i]);
+          ctx.beginPath(); ctx.arc(px, py, 4.5 * DPR, 0, 2 * Math.PI); ctx.fill();
+          ctx.strokeStyle = cssVar('--surface-1'); ctx.lineWidth = 1.5 * DPR; ctx.stroke();
+        }
+      } else {
+        const xs = [];
+        for (let i = 0; i < s.values.length; i++) xs.push(i + 1);
+        drawLine(ctx, XY, xs, s.values, s.color(), s.width || 2, s.dash);
+      }
+    }
+    ctx.restore();
+    canvas._XY = XY; canvas._pa = pa; canvas._pmax = pmax; canvas._xdom = xdom;
+    legend(legendEl, series.map(s => ({ color: s.color(), label: s.label })), ui, syncDraw);
+  }
+  const syncDraw = (opts && opts.sync)
+    ? () => {
+        for (const id of opts.sync.ids) { const d = state.redraws.get(id); if (d) d(); }
+        const rs = state.runsels.get(opts.sync.runselId); if (rs) rs();
+      }
+    : draw;
+  draw();
+  canvas.classList.remove('hidden');
+  state.redraws.set(canvas.id, draw);
+  wireChart(canvas, ui, draw, (cx) => {
+    if (!canvas._XY) return null;
+    const idx = Math.round(canvas._XY.Xi(cx));
+    if (idx < 1 || idx > canvas._pmax) return null;
+    return `index ${idx}<br>` + series.filter(s => !ui.hidden.has(s.label)).map(s => {
+      let v;
+      if (s.xs) { const i = s.xs.indexOf(idx); v = i >= 0 ? s.values[i] : NaN; }
+      else v = s.values[idx - 1];
+      return `<span style="color:${s.color()}">●</span> ${s.label}: ${fmt(v)}`;
+    }).join('<br>');
+  });
+  return draw;
+}
+
+function metricsTable(el, headers, rows) {
+  el.innerHTML = '<table class="metrics"><tr>' +
+    headers.map(h => `<th>${h}</th>`).join('') + '</tr>' +
+    rows.map(r => '<tr>' + r.map(c => `<td>${c}</td>`).join('') + '</tr>').join('') +
+    '</table>';
+}
+function runAsync(btn, statusEl, fn) {
+  btn.disabled = true;
+  statusEl.textContent = 'computing…';
+  statusEl.classList.remove('err');
+  setTimeout(() => {
+    const t0 = performance.now();
+    MV.n = 0;
+    try {
+      const extra = fn() || '';
+      statusEl.textContent = `done in ${((performance.now() - t0) / 1000).toFixed(2)}s · matvecs: ${MV.n}. ${extra}`;
+      const panel = btn.closest('.method');
+      if (panel) panel.dataset.ran = '1';
+    } catch (e) {
+      statusEl.textContent = 'error: ' + e.message;
+      statusEl.classList.add('err');
+      console.error(e);
+    }
+    btn.disabled = false;
+  }, 30);
+}
+
+/* ── source building ── */
+document.querySelectorAll('#srcTabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#srcTabs button').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  $('srcRandom').classList.toggle('hidden', b.dataset.src !== 'random');
+  $('srcHessian').classList.toggle('hidden', b.dataset.src !== 'hessian');
+});
+$('rens').onchange = () => {
+  const v = $('rens').value;
+  document.querySelectorAll('#speclab .ens').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('#speclab .ens-' + v).forEach(el => el.classList.remove('hidden'));
+};
+function updatePPreview() {
+  const dIn = +$('hdin').value, h = +$('hhid').value, dOut = +$('hdout').value;
+  $('pPreview').textContent = h * dIn + h + dOut * h + dOut;
+}
+['hdin', 'hhid', 'hdout'].forEach(id => $(id).oninput = updatePPreview);
+updatePPreview();
+
+function requireSource() {
+  if (!state.source) throw new Error('build a matrix first (panel 1)');
+  return state.source;
+}
+function autoSigma() {
+  // relative degeneracy floor: a spectrum whose spread is below float
+  // precision (e.g. c·I) must not produce a sub-ULP smoothing width
+  const t = state.source.truth;
+  const span = t[t.length - 1] - t[0];
+  const scale = Math.max(Math.abs(t[0]), Math.abs(t[t.length - 1]), 1);
+  return span > 1e-8 * scale ? span / 60 : 0.05 * scale;
+}
+/* integer control reader: rounds, clamps, and survives empty/garbage input */
+function iv(id, lo, hi) {
+  const n = Math.round(+$(id).value);
+  return isFinite(n) ? Math.min(hi, Math.max(lo, n)) : lo;
+}
+/* labels adapt when the reference is an SLQ approximation, not an exact eig */
+function truthLabel() { return state.source && state.source.approxTruth ? 'SLQ reference' : 'ground truth'; }
+function eigLabel() { return state.source && state.source.approxTruth ? 'reference eigenvalues (SLQ)' : 'exact eigenvalues'; }
+/* thin the truth rug at large p so it stays readable */
+function rugTicks(t) {
+  const arr = Array.from(t);
+  if (arr.length <= 600) return arr;
+  const step = Math.ceil(arr.length / 400), out = [];
+  for (let i = 0; i < arr.length; i += step) out.push(arr[i]);
+  return out;
+}
+/* SLQ reference spectrum for sizes where the exact eigendecomposition is infeasible */
+const EXACT_MAX = 6000;
+const MV = { n: 0 };   // matvecs spent by the current run (ops are wrapped in setSource)
+function refSpectrum(opFactory, p, seed) {
+  const op = opFactory();
+  const kRef = Math.min(60, p), sRef = 12;
+  const ref = S.slq(op, { probes: sRef, k: kRef, dist: 'rademacher', seed: seed + 777, reorth: true });
+  let lo = Infinity, hi = -Infinity;
+  for (const pr of ref.perProbe) for (const nv of pr.nodes) { lo = Math.min(lo, nv); hi = Math.max(hi, nv); }
+  if (!isFinite(lo)) throw new Error('reference SLQ produced no nodes');
+  const sg = (hi - lo) / 60 || 0.05;
+  const g = S.makeGrid(lo - 0.06 * (hi - lo) - 4 * sg, hi + 0.06 * (hi - lo) + 4 * sg, 600);
+  const dens = S.slqDensity(ref, g, sg);
+  const truth = Float64Array.from(S.screeFromDensity(g, dens, p, lo)).reverse();  // ascending, like eigenSym
+  return { truth, refInfo: { res: ref, grid: g, sigma: sg, dens },
+           how: `p too large for an exact eigendecomposition; reference = SLQ (${sRef} probes × k=${kRef}, ${op.count} matvecs).` };
+}
+function truthGrid() {
+  const t = state.source.truth;
+  const lo = t[0], hi = t[t.length - 1], pad = 0.06 * (hi - lo) + 4 * autoSigma();
+  return S.makeGrid(lo - pad, hi + pad, 500);
+}
+function setSource(src, desc) {
+  const rawFactory = src.opFactory;
+  src.opFactory = () => {
+    const o = rawFactory();
+    return { p: o.p, get count() { return o.count; }, mv(v) { MV.n++; return o.mv(v); } };
+  };
+  state.source = src;
+  $('srcStatus').textContent = desc;
+  // clear stale method outputs from any previous matrix
+  document.querySelectorAll('#methodsCard canvas').forEach(cv => cv.classList.add('hidden'));
+  document.querySelectorAll('#methodsCard .legend').forEach(el => { el.innerHTML = ''; });
+  document.querySelectorAll('#methodsCard div[id$="-table"]').forEach(el => { el.innerHTML = ''; });
+  document.querySelectorAll('#methodsCard .status').forEach(el => { el.textContent = ''; el.classList.remove('err'); });
+  const t = src.truth, p = src.p;
+  const isRef = !!src.approxTruth;
+  const top = Array.from(t).slice(-5).reverse().map(v => fmt(v)).join(', ');
+  let tr = 0; for (const v of t) tr += v;
+  $('truthStats').innerHTML =
+    `<span>p = <b>${p}</b></span><span>λ_min${isRef ? ' (est.)' : ''} = <b>${fmt(t[0])}</b></span>` +
+    `<span>λ_max${isRef ? ' (est.)' : ''} = <b>${fmt(t[t.length - 1])}</b></span><span>trace${isRef ? ' (est.)' : ''} = <b>${fmt(tr)}</b></span>` +
+    `<span>top-5${isRef ? ' (est.)' : ''}: <b>${top}</b></span>` + (src.meta || '');
+  const grid = truthGrid();
+  const rho = S.smoothDensity(Array.from(t), null, grid, autoSigma());
+  state.redraws.clear();
+  state.runsels.clear();
+  densityChart($('gt-chart'), $('gt-legend'), grid,
+    [{ label: `${isRef ? 'SLQ reference' : 'exact spectral'} density (σ=${fmt(autoSigma(), 3)}-smoothed)`, ys: rho, color: () => cssVar('--truth'), width: 2 }],
+    { rug: rugTicks(t) });
+  screeChart($('gt-scree'), $('gt-scree-legend'),
+    [{ label: `${eigLabel()}, sorted`, values: Array.from(t).reverse(), color: () => cssVar('--truth') }]);
+  const top5 = Array.from(t).slice(-5).reverse(), bot5 = Array.from(t).slice(0, 5);
+  metricsTable($('gt-table'), [`extreme eigenvalues${isRef ? ' (est.)' : ''}`, '1', '2', '3', '4', '5'],
+    [['largest', ...top5.map(v => fmt(v, 6))], ['smallest', ...bot5.map(v => fmt(v, 6))]]);
+  if (isRef && src.refInfo) {
+    const ri = src.refInfo;
+    const xs = [], ys = [];
+    for (let s2 = 1; s2 <= ri.res.probesRun; s2++) {
+      xs.push(s2);
+      ys.push(S.l1DensityError(S.slqDensity(ri.res, ri.grid, ri.sigma, s2), ri.dens, ri.grid));
+    }
+    convChart($('gt-conv'), $('gt-conv-legend'),
+      [{ label: 'reference self-convergence (L1 to final reference)', color: () => seriesColor(0), xs, ys }],
+      { xlabel: 'reference probes used', ylabel: 'L1 distance' });
+  }
+  $('gt-note').textContent = isRef
+    ? `p = ${p} is beyond an exact in-browser eigendecomposition. Every tab compares against an SLQ reference spectrum (12 probes × k = 60, with reorthogonalization). Differences smaller than the reference's own error are not meaningful.`
+    : src.type === 'hessian'
+    ? `Ground truth for this Hessian: ${p} exact HVPs to materialize H (${p}·5np ≈ ${fmt(5 * src.mlp.n * p * p, 0)} flops), then a dense O(p³) eigendecomposition.`
+    : `Ground truth for this ${p}×${p} matrix: dense O(p³) eigendecomposition of the explicitly stored matrix.`;
+  $('methodsCard').style.opacity = 1;
+  $('methodsCard').style.pointerEvents = 'auto';
+}
+$('buildRandom').onclick = () => runAsync($('buildRandom'), $('srcStatus'), () => {
+  const p = iv('rp', 8, 2400);
+  const rng = new S.RNG(iv('rseed', -1e9, 1e9));
+  const ens = $('rens').value;
+  if (p > 1000 && (ens === 'wishart' || ens === 'clustered' || ens === 'logspaced'))
+    throw new Error(`the ${ens} ensemble builds in O(p³); above p = 1000 use GOE or GOE + spikes`);
+  let A;
+  if (ens === 'goe') A = S.buildGOE(p, rng, 1);
+  else if (ens === 'bernoulli') {
+    const q = +$('rbq').value;
+    A = S.buildBernoulli(p, rng, isFinite(q) ? Math.min(1, Math.max(0, q)) : 0.5);
+  }
+  else if (ens === 'wishart') A = S.buildWishart(p, rng, Math.max(0.2, +$('raspect').value));
+  else if (ens === 'spiked') {
+    const range = $('rspikerange').value.split(',').map(Number);
+    A = S.buildSpiked(p, rng, { numSpikes: iv('rspikes', 0, 20),
+      spikeMin: isFinite(range[0]) ? range[0] : 4, spikeMax: isFinite(range[1]) ? range[1] : 10 });
+  } else if (ens === 'clustered') A = S.buildClustered(p, rng, { numClusters: iv('rclusters', 1, 12), spread: Math.abs(+$('rspread').value) || 0 });
+  else A = S.buildLogSpaced(p, rng, { decades: iv('rdecades', 1, 8) });
+  let truth, how, refInfo = null;
+  if (p <= EXACT_MAX) {
+    truth = S.eigenSym(A, p, false).values;
+    how = 'ground truth = dense eigendecomposition.';
+  } else {
+    const r = refSpectrum(() => S.makeMatOp(A, p), p, iv('rseed', -1e9, 1e9));
+    truth = r.truth; how = r.how; refInfo = r.refInfo;
+  }
+  setSource({ type: 'random', p, truth, refInfo, approxTruth: p > EXACT_MAX, opFactory: () => S.makeMatOp(A, p) },
+    `random ${ens} matrix built (p=${p}); ${how}`);
+  return `${ens}, p=${p}. ${how}`;
+});
+$('buildHessian').onclick = () => runAsync($('buildHessian'), $('srcStatus'), () => {
+  const mlp = new S.MLP({
+    dIn: iv('hdin', 1, 256), hidden: iv('hhid', 1, 512), dOut: iv('hdout', 1, 64),
+    n: iv('hn', 2, 4096), activation: $('hact').value,
+    targetMode: $('htarget').value, noise: Math.max(0, +$('hnoise').value) || 0, seed: iv('hseed', -1e9, 1e9),
+  });
+  const loss0 = mlp.loss();
+  const steps = iv('hsteps', 0, 20000);
+  if (steps > 0) mlp.train(steps, Math.max(0, +$('hlr').value) || 0);
+  const loss1 = mlp.loss();
+  if (!isFinite(loss1))
+    throw new Error(`training diverged (loss became ${loss1}); lower the learning rate or the number of steps`);
+  let truth, how, refInfo = null;
+  const exact = mlp.P <= EXACT_MAX || $('hforce').checked;
+  if (exact) {
+    const H = mlp.fullHessian();
+    truth = S.eigenSym(H, mlp.P, false).values;
+    how = 'ground truth = p exact HVPs → dense eigendecomposition'
+        + (mlp.P > EXACT_MAX ? ' (forced exact above the fast limit).' : '.');
+  } else {
+    const r = refSpectrum(() => S.makeHvpOp(mlp), mlp.P, iv('hseed', -1e9, 1e9));
+    truth = r.truth; how = r.how; refInfo = r.refInfo;
+  }
+  setSource({
+    type: 'hessian', p: mlp.P, truth, refInfo, approxTruth: !exact, mlp,
+    opFactory: () => S.makeHvpOp(mlp),
+    meta: `<span>loss ${fmt(loss0)} → <b>${fmt(loss1)}</b></span><span>n = <b>${mlp.n}</b></span>`,
+  }, `MLP Hessian built (p=${mlp.P}, n=${mlp.n}, ${$('hact').value}); ${how}`);
+  return `${how} One HVP ≈ 5np = ${fmt(5 * mlp.n * mlp.P, 0)} flops.`;
+});
+
+/* ── method tabs ── */
+document.querySelectorAll('#methodTabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#methodTabs button').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  document.querySelectorAll('#speclab .method').forEach(el => el.classList.add('hidden'));
+  $('m-' + b.dataset.m).classList.remove('hidden');
+});
+
+/* power */
+$('pw-run').onclick = () => runAsync($('pw-run'), $('pw-status'), () => {
+  const src = requireSource(), op = src.opFactory();
+  const numEigs = Math.min(iv('pw-num', 1, 16), src.p);
+  const c = +$('pw-shift').value || 0;
+  const res = S.powerDeflation(op, {
+    numEigs, iters: iv('pw-iters', 1, 5000), shift: c, seed: iv('pw-seed', -1e9, 1e9),
+  });
+  // power iteration on A + cI ranks eigenvalues by |λ + c| — pair accordingly
+  const byMag = Array.from(src.truth).sort((a, b) => Math.abs(b + c) - Math.abs(a + c));
+  const rows = [], series = [];
+  res.eigs.forEach((e, i) => {
+    const truthV = byMag[i];
+    rows.push([`λ<sub>${i + 1}</sub>`, fmt(e.value, 6), fmt(truthV, 6),
+      fmt(Math.abs(e.value - truthV)), fmt(Math.abs(e.value - truthV) / Math.abs(truthV || 1)),
+      i + 1 < byMag.length ? fmt(Math.abs((byMag[i + 1] + c) / (byMag[i] + c)), 4) : '—']);
+    series.push({
+      label: `λ${i + 1}`, color: () => seriesColor(i),
+      xs: e.history.map((_, t) => t + 1),
+      ys: e.history.map(h => Math.abs(h - truthV)),   // history = exact signed Rayleigh quotient
+    });
+  });
+  metricsTable($('pw-table'),
+    ['eigenvalue', 'estimate', `truth (|λ${c ? '+c' : ''}| order)`, 'abs err', 'rel err',
+     c ? '|λnext+c| / |λthis+c|' : '|λnext / λthis|'], rows);
+  // place estimate i at the rank of its table-paired truth byMag[i] within the
+  // descending truth array, consuming duplicates so clustered eigenvalues get
+  // distinct indices 1..m instead of collapsing onto one marker
+  const desc = Array.from(src.truth).reverse();
+  const used = new Array(desc.length).fill(false);
+  const pts = res.eigs.map((e, i) => {
+    const target = byMag[i];
+    let best = 0, bd = Infinity;
+    for (let ii = 0; ii < desc.length; ii++) {
+      if (used[ii]) continue;
+      const d = Math.abs(desc[ii] - target);
+      if (d < bd) { bd = d; best = ii; }
+    }
+    used[best] = true;
+    return { x: best + 1, y: e.value };
+  });
+  screeChart($('pw-scree'), $('pw-scree-legend'), [
+    { label: eigLabel(), values: desc, color: () => cssVar('--truth') },
+    { label: 'power estimates (at paired index)', values: pts.map(q => q.y), xs: pts.map(q => q.x),
+      markers: true, color: () => seriesColor(0) },
+  ]);
+  series.forEach((sr, i) => { if (i >= 4) sr.dash = [4, 3]; });   // second palette cycle dashed
+  convChart($('pw-conv'), $('pw-legend'), series,
+    { xlabel: 'power iteration', ylabel: '|Rayleigh quotient − λ|' });
+  return `${res.matvecs} matvecs (incl. 1 extra per eigenpair for the signed Rayleigh quotient).` +
+    (c ? ' Shifted: ranking and rate are those of A+cI.' : '');
+});
+
+/* lanczos */
+$('lz-run').onclick = () => runAsync($('lz-run'), $('lz-status'), () => {
+  const src = requireSource();
+  const ks = parseList($('lz-ks').value, 2, src.p);
+  if (!ks.length) throw new Error('no valid k values');
+  const reorth = $('lz-reorth').checked, seed = iv('lz-seed', -1e9, 1e9);
+  const grid = truthGrid(), sigma = autoSigma();
+  const rho = S.smoothDensity(Array.from(src.truth), null, grid, sigma);
+  const densCurves = [{ label: truthLabel(), ys: rho, color: () => cssVar('--truth'), width: 2 }];
+  const screeSeries = [{ label: eigLabel(), values: Array.from(src.truth).reverse(), color: () => cssVar('--truth') }];
+  const costs = [];
+  const runHidden = new Set();
+  const lzSync = { ids: ['lz-dens', 'lz-scree'], runselId: 'lz' };
+  let lzMax = null;
+  ks.forEach((k, i) => {
+    const op = src.opFactory();
+    const lz = S.lanczos(op, { k, reorth, seed });
+    const rz = S.ritzFromLanczos(lz, false);
+    if (!rz.values.length) return;
+    if (!lzMax || lz.alpha.length > lzMax.alpha.length) lzMax = lz;
+    const dens = S.smoothDensity(rz.values, rz.weights, grid, sigma);
+    densCurves.push({ label: `k = ${k}`, ys: dens, color: () => seriesColor(i), width: 2 });
+    screeSeries.push({ label: `k = ${k}`, values: S.screeFromDensity(grid, dens, src.p, rz.values[0]),
+      color: () => seriesColor(i) });
+    costs.push([`k = ${k}`, op.count, rz.values.length,
+      fmt(Math.abs(rz.values[rz.values.length - 1] - src.truth[src.p - 1])),
+      fmt(Math.abs(rz.values[0] - src.truth[0])),
+      lz.breakdowns || 0]);
+  });
+  const t = src.truth;
+  densityChart($('lz-dens'), $('lz-dens-legend'), grid, densCurves,
+    { rug: rugTicks(t), sharedHidden: runHidden, sync: lzSync });
+  screeChart($('lz-scree'), $('lz-scree-legend'), screeSeries, { sharedHidden: runHidden, sync: lzSync });
+  runSelector('lz', ks.map(k => `k = ${k}`), runHidden, lzSync.ids);
+  if (lzMax && lzMax.alpha.length >= 2) {
+    // tridiagonal prefixes of one run replay every smaller k at zero extra matvecs
+    const xs = [], errs = [], km = lzMax.alpha.length;
+    const stride = Math.max(1, Math.ceil(km / 100));
+    for (let j = 2; j <= km; j += stride) {
+      const tri = S.eigTridiagonal(lzMax.alpha.slice(0, j), lzMax.beta.slice(0, j - 1), true);
+      const wts = [];
+      for (let q2 = 0; q2 < j; q2++) { const s1 = tri.vectors[q2]; wts.push(s1 * s1); }
+      xs.push(j);
+      errs.push(S.l1DensityError(S.smoothDensity(Array.from(tri.values), wts, grid, sigma), rho, grid));
+    }
+    convChart($('lz-conv'), $('lz-conv-legend'),
+      [{ label: 'L1 density error (one-probe quadrature)', color: () => seriesColor(0), xs, ys: errs }],
+      { xlabel: 'Lanczos steps k', ylabel: 'L1 density error', x0: 2 });
+  }
+  metricsTable($('lz-table'),
+    ['run', 'matvecs', '# Ritz values', '|θ_max − λ_max|', '|θ_min − λ_min|', 'breakdowns'], costs);
+  return reorth ? '' : 'no re-orthogonalization: look for duplicated (ghost) Ritz values at the extremes.';
+});
+
+/* block lanczos */
+$('bl-run').onclick = () => runAsync($('bl-run'), $('bl-status'), () => {
+  const src = requireSource();
+  const bsAll = parseList($('bl-bs').value, 1, 16);
+  const bs = bsAll.filter(b => b <= src.p);
+  if (!bs.length) throw new Error('no valid b values (need 1 ≤ b ≤ p)');
+  const dropped = bsAll.length - bs.length;
+  const prefixRuns = [];
+  const runHidden = new Set();
+  const blSync = { ids: ['bl-dens', 'bl-scree', 'bl-conv'], runselId: 'bl' };
+  const k = iv('bl-k', 1, 200), reorth = $('bl-reorth').checked, seed = iv('bl-seed', -1e9, 1e9);
+  const grid = truthGrid(), sigma = autoSigma();
+  const rho = S.smoothDensity(Array.from(src.truth), null, grid, sigma);
+  const densCurves = [{ label: truthLabel(), ys: rho, color: () => cssVar('--truth'), width: 2 }];
+  const screeSeries = [{ label: eigLabel(), values: Array.from(src.truth).reverse(), color: () => cssVar('--truth') }];
+  const costs = [];
+  bs.forEach((b, i) => {
+    const op = src.opFactory();
+    const kk = Math.max(1, Math.min(k, Math.floor(src.p / b)));
+    let rz, blObj = null;
+    if (b === 1) {
+      const lz = S.lanczos(op, { k: kk, reorth, seed });
+      rz = S.ritzFromLanczos(lz, false);
+      blObj = { lz };
+    } else {
+      const bl = S.blockLanczos(op, { k: kk, b, reorth, seed });
+      rz = S.ritzFromBlockLanczos(bl, false);
+      blObj = bl.T ? { bl } : null;
+    }
+    if (!rz.values.length) {   // exhausted / degenerate run: nothing real to draw
+      costs.push([`b = ${b}, k = ${kk}`, op.count, 0, 'empty run', 'empty run']);
+      return;
+    }
+    const w1 = rz.weights.map(w => w / (b === 1 ? 1 : b));   // per-probe weights sum to 1
+    if (blObj) prefixRuns.push({ b, i, blObj });
+    const dens = S.smoothDensity(rz.values, w1, grid, sigma);
+    densCurves.push({ label: `b = ${b}`, ys: dens, color: () => seriesColor(i), width: 2 });
+    screeSeries.push({ label: `b = ${b}`, values: S.screeFromDensity(grid, dens, src.p, rz.values[0]),
+      color: () => seriesColor(i) });
+    costs.push([`b = ${b}, k = ${kk}`, op.count, rz.values.length,
+      fmt(Math.abs(rz.values[rz.values.length - 1] - src.truth[src.p - 1])),
+      fmt(Math.abs(rz.values[0] - src.truth[0]))]);
+  });
+  const t = src.truth;
+  densityChart($('bl-dens'), $('bl-dens-legend'), grid, densCurves,
+    { rug: rugTicks(t), sharedHidden: runHidden, sync: blSync });
+  screeChart($('bl-scree'), $('bl-scree-legend'), screeSeries, { sharedHidden: runHidden, sync: blSync });
+  runSelector('bl', bs.map(b => `b = ${b}`), runHidden, blSync.ids);
+  const blConv = [];
+  for (const pr of prefixRuns) {
+    const xs = [], errs = [];
+    if (pr.blObj.lz) {
+      const lz = pr.blObj.lz, km = lz.alpha.length;
+      for (let j = 1; j <= km; j++) {
+        const tri = S.eigTridiagonal(lz.alpha.slice(0, j), lz.beta.slice(0, j - 1), true);
+        const wts = [];
+        for (let q2 = 0; q2 < j; q2++) { const s1 = tri.vectors[q2]; wts.push(s1 * s1); }
+        xs.push(j);
+        errs.push(S.l1DensityError(S.smoothDensity(Array.from(tri.values), wts, grid, sigma), rho, grid));
+      }
+    } else {
+      const bl = pr.blObj.bl, dim = bl.dim, T = bl.T, bb = bl.b;
+      for (let j = 1; j * bb <= dim; j++) {
+        const d2 = j * bb;
+        const sub2 = new Float64Array(d2 * d2);
+        for (let r = 0; r < d2; r++) for (let c2 = 0; c2 < d2; c2++) sub2[r * d2 + c2] = T[r * dim + c2];
+        const eg = S.eigenSym(sub2, d2, true);
+        const wts = [];
+        for (let jj = 0; jj < d2; jj++) {
+          let s2 = 0;
+          for (let r = 0; r < bb; r++) { const v = eg.vectors[r * d2 + jj]; s2 += v * v; }
+          wts.push(s2 / bb);
+        }
+        xs.push(d2);
+        errs.push(S.l1DensityError(S.smoothDensity(Array.from(eg.values), wts, grid, sigma), rho, grid));
+      }
+    }
+    blConv.push({ label: `b = ${pr.b}`, color: () => seriesColor(pr.i), xs, ys: errs });
+  }
+  if (blConv.length) convChart($('bl-conv'), $('bl-conv-legend'), blConv,
+    { xlabel: 'Krylov dimension k·b (= matvecs)', ylabel: 'L1 density error', sharedHidden: runHidden, sync: blSync });
+  metricsTable($('bl-table'),
+    ['run', 'matvecs (k·b)', 'Krylov dim', '|θ_max − λ_max|', '|θ_min − λ_min|'], costs);
+  return dropped ? `${dropped} block size(s) > p skipped.` : '';
+});
+
+/* SLQ tabs 5 / 7 / 8 / 9 — shared runner; variantsBuilder(b) returns the
+   curves to compute, first entry = the tab's own method, rest = baselines */
+function runSlqPanel(prefix, variantsBuilder) {
+  return () => runAsync($(prefix + '-run'), $(prefix + '-status'), () => {
+    const src = requireSource();
+    const probes = iv(prefix + '-probes', 1, 200);
+    const k = Math.min(iv(prefix + '-k', 2, 200), src.p);
+    const dist = $(prefix + '-dist').value;
+    const seed = iv(prefix + '-seed', -1e9, 1e9);
+    const bEl = $(prefix + '-b');
+    const b = bEl ? iv(prefix + '-b', 2, 16) : 0;
+    const sigma = Math.max(0, +$(prefix + '-sigma').value) || autoSigma();
+    const variants = variantsBuilder(b);
+    const runHidden = new Set();
+    const sync = { ids: [prefix + '-chart', prefix + '-scree', prefix + '-conv'], runselId: prefix };
+    const grid = truthGrid();
+    const rho = S.smoothDensity(Array.from(src.truth), null, grid, sigma);
+    const curves = [{ label: truthLabel(), ys: rho, color: () => cssVar('--truth'), width: 2 }];
+    const convSeries = [], rows = [];
+    const screeSeries = [{ label: eigLabel(), values: Array.from(src.truth).reverse(), color: () => cssVar('--truth') }];
+    variants.forEach((v, i) => {
+      const op = src.opFactory();
+      const res = S.slq(op, Object.assign({ probes, k, dist, seed }, v.opts));
+      const ys = S.slqDensity(res, grid, sigma);
+      const xs = [], errs = [];
+      if (res.probesRun > 0) {   // an empty run has no density or index curve to show
+        let minNode = Infinity;
+        for (const pr of res.perProbe) for (const nv of pr.nodes) minNode = Math.min(minNode, nv);
+        curves.push({ label: v.label, ys, color: () => seriesColor(i), width: 2, dash: v.dash });
+        screeSeries.push({ label: v.label, values: S.screeFromDensity(grid, ys, src.p, minNode),
+          color: () => seriesColor(i), dash: v.dash });
+        for (let s2 = 1; s2 <= res.probesRun; s2++) {
+          xs.push(s2);
+          errs.push(S.l1DensityError(S.slqDensity(res, grid, sigma, s2), rho, grid));
+        }
+        convSeries.push({ label: v.label, color: () => seriesColor(i), xs, ys: errs, dash: v.dash });
+      }
+      rows.push([v.label, res.probesRun, res.matvecs, errs.length ? fmt(errs[errs.length - 1]) : '—',
+        res.probesRun > 0 ? fmt(S.trapz(ys, grid), 4) : '—', res.exhausted ? 'yes' : '']);
+    });
+    densityChart($(prefix + '-chart'), $(prefix + '-legend'), grid, curves,
+      { rug: rugTicks(src.truth), sharedHidden: runHidden, sync });
+    screeChart($(prefix + '-scree'), $(prefix + '-scree-legend'), screeSeries,
+      { sharedHidden: runHidden, sync });
+    convChart($(prefix + '-conv'), $(prefix + '-conv-legend'), convSeries,
+      { xlabel: 'probes used', ylabel: 'L1 density error', sharedHidden: runHidden, sync });
+    if (variants.length > 1) runSelector(prefix, variants.map(v => v.label), runHidden, sync.ids);
+    else if ($(prefix + '-runsel')) $(prefix + '-runsel').innerHTML = '';
+    metricsTable($(prefix + '-table'),
+      ['variant', 'probes run', 'matvecs', 'L1 error', '∫ρ̂', 'space exhausted'], rows);
+    return `σ = ${fmt(sigma, 3)}` + (b ? `; block probes cost k·b = ${k}·${b} matvecs each, plain probes k = ${k}.` : '.');
+  });
+}
+$('sq5-run').onclick = runSlqPanel('sq5', () => [
+  { label: 'standard SLQ', opts: {} }]);
+$('sq7-run').onclick = runSlqPanel('sq7', () => [
+  { label: 'orthogonalized probes', opts: { orthProbes: true } },
+  { label: 'standard SLQ (baseline)', opts: {}, dash: [6, 4] }]);
+$('sq8-run').onclick = runSlqPanel('sq8', (b) => [
+  { label: `block SLQ (b=${b})`, opts: { block: b } },
+  { label: 'standard SLQ (baseline)', opts: {}, dash: [6, 4] }]);
+$('sq9-run').onclick = runSlqPanel('sq9', (b) => [
+  { label: `block + orth (b=${b})`, opts: { block: b, orthProbes: true } },
+  { label: `block SLQ (baseline, b=${b})`, opts: { block: b }, dash: [6, 4] },
+  { label: 'standard SLQ', opts: {}, dash: [2, 3] }]);
+
+/* edge + SLQ */
+$('ed-run').onclick = () => runAsync($('ed-run'), $('ed-status'), () => {
+  const src = requireSource();
+  const sigma = Math.max(0, +$('ed-sigma').value) || autoSigma();
+  const probes = iv('ed-probes', 1, 200);
+  const kSlq = Math.min(iv('ed-kslq', 2, 200), src.p);
+  const dist = $('ed-dist').value, seed = iv('ed-seed', -1e9, 1e9);
+  const op = src.opFactory();
+  const res = S.edgePlusSlq(op, {
+    cycles: iv('ed-cycles', 1, 10),
+    kEdge: Math.min(iv('ed-kedge', 2, 200), src.p),
+    mPerCycle: iv('ed-m', 1, 20), edgeWhich: $('ed-which').value,
+    probes, kSlq, dist, seed,
+  });
+  const p = src.p, m = res.deflated.length;
+  const grid = truthGrid();
+  const rho = S.smoothDensity(Array.from(src.truth), null, grid, sigma);
+  const bulk = S.slqDensity(res.slq, grid, sigma);
+  const spikeVals = res.deflated.map(d => d.value);
+  const spikeDens = S.smoothDensity(spikeVals, spikeVals.map(() => 1 / p), grid, sigma);
+  const combined = new Float64Array(grid.length);
+  for (let i = 0; i < grid.length; i++) combined[i] = spikeDens[i] + (p - m) / p * bulk[i];
+  const op2 = src.opFactory();
+  const plain = S.slq(op2, { probes, k: kSlq, dist, seed });
+  const plainYs = S.slqDensity(plain, grid, sigma);
+  const edHidden = new Set();
+  const edSync = { ids: ['ed-chart', 'ed-scree', 'ed-conv'], runselId: 'ed' };
+  densityChart($('ed-chart'), $('ed-legend'), grid, [
+    { label: truthLabel(), ys: rho, color: () => cssVar('--truth'), width: 2 },
+    { label: 'edge + deflated SLQ', ys: combined, color: () => seriesColor(0), width: 2 },
+    { label: 'plain SLQ', ys: plainYs, color: () => seriesColor(1), width: 2, dash: [6, 4] },
+    { label: `harvested edge (Lanczos), smoothed`, ys: spikeDens, color: () => seriesColor(2), width: 1.6, dash: [2, 3] },
+  ], { rug: rugTicks(src.truth), sharedHidden: edHidden, sync: edSync });
+  let minC = spikeVals.length ? Math.min(...spikeVals) : Infinity, minP = Infinity;
+  for (const pr of res.slq.perProbe) for (const nv of pr.nodes) minC = Math.min(minC, nv);
+  for (const pr of plain.perProbe) for (const nv of pr.nodes) minP = Math.min(minP, nv);
+  screeChart($('ed-scree'), $('ed-scree-legend'), [
+    { label: eigLabel(), values: Array.from(src.truth).reverse(), color: () => cssVar('--truth') },
+    { label: 'edge + deflated SLQ', values: S.screeFromDensity(grid, combined, p, minC), color: () => seriesColor(0) },
+    { label: 'plain SLQ', values: S.screeFromDensity(grid, plainYs, p, minP), color: () => seriesColor(1), dash: [6, 4] },
+  ], { sharedHidden: edHidden, sync: edSync });
+  const sE = { label: 'edge + deflated SLQ', color: () => seriesColor(0), xs: [], ys: [] };
+  const sP = { label: 'plain SLQ', color: () => seriesColor(1), dash: [6, 4], xs: [], ys: [] };
+  for (let s2 = 1; s2 <= res.slq.probesRun; s2++) {
+    const bulkS = S.slqDensity(res.slq, grid, sigma, s2);
+    const combS = new Float64Array(grid.length);
+    for (let i2 = 0; i2 < grid.length; i2++) combS[i2] = spikeDens[i2] + (p - m) / p * bulkS[i2];
+    sE.xs.push(s2); sE.ys.push(S.l1DensityError(combS, rho, grid));
+  }
+  for (let s2 = 1; s2 <= plain.probesRun; s2++) {
+    sP.xs.push(s2);
+    sP.ys.push(S.l1DensityError(S.slqDensity(plain, grid, sigma, s2), rho, grid));
+  }
+  convChart($('ed-conv'), $('ed-conv-legend'), [sE, sP],
+    { xlabel: 'SLQ probes used', ylabel: 'L1 density error', sharedHidden: edHidden, sync: edSync });
+  runSelector('ed', ['edge + deflated SLQ', 'plain SLQ', 'harvested edge (Lanczos), smoothed'], edHidden, edSync.ids);
+  const matched = S.matchToTruth(spikeVals.slice().sort((a, b) => b - a), Array.from(src.truth));
+  metricsTable($('ed-table'),
+    ['deflated θ', 'matched true λ', 'abs err', 'Lanczos residual bound'],
+    matched.map((mm, i2) => [fmt(mm.est, 6), fmt(mm.truth, 6), fmt(mm.err),
+      fmt(res.deflated.slice().sort((a, b) => b.value - a.value)[i2].residual)]));
+  const l1c = S.l1DensityError(combined, rho, grid), l1p = S.l1DensityError(plainYs, rho, grid);
+  return `L1 error: edge+SLQ ${fmt(l1c)} vs plain SLQ ${fmt(l1p)}. Matvecs: ${res.matvecs} vs ${op2.count}.`;
+});
+
+/* KPM */
+$('kp-run').onclick = () => runAsync($('kp-run'), $('kp-status'), () => {
+  const src = requireSource();
+  const op = src.opFactory();
+  const K = iv('kp-K', 4, 1000), probes = iv('kp-probes', 1, 200);
+  const res = S.kpm(op, { degree: K, probes, dist: $('kp-dist').value, seed: iv('kp-seed', -1e9, 1e9) });
+  const grid = truthGrid();
+  const sigma = autoSigma();
+  const rho = S.smoothDensity(Array.from(src.truth), null, grid, sigma);
+  const est = res.evalDensity(grid);
+  const curves = [
+    { label: `${truthLabel()} (σ-smoothed)`, ys: rho, color: () => cssVar('--truth'), width: 2 },
+    { label: `KPM (K=${K})`, ys: est, color: () => seriesColor(0), width: 2 },
+  ];
+  densityChart($('kp-chart'), $('kp-legend'), grid, curves, { rug: rugTicks(src.truth) });
+  screeChart($('kp-scree'), $('kp-scree-legend'), [
+    { label: eigLabel(), values: Array.from(src.truth).reverse(), color: () => cssVar('--truth') },
+    { label: `KPM (K=${K})`, values: S.screeFromDensity(grid, est, src.p, res.lmin), color: () => seriesColor(0) },
+  ]);
+  const xsK = [], eK = [];
+  const strideK = Math.max(1, Math.floor((K - 4) / 24) || 1);
+  for (let Kp = 4; Kp <= K; Kp += strideK) {
+    xsK.push(Kp);
+    eK.push(S.l1DensityError(res.evalDensityTrunc(Kp, grid), rho, grid));
+  }
+  if (xsK[xsK.length - 1] !== K) { xsK.push(K); eK.push(S.l1DensityError(est, rho, grid)); }
+  convChart($('kp-conv'), $('kp-conv-legend'),
+    [{ label: 'L1 vs σ-smoothed truth', color: () => seriesColor(0), xs: xsK, ys: eK }],
+    { xlabel: 'Chebyshev degree K', ylabel: 'L1 density error', x0: 4 });
+  metricsTable($('kp-table'), ['range used', '∫ρ̂', 'L1 vs smoothed truth', 'matvecs'],
+    [[`[${fmt(res.lmin)}, ${fmt(res.lmax)}]`, fmt(S.trapz(est, grid), 4),
+      fmt(S.l1DensityError(est, rho, grid)), op.count]]);
+  return `KPM kernel width ≈ range/K = ${fmt((res.lmax - res.lmin) / K, 4)}; truth smoothed with σ = ${fmt(sigma, 3)}. Kernels differ, so small L1 offsets are expected.`;
+});
+
+/* live controls: once a panel has run, changing any of its inputs re-runs it;
+   same for the matrix source once built */
+document.querySelectorAll('#speclab .method').forEach(mEl => {
+  mEl.addEventListener('change', () => {
+    const btn = mEl.querySelector('button[id$="-run"]');
+    if (btn && mEl.dataset.ran === '1' && !btn.disabled) btn.click();
+  });
+});
+$('srcRandom').addEventListener('change', () => {
+  if (state.source && !$('buildRandom').disabled) $('buildRandom').click();
+});
+$('srcHessian').addEventListener('change', () => {
+  if (state.source && !$('buildHessian').disabled) $('buildHessian').click();
+});
+})();
+</script>
+<script>
+/* ═══ Training-time spectra card (scoped to #ts-card, talks to spectra_server.py) ═══ */
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+if (!$('ts-card')) return;
+const FETCH = (typeof fetch === 'function')
+  ? ((...a) => window['fetch'](...a))
+  : (() => Promise.reject(new Error('fetch unavailable')));
+const DPR = 2;
+/* same fixed paper-style chart colors as the widget above; plain white plot background */
+const CHART_FIXED = {
+  '--surface-1': '#ffffff',
+  '--grid': '#e7e6e1', '--baseline': '#b9b8ae',
+  '--muted': '#6b6a66', '--text-secondary': '#3f3e3b',
+  '--truth': '#52514e', '--accent': '#7a1f1f',
+  '--series-1': '#2a78d6', '--series-2': '#008300', '--series-3': '#e87ba4', '--series-4': '#eda100',
+};
+function cssVar(n) { return CHART_FIXED[n] || getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+const QCOLORS = { H: () => cssVar('--series-1'), GN: () => cssVar('--series-2'), F: () => cssVar('--series-3') };
+const QLABEL = { H: 'full Hessian H', GN: 'Gauss-Newton JJᵀ/n', F: 'functional Hessian F' };
+const QDASH = { H: null, GN: [6, 4], F: [2, 3] };
+const BLABEL = q => QLABEL[q] + ' (block SLQ)';
+const BDASH = [2, 4];
+const qKeys = () => ['H', 'GN', 'F'];
+function fmt(x, d) {
+  if (!isFinite(x)) return '—';
+  if (x === 0) return '0';
+  const a = Math.abs(x);
+  if (a >= 1e5 || a < 1e-4) return x.toExponential(d === undefined ? 2 : d);
+  return x.toFixed(d === undefined ? (a < 1 ? 4 : 3) : d);
+}
+function iv(id, lo, hi) {
+  const el = $(id);
+  let v = Math.round(parseFloat(el.value));
+  if (!isFinite(v)) v = lo;
+  v = Math.max(lo, Math.min(hi, v));
+  el.value = v;
+  return v;
+}
+
+/* ── chart primitives (same interactions as the widget above) ── */
+function plotArea(canvas) {
+  const pad = canvas.width < 1000 ? { l: 46, r: 10, t: 12, b: 42 } : { l: 70, r: 18, t: 16, b: 44 };
+  return { x0: pad.l * DPR, y0: pad.t * DPR, x1: canvas.width - pad.r * DPR, y1: canvas.height - pad.b * DPR };
+}
+function niceTicks(lo, hi, n) {
+  if (!(hi > lo)) hi = lo + 1;
+  const span = hi - lo, step0 = span / (n || 6);
+  const mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => span / s <= (n || 6) + 1) || mag * 10;
+  const t = [];
+  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-12 * span; v += step) t.push(v);
+  return t;
+}
+function drawFrame(ctx, pa, xdom, ydom, opts) {
+  opts = opts || {};
+  const { x0, y0, x1, y1 } = pa;
+  const X = v => x0 + (v - xdom[0]) / (xdom[1] - xdom[0]) * (x1 - x0);
+  const Y = v => opts.ylog
+    ? y1 - (Math.log10(v) - Math.log10(ydom[0])) / (Math.log10(ydom[1]) - Math.log10(ydom[0])) * (y1 - y0)
+    : y1 - (v - ydom[0]) / (ydom[1] - ydom[0]) * (y1 - y0);
+  const Xi = px => xdom[0] + (px - x0) / (x1 - x0) * (xdom[1] - xdom[0]);
+  const Yi = opts.ylog
+    ? py => Math.pow(10, Math.log10(ydom[0]) + (y1 - py) / (y1 - y0) * (Math.log10(ydom[1]) - Math.log10(ydom[0])))
+    : py => ydom[0] + (y1 - py) / (y1 - y0) * (ydom[1] - ydom[0]);
+  ctx.font = (11 * DPR) + 'px system-ui, sans-serif';
+  ctx.fillStyle = cssVar('--muted'); ctx.strokeStyle = cssVar('--grid'); ctx.lineWidth = DPR;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (const t of niceTicks(xdom[0], xdom[1], 8)) {
+    const px = X(t);
+    if (px < x0 - 1 || px > x1 + 1) continue;
+    ctx.beginPath(); ctx.moveTo(px, y0); ctx.lineTo(px, y1); ctx.stroke();
+    ctx.fillText(fmt(t, Math.abs(t) < 10 && Math.abs(t) > 0 ? 2 : 1), px, y1 + 6 * DPR);
+  }
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  const yt = opts.ylog
+    ? (() => { const t = []; for (let e = Math.ceil(Math.log10(ydom[0])); e <= Math.floor(Math.log10(ydom[1])); e++) t.push(Math.pow(10, e)); return t; })()
+    : niceTicks(ydom[0], ydom[1], 5);
+  for (const t of yt) {
+    const py = Y(t);
+    if (py < y0 - 1 || py > y1 + 1) continue;
+    ctx.beginPath(); ctx.moveTo(x0, py); ctx.lineTo(x1, py); ctx.stroke();
+    ctx.fillText(opts.ylog ? '1e' + Math.round(Math.log10(t)) : fmt(t, 2), x0 - 6 * DPR, py);
+  }
+  ctx.fillStyle = cssVar('--text-secondary');
+  if (opts.xlabel) { ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(opts.xlabel, (x0 + x1) / 2, y1 + 40 * DPR); }
+  if (opts.ylabel) { ctx.save(); ctx.translate(14 * DPR, (y0 + y1) / 2); ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(opts.ylabel, 0, 0); ctx.restore(); }
+  ctx.strokeStyle = cssVar('--baseline');
+  ctx.beginPath(); ctx.moveTo(x0, y1); ctx.lineTo(x1, y1); ctx.stroke();
+  return { X, Y, Xi, Yi };
+}
+function drawLine(ctx, XY, xs, ys, color, width, dash) {
+  ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = (width || 2) * DPR;
+  if (dash) ctx.setLineDash(dash.map(d => d * DPR));
+  ctx.beginPath();
+  let started = false;
+  for (let i = 0; i < xs.length; i++) {
+    if (!isFinite(ys[i]) || !isFinite(xs[i])) { started = false; continue; }
+    const px = XY.X(xs[i]), py = XY.Y(ys[i]);
+    if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+  }
+  ctx.stroke(); ctx.restore();
+}
+function clearCanvas(canvas) {
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = cssVar('--surface-1');
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  canvas.classList.remove('hidden');
+  return ctx;
+}
+function zoomBar(el, ui, redraw, keyEntries) {
+  el.innerHTML = (keyEntries || []).map(e => {
+    const col = typeof e.color === 'function' ? e.color() : e.color;
+    return `<span class="lg" style="cursor: default">` +
+      (col ? `<span class="chip" style="background:${col}"></span>` : '') + `${e.label}</span>`;
+  }).join('') + (ui.view ? '<span class="lg reset">&#8634; reset zoom</span>' : '');
+  const r = el.querySelector('.reset');
+  if (r) r.onclick = () => { ui.view = null; redraw(); };
+}
+const tooltip = $('ts-tooltip');
+function wireChart(canvas, ui, draw, lookup) {
+  let drag = null;
+  const toPx = (ev) => {
+    const r = canvas.getBoundingClientRect();
+    if (!r.width || !r.height) return null;
+    return { x: (ev.clientX - r.left) / r.width * canvas.width, y: (ev.clientY - r.top) / r.height * canvas.height };
+  };
+  canvas.style.cursor = 'crosshair';
+  canvas.onmousedown = (ev) => { const p = toPx(ev); if (p) { drag = { ax: p.x, ay: p.y, bx: p.x, by: p.y }; ev.preventDefault(); } };
+  canvas.onmousemove = (ev) => {
+    const p = toPx(ev);
+    if (!p) return;
+    if (drag) {
+      drag.bx = p.x; drag.by = p.y;
+      draw();
+      const ctx = canvas.getContext('2d');
+      const x = Math.min(drag.ax, drag.bx), y = Math.min(drag.ay, drag.by);
+      ctx.save(); ctx.fillStyle = cssVar('--series-1'); ctx.globalAlpha = 0.12;
+      ctx.fillRect(x, y, Math.abs(drag.bx - drag.ax), Math.abs(drag.by - drag.ay));
+      ctx.globalAlpha = 0.8; ctx.strokeStyle = cssVar('--series-1'); ctx.lineWidth = DPR;
+      ctx.strokeRect(x, y, Math.abs(drag.bx - drag.ax), Math.abs(drag.by - drag.ay));
+      ctx.restore();
+      tooltip.style.display = 'none';
+      return;
+    }
+    const html = lookup ? lookup(p.x, p.y) : null;
+    if (!html) { tooltip.style.display = 'none'; return; }
+    tooltip.innerHTML = html; tooltip.style.display = 'block';
+    tooltip.style.left = Math.min(ev.clientX + 14, innerWidth - 310) + 'px';
+    tooltip.style.top = (ev.clientY + 14) + 'px';
+  };
+  const finish = () => {
+    if (!drag) return;
+    const d = drag; drag = null;
+    const dx = Math.abs(d.bx - d.ax), dy = Math.abs(d.by - d.ay);
+    if (canvas._XY && (dx > 12 * DPR || dy > 12 * DPR)) {
+      const XY = canvas._XY;
+      const view = ui.view ? { x: ui.view.x, y: ui.view.y } : {};
+      if (dx > 12 * DPR) view.x = [XY.Xi(Math.min(d.ax, d.bx)), XY.Xi(Math.max(d.ax, d.bx))];
+      if (dy > 12 * DPR) view.y = [XY.Yi(Math.max(d.ay, d.by)), XY.Yi(Math.min(d.ay, d.by))];
+      ui.view = view;
+    }
+    draw();
+  };
+  canvas.onmouseup = finish;
+  canvas.onmouseleave = () => { tooltip.style.display = 'none'; if (drag) finish(); };
+  canvas.ondblclick = () => { ui.view = null; draw(); };
+}
+function binnedDensity(vals, lo, hi, nb, sigma) {
+  const step = (hi - lo) / (nb - 1);
+  const counts = new Float64Array(nb);
+  for (const v of vals) {
+    const b = Math.round((v - lo) / step);
+    if (b >= 0 && b < nb) counts[b] += 1;
+  }
+  const s = Math.max(sigma, step);
+  const rad = Math.min(nb, Math.ceil(4 * s / step));
+  const kern = new Float64Array(2 * rad + 1);
+  const c = 1 / (s * Math.sqrt(2 * Math.PI));
+  for (let i = -rad; i <= rad; i++) kern[i + rad] = c * Math.exp(-0.5 * Math.pow(i * step / s, 2));
+  const out = new Float64Array(nb);
+  for (let b = 0; b < nb; b++) {
+    if (!counts[b]) continue;
+    const w = counts[b] / vals.length;
+    for (let i = -rad; i <= rad; i++) {
+      const j = b + i;
+      if (j >= 0 && j < nb) out[j] += w * kern[i + rad];
+    }
+  }
+  return out;
+}
+
+/* ── state ── */
+const NB = 600;
+let cap = null, meta = null, ci = 0, xmode = 'steps', follow = true, live = null;
+const redraws = new Map(), qHidden = new Set(), densCache = new Map();
+const densViews = { H: { view: null }, GN: { view: null }, F: { view: null } };
+const screeViews = { H: { view: null }, GN: { view: null }, F: { view: null } };
+
+function computeMeta() {
+  if (!cap || !cap.ckpts.length) return null;
+  let lo = Infinity, hi = -Infinity;
+  for (const ck of cap.ckpts) for (const q of qKeys()) {
+    const ev = ck.evals[q];
+    lo = Math.min(lo, ev[0]); hi = Math.max(hi, ev[ev.length - 1]);
+  }
+  return buildMeta(lo, hi);
+}
+function buildMeta(lo, hi) {
+  const span = Math.max(hi - lo, 1e-8 * Math.max(1, Math.abs(lo), Math.abs(hi)));
+  const sigma = span / 60;
+  const glo = lo - 0.06 * span - 4 * sigma, ghi = hi + 0.06 * span + 4 * sigma;
+  const grid = new Float64Array(NB);
+  for (let i = 0; i < NB; i++) grid[i] = glo + (ghi - glo) * i / (NB - 1);
+  return { lo: glo, hi: ghi, sigma, grid, rawLo: lo, rawHi: hi };
+}
+function densityOf(i, q) {
+  const key = i + ':' + q;
+  if (!densCache.has(key))
+    densCache.set(key, binnedDensity(cap.ckpts[i].evals[q], meta.lo, meta.hi, NB, meta.sigma));
+  return densCache.get(key);
+}
+const bdensCache = new Map(), bscreeCache = new Map();
+function ckBslq(i) { const k = cap && cap.ckpts[i]; return k && k.bslq ? k.bslq : null; }
+function bslqDensityOf(i, q) {
+  const key = i + ':' + q;
+  if (!bdensCache.has(key)) {
+    const bq = ckBslq(i)[q];
+    const out = new Float64Array(NB);
+    const c = 1 / (meta.sigma * Math.sqrt(2 * Math.PI));
+    for (let s = 0; s < bq.nodes.length; s++) {
+      const nd = bq.nodes[s], wt = bq.weights[s];
+      for (let j = 0; j < nd.length; j++) {
+        for (let g = 0; g < NB; g++) {
+          const d = (meta.grid[g] - nd[j]) / meta.sigma;
+          if (d > -6 && d < 6) out[g] += wt[j] * c * Math.exp(-0.5 * d * d);
+        }
+      }
+    }
+    for (let g = 0; g < NB; g++) out[g] /= bq.nodes.length;
+    bdensCache.set(key, out);
+  }
+  return bdensCache.get(key);
+}
+function bslqScreeOf(i, q) {
+  const key = i + ':' + q;
+  if (!bscreeCache.has(key)) {
+    const dens = bslqDensityOf(i, q);
+    const p = cap.config ? cap.config.p : cap.ckpts[i].evals.H.length;
+    const cum = new Float64Array(NB);
+    for (let g = 1; g < NB; g++)
+      cum[g] = cum[g - 1] + 0.5 * (dens[g] + dens[g - 1]) * (meta.grid[g] - meta.grid[g - 1]);
+    const total = cum[NB - 1] || 1;
+    const out = new Float64Array(p);
+    let g = NB - 1;
+    for (let r = 0; r < p; r++) {
+      const target = (1 - (r + 0.5) / p) * total;
+      while (g > 0 && cum[g - 1] > target) g--;
+      if (g === 0) { out[r] = meta.grid[0]; continue; }
+      const c0 = cum[g - 1], c1 = cum[g];
+      const t = c1 > c0 ? (target - c0) / (c1 - c0) : 0;
+      out[r] = meta.grid[g - 1] + t * (meta.grid[g] - meta.grid[g - 1]);
+    }
+    bscreeCache.set(key, out);
+  }
+  return bscreeCache.get(key);
+}
+
+function drawDens() {
+  if (!cap || !cap.ckpts.length || !meta) return;
+  const hasB = !!ckBslq(ci);
+  let ymax = 0;
+  for (const q of qKeys()) {
+    if (!qHidden.has(QLABEL[q])) for (const v of densityOf(ci, q)) ymax = Math.max(ymax, v);
+    if (hasB && !qHidden.has(BLABEL(q))) for (const v of bslqDensityOf(ci, q)) ymax = Math.max(ymax, v);
+  }
+  for (const q of qKeys()) {
+    const ui = densViews[q];
+    const canvas = $('ts-dens-' + q), ctx = clearCanvas(canvas), pa = plotArea(canvas);
+    const xdom = ui.view && ui.view.x ? ui.view.x : [meta.lo, meta.hi];
+    const ydom = ui.view && ui.view.y ? [Math.max(0, ui.view.y[0]), ui.view.y[1]] : [0, ymax * 1.08 || 1];
+    const XY = drawFrame(ctx, pa, xdom, ydom, { xlabel: 'eigenvalue', ylabel: q === 'H' ? 'density' : '' });
+    ctx.save(); ctx.beginPath(); ctx.rect(pa.x0, pa.y0, pa.x1 - pa.x0, pa.y1 - pa.y0); ctx.clip();
+    if (!qHidden.has(QLABEL[q])) drawLine(ctx, XY, meta.grid, densityOf(ci, q), QCOLORS[q](), 2, QDASH[q]);
+    if (hasB && !qHidden.has(BLABEL(q))) drawLine(ctx, XY, meta.grid, bslqDensityOf(ci, q), QCOLORS[q](), 1.2, BDASH);
+    ctx.restore();
+    canvas._XY = XY;
+    if (!canvas._wired) { canvas._wired = true; wireChart(canvas, ui, drawDens, null); }
+    zoomBar($('ts-dens-' + q + '-legend'), ui, drawDens);
+  }
+}
+function drawScree() {
+  if (!cap || !cap.ckpts.length) return;
+  const hasB = !!ckBslq(ci);
+  const p = cap.config ? cap.config.p : cap.ckpts[0].evals.H.length;
+  let ymin = Infinity, ymax = -Infinity;
+  for (const ck of cap.ckpts) for (const q of qKeys()) {
+    if (qHidden.has(QLABEL[q])) continue;
+    const ev = ck.evals[q];
+    ymin = Math.min(ymin, ev[0]); ymax = Math.max(ymax, ev[ev.length - 1]);
+  }
+  if (!isFinite(ymin)) { ymin = 0; ymax = 1; }
+  const padY = 0.05 * (ymax - ymin) + 1e-9;
+  for (const q of qKeys()) {
+    const ui = screeViews[q];
+    const canvas = $('ts-scree-' + q), ctx = clearCanvas(canvas), pa = plotArea(canvas);
+    const xdom = ui.view && ui.view.x ? ui.view.x : [1, p];
+    const ydom = ui.view && ui.view.y ? ui.view.y : [ymin - padY, ymax + padY];
+    const XY = drawFrame(ctx, pa, xdom, ydom, { xlabel: 'index (largest → smallest)', ylabel: q === 'H' ? 'eigenvalue' : '' });
+    ctx.save(); ctx.beginPath(); ctx.rect(pa.x0, pa.y0, pa.x1 - pa.x0, pa.y1 - pa.y0); ctx.clip();
+    if (!qHidden.has(QLABEL[q])) {
+      const ev = cap.ckpts[ci].evals[q];
+      const xs = [], ys = [];
+      for (let i2 = 0; i2 < ev.length; i2++) { xs.push(i2 + 1); ys.push(ev[ev.length - 1 - i2]); }
+      drawLine(ctx, XY, xs, ys, QCOLORS[q](), 2, QDASH[q]);
+    }
+    if (hasB && !qHidden.has(BLABEL(q))) {
+      const es = bslqScreeOf(ci, q);
+      const xs = [], ys = [];
+      for (let i2 = 0; i2 < es.length; i2++) { xs.push(i2 + 1); ys.push(es[i2]); }
+      drawLine(ctx, XY, xs, ys, QCOLORS[q](), 1.2, BDASH);
+    }
+    ctx.restore();
+    canvas._XY = XY;
+    if (!canvas._wired) { canvas._wired = true; wireChart(canvas, ui, drawScree, null); }
+    zoomBar($('ts-scree-' + q + '-legend'), ui, drawScree);
+  }
+}
+function syncQ() { drawDens(); drawScree(); renderQsel(); }
+function renderQsel() {
+  const el = $('ts-qsel');
+  if (!cap || !cap.ckpts.length) { el.innerHTML = ''; return; }
+  const hasB = !!ckBslq(ci) || !!(cap.config && cap.config.bslq_b);
+  const entries = qKeys().map(q => ({ label: QLABEL[q], color: QCOLORS[q]() }))
+    .concat(hasB ? qKeys().map(q => ({ label: BLABEL(q), color: QCOLORS[q]() })) : []);
+  el.innerHTML = '<span class="lg-cap">show:</span>' + entries.map(e => {
+    const off = qHidden.has(e.label);
+    return `<span class="lg${off ? ' off' : ''}" data-label="${e.label}">` +
+      `<input type="checkbox"${off ? '' : ' checked'}>` +
+      `<span class="chip" style="background:${e.color}"></span>${e.label}</span>`;
+  }).join('');
+  el.querySelectorAll('.lg').forEach(sp => {
+    const inp = sp.querySelector('input');
+    const toggle = () => {
+      const l = sp.getAttribute('data-label');
+      if (qHidden.has(l)) qHidden.delete(l); else qHidden.add(l);
+      syncQ(); refreshTraining();
+    };
+    sp.onclick = (ev) => { ev.preventDefault(); toggle(); };
+    if (inp) inp.onchange = toggle;
+  });
+}
+function renderStats() {
+  const el = $('ts-stats');
+  if (!cap || !cap.ckpts.length) { el.innerHTML = ''; return; }
+  const ck = cap.ckpts[ci];
+  const rows = qKeys().map(q => {
+    const ev = ck.evals[q];
+    let tr = 0; for (const v of ev) tr += v;
+    return [QLABEL[q], fmt(ev[ev.length - 1], 4), fmt(ev[0], 4), fmt(tr, 4),
+            fmt(ck.slq_l1 ? ck.slq_l1[q] : NaN, 4),
+            fmt(ck.bslq_l1 ? ck.bslq_l1[q] : NaN, 4)];
+  });
+  el.innerHTML = '<table class="metrics"><tr><th>quantity</th><th>λ_max</th><th>λ_min</th>' +
+    '<th>trace</th><th>SLQ L1 error</th><th>block SLQ L1</th></tr>' +
+    rows.map(r => '<tr>' + r.map(c => `<td>${c}</td>`).join('') + '</tr>').join('') + '</table>';
+}
+
+/* line charts for loss / sharpness / SLQ error; series xs, ys are FUNCTIONS so live data grows in place */
+function lineChart(canvasId, legendId, series, opts) {
+  const canvas = $(canvasId), legendEl = $(legendId);
+  const ui = { hidden: new Set(), view: null };
+  let S = [];
+  function draw() {
+    S = series.map(s => ({ label: s.label, color: s.color, dash: s.dash, visKey: s.visKey, X: s.xs(), Y: s.ys() }));
+    const ctx = clearCanvas(canvas), pa = plotArea(canvas);
+    const o = Object.assign({}, opts, { xlabel: typeof opts.xlabel === 'function' ? opts.xlabel() : opts.xlabel });
+    const vis = S.filter(s => !(s.visKey && qHidden.has(s.visKey)));
+    let xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity;
+    for (const s of vis) for (let i = 0; i < s.X.length; i++) {
+      const yv = s.Y[i];
+      if (!isFinite(yv) || !isFinite(s.X[i]) || (o.ylog && yv <= 0)) continue;
+      xmin = Math.min(xmin, s.X[i]); xmax = Math.max(xmax, s.X[i]);
+      ymin = Math.min(ymin, yv); ymax = Math.max(ymax, yv);
+    }
+    if (!isFinite(ymin)) { ymin = o.ylog ? 1e-12 : 0; ymax = 1; xmin = 0; xmax = 1; }
+    if (o.ylog) { ymin = Math.max(ymin / 2, 1e-17); ymax *= 2; }
+    else { const pd = 0.06 * (ymax - ymin) + 1e-12; ymin -= pd; ymax += pd; }
+    if (xmax <= xmin) xmax = xmin + 1;
+    const xdom = ui.view && ui.view.x ? ui.view.x : [xmin, xmax];
+    const ydom = ui.view && ui.view.y
+      ? (o.ylog ? [Math.max(1e-17, ui.view.y[0]), Math.max(1e-16, ui.view.y[1])] : ui.view.y)
+      : [ymin, ymax];
+    const XY = drawFrame(ctx, pa, xdom, ydom, o);
+    ctx.save(); ctx.beginPath(); ctx.rect(pa.x0, pa.y0, pa.x1 - pa.x0, pa.y1 - pa.y0); ctx.clip();
+    if (o.guideY !== undefined && isFinite(o.guideY)) {
+      ctx.strokeStyle = cssVar('--truth'); ctx.lineWidth = 1.4 * DPR; ctx.setLineDash([8 * DPR, 5 * DPR]);
+      ctx.beginPath(); ctx.moveTo(pa.x0, XY.Y(o.guideY)); ctx.lineTo(pa.x1, XY.Y(o.guideY)); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    for (const s of vis) {
+      const xs = [], ys = [];
+      for (let i = 0; i < s.X.length; i++)
+        if (isFinite(s.Y[i]) && isFinite(s.X[i]) && (!o.ylog || s.Y[i] > 0)) { xs.push(s.X[i]); ys.push(s.Y[i]); }
+      drawLine(ctx, XY, xs, ys, s.color(), 2, s.dash);
+    }
+    if (o.markerX !== undefined) {
+      const mx = o.markerX();
+      if (isFinite(mx)) {
+        ctx.strokeStyle = cssVar('--accent') || cssVar('--series-4'); ctx.lineWidth = 1.6 * DPR; ctx.globalAlpha = 0.8;
+        ctx.beginPath(); ctx.moveTo(XY.X(mx), pa.y0); ctx.lineTo(XY.X(mx), pa.y1); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    }
+    ctx.restore();
+    canvas._XY = XY;
+    zoomBar(legendEl, ui, draw, opts.keyEntries);
+  }
+  draw();
+  redraws.set(canvasId, draw);
+  wireChart(canvas, ui, draw, (cx) => {
+    if (!canvas._XY) return null;
+    const xv = canvas._XY.Xi(cx);
+    const parts = S.filter(s => !(s.visKey && qHidden.has(s.visKey))).map(s => {
+      let best = -1, bd = Infinity;
+      for (let i = 0; i < s.X.length; i++) { const d = Math.abs(s.X[i] - xv); if (d < bd) { bd = d; best = i; } }
+      return best < 0 ? null : `<span style="color:${s.color()}">●</span> ${s.label}: ${fmt(s.Y[best])}`;
+    }).filter(Boolean);
+    return parts.length ? `x ≈ ${fmt(xv, 1)}<br>` + parts.join('<br>') : null;
+  });
+  return draw;
+}
+
+const xl = () => xmode === 'wall' ? 'wall-clock time (s)' : 'training step';
+const ckptX = () => cap.ckpts.map(k => xmode === 'wall' ? (k.wall !== undefined ? k.wall : NaN) : k.step);
+const markerXv = () => {
+  const k = cap && cap.ckpts[ci];
+  if (!k) return NaN;
+  return xmode === 'wall' ? (k.wall !== undefined ? k.wall : NaN) : k.step;
+};
+function hasWall() {
+  return !!cap && (cap.lossWall.some(v => v !== undefined && v !== null) ||
+                   cap.ckpts.some(k => k.wall !== undefined));
+}
+function updateXaxis() {
+  const sel = $('ts-xaxis');
+  sel.disabled = !hasWall();
+  if (sel.disabled) { xmode = 'steps'; sel.value = 'steps'; }
+}
+function createCharts() {
+  lineChart('ts-loss', 'ts-loss-legend',
+    [{ label: 'training loss', color: () => cssVar('--series-1'),
+       xs: () => xmode === 'wall' ? cap.lossWall : cap.lossSteps, ys: () => cap.losses }],
+    { ylog: true, xlabel: xl, ylabel: 'loss', markerX: markerXv });
+  const hasB = !!(cap.config && cap.config.bslq_b);
+  const g = cap.config && cap.config.opt === 'gd' ? 2 / cap.config.lr : undefined;
+  for (const q of qKeys()) {
+    const sharpSeries = [{ label: 'λ_max exact', color: QCOLORS[q], visKey: QLABEL[q],
+        xs: ckptX, ys: () => cap.ckpts.map(kk => { const ev = kk.evals[q]; return ev[ev.length - 1]; }) }];
+    if (hasB) sharpSeries.push({ label: 'λ_max block SLQ', color: QCOLORS[q], dash: BDASH, visKey: BLABEL(q),
+        xs: ckptX, ys: () => cap.ckpts.map(kk => (kk.bslq && kk.bslq[q])
+          ? Math.max.apply(null, kk.bslq[q].nodes.map(nd => nd[nd.length - 1])) : NaN) });
+    lineChart('ts-sharp-' + q, 'ts-sharp-' + q + '-legend', sharpSeries,
+      { xlabel: xl, ylabel: q === 'H' ? 'λ_max (sharpness)' : 'λ_max',
+        guideY: q === 'H' ? g : undefined, markerX: markerXv });
+    const errSeries = [{ label: 'SLQ', color: QCOLORS[q], visKey: QLABEL[q],
+        xs: ckptX, ys: () => cap.ckpts.map(kk => kk.slq_l1 ? kk.slq_l1[q] : NaN) }];
+    if (hasB) errSeries.push({ label: 'block SLQ', color: QCOLORS[q], dash: BDASH, visKey: BLABEL(q),
+        xs: ckptX, ys: () => cap.ckpts.map(kk => kk.bslq_l1 ? kk.bslq_l1[q] : NaN) });
+    lineChart('ts-errs-' + q, 'ts-errs-' + q + '-legend', errSeries,
+      { ylog: true, xlabel: xl, ylabel: q === 'H' ? 'SLQ L1 error' : '', markerX: markerXv });
+  }
+}
+function refreshTraining() {
+  const ids = ['ts-loss'];
+  for (const q of qKeys()) ids.push('ts-sharp-' + q, 'ts-errs-' + q);
+  for (const id of ids) { const d = redraws.get(id); if (d) d(); }
+}
+function setCkptUI() {
+  const k = cap && cap.ckpts[ci];
+  $('ts-steplabel').textContent = k ? k.step : '–';
+  $('ts-cklabel').textContent = k
+    ? `checkpoint ${ci + 1}/${cap.ckpts.length} · loss ${fmt(k.loss)} · sharpness ${fmt(k.sharpness)}` : '';
+  drawDens(); drawScree(); renderStats(); refreshTraining();
+}
+let metaFolded = 0;
+function foldMeta() {
+  if (!cap || !cap.ckpts.length) { meta = null; metaFolded = 0; return; }
+  if (!meta || metaFolded === 0) { meta = computeMeta(); metaFolded = cap.ckpts.length; return; }
+  let lo = meta.rawLo, hi = meta.rawHi;
+  for (let i = metaFolded; i < cap.ckpts.length; i++)
+    for (const q of qKeys()) {
+      const ev = cap.ckpts[i].evals[q];
+      lo = Math.min(lo, ev[0]); hi = Math.max(hi, ev[ev.length - 1]);
+    }
+  metaFolded = cap.ckpts.length;
+  if (lo === meta.rawLo && hi === meta.rawHi) return;
+  meta = buildMeta(lo, hi);
+}
+function onNewCkpt() {
+  foldMeta(); densCache.clear(); bdensCache.clear(); bscreeCache.clear();
+  const sl = $('ts-slider');
+  sl.max = Math.max(0, cap.ckpts.length - 1);
+  if (follow) { ci = cap.ckpts.length - 1; sl.value = ci; }
+  renderQsel(); updateXaxis(); setCkptUI();
+}
+function showConfig(cfg) {
+  cap.config = cfg;
+  $('ts-cfg').innerHTML =
+    `<span>dataset = <b>${cfg.dataset || 'teacher'}</b></span><span>classes = <b>${cfg.dout || 1}</b></span>` +
+    `<span>p = <b>${cfg.p}</b></span><span>depth = <b>${cfg.depth}</b></span><span>width = <b>${cfg.width}</b></span>` +
+    `<span>n = <b>${cfg.n}</b></span><span>batch = <b>${cfg.batch}</b></span><span>act = <b>${cfg.act}</b></span>` +
+    `<span>opt = <b>${cfg.opt}</b></span><span>lr = <b>${cfg.lr}</b></span><span>steps = <b>${cfg.steps}</b></span>` +
+    `<span>spectra every = <b>${cfg.ckpt_every || '—'}</b></span>` +
+    `<span>SLQ = <b>${cfg.slq_probes}×${cfg.slq_k}</b></span><span>block = <b>b${cfg.bslq_b}·s${cfg.bslq_s}·k${cfg.bslq_k}</b></span>` +
+    `<span>device = <b>${cfg.device}</b></span>`;
+  createCharts(); updateXaxis();
+}
+function resetCap() {
+  cap = { config: null, losses: [], lossSteps: [], lossWall: [], ckpts: [] };
+  ci = 0; meta = null; metaFolded = 0; densCache.clear(); bdensCache.clear(); bscreeCache.clear(); qHidden.clear();
+  for (const q of qKeys()) { densViews[q].view = null; screeViews[q].view = null; }
+  follow = true; $('ts-follow').checked = true;
+  const sl = $('ts-slider'); sl.max = 0; sl.value = 0;
+  $('ts-cfg').innerHTML = ''; $('ts-qsel').innerHTML = ''; $('ts-stats').innerHTML = '';
+  $('ts-steplabel').textContent = '–'; $('ts-cklabel').textContent = '';
+}
+function loadStatic(c, name) {
+  if (live) return;
+  resetCap();
+  cap.losses = c.losses.slice();
+  cap.lossSteps = c.losses.map((_, i) => i);
+  cap.ckpts = c.checkpoints.slice();
+  showConfig(c.config);
+  $('ts-status').textContent = 'loaded ' + name;
+  onNewCkpt();
+}
+
+/* ── live run against spectra_server.py ── */
+function setStatus(msg, err) {
+  const el = $('ts-status');
+  el.textContent = msg;
+  el.classList.toggle('err', !!err);
+}
+async function startRun() {
+  const body = {
+    depth: iv('ts-depth', 1, 8), width: iv('ts-width', 1, 256), din: iv('ts-din', 1, 512),
+    n: iv('ts-n', 2, 4096), batch: iv('ts-batch', 0, 4096), steps: iv('ts-steps', 1, 20000),
+    ckpt_every: iv('ts-ckevery', 1, 20000), seed: iv('ts-seed', 0, 1e9),
+    act: $('ts-act').value, opt: $('ts-opt').value,
+    lr: parseFloat($('ts-lr').value) || 0.05,
+    gn_damping: parseFloat($('ts-damp').value) || 1e-3,
+    slq_probes: iv('ts-slqp', 1, 64), slq_k: iv('ts-slqk', 4, 200),
+    bslq_b: iv('ts-bslqb', 1, 16), bslq_s: iv('ts-bslqs', 1, 16), bslq_k: iv('ts-bslqk', 2, 100),
+    dataset: $('ts-data').value,
+    parity_k: iv('ts-parityk', 1, 64),
+    cheby_deg: iv('ts-chebydeg', 1, 32),
+    cifar_size: iv('ts-cifarsz', 4, 32),
+  };
+  $('ts-run').disabled = true;
+  setStatus('launching run on the GPU server…');
+  try {
+    const r = await FETCH('api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                       body: JSON.stringify(body) });
+    const j = await r.json();
+    if (!r.ok || j.error) throw new Error(j.error || ('HTTP ' + r.status));
+    resetCap();
+    live = { id: j.id, off: 0, buf: '' };
+    $('ts-stopbtn').disabled = false;
+    setStatus('run ' + j.id + ' started; waiting for the stream…');
+    poll();
+  } catch (e) {
+    setStatus('could not start run: ' + e.message, true);
+    $('ts-run').disabled = false;
+  }
+}
+async function poll() {
+  if (!live) return;
+  let done = false;
+  try {
+    const r = await FETCH(`api/tail?id=${live.id}&off=${live.off}`);
+    const j = await r.json();
+    if (j.error) throw new Error(j.error);
+    live.off = j.off;
+    const lines = (live.buf + (j.data || '')).split('\n');
+    live.buf = lines.pop();
+    let gotCkpt = false, gotLoss = false, finished = null;
+    for (const ln of lines) {
+      if (!ln.trim()) continue;
+      let o;
+      try { o = JSON.parse(ln); } catch (e) { continue; }
+      if (o.t === 'config') showConfig(o.config);
+      else if (o.t === 'loss') { cap.losses.push(o.l); cap.lossSteps.push(o.s); cap.lossWall.push(o.wall); gotLoss = true; }
+      else if (o.t === 'ckpt') { cap.ckpts.push(o); gotCkpt = true; }
+      else if (o.t === 'done') finished = o;
+    }
+    if (gotCkpt) onNewCkpt();
+    else if (gotLoss) { updateXaxis(); refreshTraining(); }
+    if (gotLoss && cap.config && !finished) {
+      const s = cap.lossSteps[cap.lossSteps.length - 1];
+      const w = cap.lossWall[cap.lossWall.length - 1];
+      setStatus(`running · step ${s}/${cap.config.steps} · checkpoint ${cap.ckpts.length} · ${fmt(w, 1)} s`);
+    }
+    if (finished) setStatus(`done in ${finished.wall} s · saved on the server as captures/${live.id}.json`);
+    if (j.done) {
+      done = true;
+      if (!finished && j.exit !== 0)
+        setStatus('run failed (exit ' + j.exit + ')' + (j.log ? ': …' + j.log.slice(-300) : ''), true);
+      else if (!finished && !cap.ckpts.length)
+        setStatus('run ended before producing output', true);
+    }
+  } catch (e) {
+    setStatus('stream error: ' + e.message, true);
+    done = true;
+  }
+  if (done) { live = null; $('ts-stopbtn').disabled = true; $('ts-run').disabled = false; return; }
+  setTimeout(poll, 1000);
+}
+$('ts-run').onclick = startRun;
+$('ts-stopbtn').onclick = () => { if (live) FETCH('api/stop?id=' + live.id).catch(() => {}); };
+$('ts-slider').oninput = () => {
+  follow = false; $('ts-follow').checked = false;
+  ci = +$('ts-slider').value;
+  setCkptUI();
+};
+$('ts-follow').onchange = () => {
+  follow = $('ts-follow').checked;
+  if (follow && cap && cap.ckpts.length) { ci = cap.ckpts.length - 1; $('ts-slider').value = ci; setCkptUI(); }
+};
+$('ts-xaxis').onchange = () => { xmode = $('ts-xaxis').value; refreshTraining(); };
+$('ts-file').onchange = (ev) => {
+  const f = ev.target.files[0];
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try { loadStatic(JSON.parse(rd.result), f.name); }
+    catch (e) { setStatus('could not parse ' + f.name + ': ' + e.message, true); }
+  };
+  rd.readAsText(f);
+};
+function updateFormVis() {
+  const ds = $('ts-data').value;
+  $('ts-f-parityk').classList.toggle('hidden', ds !== 'parity');
+  $('ts-f-chebydeg').classList.toggle('hidden', ds !== 'chebyshev');
+  $('ts-f-cifarsz').classList.toggle('hidden', ds !== 'cifar10');
+  $('ts-f-din').classList.toggle('hidden', ds === 'cifar10');
+  $('ts-f-damp').classList.toggle('hidden', $('ts-opt').value !== 'gn');
+}
+$('ts-data').onchange = updateFormVis;
+$('ts-opt').onchange = updateFormVis;
+updateFormVis();
+if (window.matchMedia) {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  const re = () => { syncQ(); refreshTraining(); };
+  if (mq.addEventListener) mq.addEventListener('change', re); else if (mq.addListener) mq.addListener(re);
+}
+
+/* server probe + example capture */
+FETCH('api/ping').then(r => r.json()).then(j => {
+  $('ts-server').textContent = `GPU server connected · ${j.gpu} · ${j.running} run(s) in flight`;
+  $('ts-run').disabled = false;
+}).catch(() => {
+  $('ts-server').textContent = 'no GPU server behind this page. Serve it with python3 spectra_server.py on a GPU box '
+    + '(or sbatch spectra_server.sbatch, then tunnel). You can still load a saved capture on the right.';
+});
+FETCH('training-capture.json').then(r => r.ok ? r.json() : null).then(c => {
+  if (c && !live && (!cap || !cap.ckpts.length)) loadStatic(c, 'training-capture.json (example 10k-parameter run)');
+}).catch(() => {});
+})();
+</script>
+</body>
+</html>
