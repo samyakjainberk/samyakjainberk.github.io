@@ -1004,7 +1004,7 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
       <div><canvas id="ts-errs-GN" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-errs-GN-legend"></div></div>
       <div><canvas id="ts-errs-F" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-errs-F-legend"></div></div>
     </div>
-    <p class="note">One column per quantity (H, \(JJ^\top/n\), \(F = Q \cdot r\)); density and index panels share axes across columns, λ_max and error panels autoscale. Thin dashed = block SLQ, gray dash = \(2/\eta\) (H panel), red marker = slider. Axes stay fixed while scrubbing.</p>
+    <p class="note">One column per quantity (H, \(JJ^\top/n\), \(F = Q \cdot r\)); density and index panels share axes across columns, λ_max and error panels autoscale. Solid = exact / SLQ, dashed = block SLQ (dashed chips in the show strip too); gray dash = \(2/\eta\) (H panel), red marker = slider. Hover any panel to read off values. Axes stay fixed while scrubbing.</p>
   </div>
   <div id="sl-tooltip"></div>
   <div id="ts-tooltip"></div>
@@ -2134,11 +2134,16 @@ function clearCanvas(canvas) {
   canvas.classList.remove('hidden');
   return ctx;
 }
+function chipStyle(col, dashed) {
+  return dashed
+    ? `background: repeating-linear-gradient(90deg, ${col} 0 4px, transparent 4px 7px)`
+    : `background: ${col}`;
+}
 function zoomBar(el, ui, redraw, keyEntries) {
   el.innerHTML = (keyEntries || []).map(e => {
     const col = typeof e.color === 'function' ? e.color() : e.color;
     return `<span class="lg" style="cursor: default">` +
-      (col ? `<span class="chip" style="background:${col}"></span>` : '') + `${e.label}</span>`;
+      (col ? `<span class="chip" style="${chipStyle(col, e.dash)}"></span>` : '') + `${e.label}</span>`;
   }).join('') + (ui.view ? '<span class="lg reset">&#8634; reset zoom</span>' : '');
   const r = el.querySelector('.reset');
   if (r) r.onclick = () => { ui.view = null; redraw(); };
@@ -2307,12 +2312,25 @@ function drawDens() {
     const ydom = ui.view && ui.view.y ? [Math.max(0, ui.view.y[0]), ui.view.y[1]] : [0, ymax * 1.08 || 1];
     const XY = drawFrame(ctx, pa, xdom, ydom, { xlabel: 'eigenvalue', ylabel: q === 'H' ? 'density' : '' });
     ctx.save(); ctx.beginPath(); ctx.rect(pa.x0, pa.y0, pa.x1 - pa.x0, pa.y1 - pa.y0); ctx.clip();
-    if (!qHidden.has(QLABEL[q])) drawLine(ctx, XY, meta.grid, densityOf(ci, q), QCOLORS[q](), 2, QDASH[q]);
+    if (!qHidden.has(QLABEL[q])) drawLine(ctx, XY, meta.grid, densityOf(ci, q), QCOLORS[q](), 2, null);
     if (hasB && !qHidden.has(BLABEL(q))) drawLine(ctx, XY, meta.grid, bslqDensityOf(ci, q), QCOLORS[q](), 1.2, BDASH);
     ctx.restore();
     canvas._XY = XY;
-    if (!canvas._wired) { canvas._wired = true; wireChart(canvas, ui, drawDens, null); }
-    zoomBar($('ts-dens-' + q + '-legend'), ui, drawDens);
+    if (!canvas._wired) {
+      canvas._wired = true;
+      wireChart(canvas, ui, drawDens, (px) => {
+        if (!canvas._XY || !meta || !cap || !cap.ckpts.length) return null;
+        const xv = canvas._XY.Xi(px);
+        let gi = Math.round((xv - meta.lo) / (meta.hi - meta.lo) * (NB - 1));
+        if (gi < 0 || gi >= NB) return null;
+        const parts = [`λ ≈ ${fmt(meta.grid[gi], 3)}`];
+        if (!qHidden.has(QLABEL[q])) parts.push(`exact density: ${fmt(densityOf(ci, q)[gi])}`);
+        if (ckBslq(ci) && !qHidden.has(BLABEL(q))) parts.push(`block SLQ: ${fmt(bslqDensityOf(ci, q)[gi])}`);
+        return parts.join('<br>');
+      });
+    }
+    zoomBar($('ts-dens-' + q + '-legend'), ui, drawDens,
+      [{ color: QCOLORS[q](), label: 'exact' }].concat(hasB ? [{ color: QCOLORS[q](), dash: true, label: 'block SLQ' }] : []));
   }
 }
 function drawScree() {
@@ -2338,7 +2356,7 @@ function drawScree() {
       const ev = cap.ckpts[ci].evals[q];
       const xs = [], ys = [];
       for (let i2 = 0; i2 < ev.length; i2++) { xs.push(i2 + 1); ys.push(ev[ev.length - 1 - i2]); }
-      drawLine(ctx, XY, xs, ys, QCOLORS[q](), 2, QDASH[q]);
+      drawLine(ctx, XY, xs, ys, QCOLORS[q](), 2, null);
     }
     if (hasB && !qHidden.has(BLABEL(q))) {
       const es = bslqScreeOf(ci, q);
@@ -2348,8 +2366,21 @@ function drawScree() {
     }
     ctx.restore();
     canvas._XY = XY;
-    if (!canvas._wired) { canvas._wired = true; wireChart(canvas, ui, drawScree, null); }
-    zoomBar($('ts-scree-' + q + '-legend'), ui, drawScree);
+    if (!canvas._wired) {
+      canvas._wired = true;
+      wireChart(canvas, ui, drawScree, (px) => {
+        if (!canvas._XY || !cap || !cap.ckpts.length) return null;
+        const ev = cap.ckpts[ci].evals[q];
+        const idx = Math.round(canvas._XY.Xi(px));
+        if (idx < 1 || idx > ev.length) return null;
+        const parts = [`index ${idx}`];
+        if (!qHidden.has(QLABEL[q])) parts.push(`exact λ: ${fmt(ev[ev.length - idx], 4)}`);
+        if (ckBslq(ci) && !qHidden.has(BLABEL(q))) parts.push(`block SLQ λ̂: ${fmt(bslqScreeOf(ci, q)[idx - 1], 4)}`);
+        return parts.join('<br>');
+      });
+    }
+    zoomBar($('ts-scree-' + q + '-legend'), ui, drawScree,
+      [{ color: QCOLORS[q](), label: 'exact' }].concat(hasB ? [{ color: QCOLORS[q](), dash: true, label: 'block SLQ' }] : []));
   }
 }
 function syncQ() { drawDens(); drawScree(); renderQsel(); }
@@ -2358,12 +2389,12 @@ function renderQsel() {
   if (!cap || !cap.ckpts.length) { el.innerHTML = ''; return; }
   const hasB = !!ckBslq(ci) || !!(cap.config && cap.config.bslq_b);
   const entries = qKeys().map(q => ({ label: QLABEL[q], color: QCOLORS[q]() }))
-    .concat(hasB ? qKeys().map(q => ({ label: BLABEL(q), color: QCOLORS[q]() })) : []);
+    .concat(hasB ? qKeys().map(q => ({ label: BLABEL(q), color: QCOLORS[q](), dash: true })) : []);
   el.innerHTML = '<span class="lg-cap">show:</span>' + entries.map(e => {
     const off = qHidden.has(e.label);
     return `<span class="lg${off ? ' off' : ''}" data-label="${e.label}">` +
       `<input type="checkbox"${off ? '' : ' checked'}>` +
-      `<span class="chip" style="background:${e.color}"></span>${e.label}</span>`;
+      `<span class="chip" style="${chipStyle(e.color, e.dash)}"></span>${e.label}</span>`;
   }).join('');
   el.querySelectorAll('.lg').forEach(sp => {
     const inp = sp.querySelector('input');
@@ -2488,13 +2519,18 @@ function createCharts() {
           ? Math.max.apply(null, kk.bslq[q].nodes.map(nd => nd[nd.length - 1])) : NaN) });
     lineChart('ts-sharp-' + q, 'ts-sharp-' + q + '-legend', sharpSeries,
       { xlabel: xl, ylabel: q === 'H' ? 'λ_max (sharpness)' : 'λ_max',
-        guideY: q === 'H' ? g : undefined, markerX: markerXv });
+        guideY: q === 'H' ? g : undefined, markerX: markerXv,
+        keyEntries: [{ color: QCOLORS[q], label: 'exact' }]
+          .concat(hasB ? [{ color: QCOLORS[q], dash: true, label: 'block SLQ' }] : [])
+          .concat(q === 'H' && g !== undefined ? [{ color: () => cssVar('--truth'), dash: true, label: '2/η' }] : []) });
     const errSeries = [{ label: 'SLQ', color: QCOLORS[q], visKey: QLABEL[q],
         xs: ckptX, ys: () => cap.ckpts.map(kk => kk.slq_l1 ? kk.slq_l1[q] : NaN) }];
     if (hasB) errSeries.push({ label: 'block SLQ', color: QCOLORS[q], dash: BDASH, visKey: BLABEL(q),
         xs: ckptX, ys: () => cap.ckpts.map(kk => kk.bslq_l1 ? kk.bslq_l1[q] : NaN) });
     lineChart('ts-errs-' + q, 'ts-errs-' + q + '-legend', errSeries,
-      { ylog: true, xlabel: xl, ylabel: q === 'H' ? 'SLQ L1 error' : '', markerX: markerXv });
+      { ylog: true, xlabel: xl, ylabel: q === 'H' ? 'SLQ L1 error' : '', markerX: markerXv,
+        keyEntries: [{ color: QCOLORS[q], label: 'SLQ' }]
+          .concat(hasB ? [{ color: QCOLORS[q], dash: true, label: 'block SLQ' }] : []) });
   }
 }
 function refreshTraining() {
