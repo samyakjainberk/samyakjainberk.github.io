@@ -597,7 +597,7 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
 
 <p>There are two matrix sources. The first is a random symmetric matrix (GOE, Wishart, spiked, clustered, or log spaced), with the dimension \(p\) as a hyperparameter. The second is the exact Hessian of a small one hidden layer MLP, touched only through HVPs; the architecture, \(n\), the activation, and the training are all adjustable. Up to \(p = 6000\) the ground truth is the exact eigendecomposition. For larger \(p\) the widget uses an SLQ reference spectrum instead, clearly labeled in every chart, so much larger sizes run (up to \(p = 8000\) for the random source). Every run also reports how many matvecs it spent.</p>
 
-<p>Each tab shows two main plots. The density plot compares the estimated spectral density with the ground truth. The eigenvalue vs index plot shows \(\lambda_i\) against \(i\), from largest to smallest, which makes it easy to see how well the top of the spectrum is resolved. For the stochastic estimators this curve comes from inverting the estimated density, \(\hat\lambda_i = \hat F^{-1}\big(1 - \tfrac{i - 1/2}{p}\big)\).</p>
+<p>Each tab shows two main plots. The density plot compares the estimated spectral density with the ground truth. The eigenvalue vs index plot shows \(\lambda_i\) against \(i\), from largest to smallest, which makes it easy to see how well the top of the spectrum is resolved.</p>
 
 <p>Tabs 6 to 9 use ideas we have not defined yet:</p>
 <ul>
