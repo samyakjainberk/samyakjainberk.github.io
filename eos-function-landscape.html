@@ -2251,9 +2251,10 @@ function drawNormsStrip(cv, RR, t){
   for (const arr of [RR.T3n, RR.JQn])
     for (let i = 0; i < arr.length; i++){ const v = lg(arr[i]); if (v < lo) lo = v; if (v > hi) hi = v; }
   if (!isFinite(lo)){ lo = -1; hi = 1; }
+  lo = Math.max(lo, hi - 12);   // cap at 12 decades: momentary exact zeros must not crush the axis
   if (hi - lo < 1){ hi += 0.5; lo -= 0.5; }
   lo -= 0.06*(hi-lo); hi += 0.06*(hi-lo);
-  A.y = v => A.t + (hi - v)/(hi - lo)*A.h;
+  A.y = v => A.t + (hi - clamp(v, lo, hi))/(hi - lo)*A.h;
   const dec = Math.max(1, Math.round((hi-lo)/5));
   ctx.strokeStyle = PAL.grid; ctx.lineWidth = 1; ctx.fillStyle = PAL.muted;
   ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
