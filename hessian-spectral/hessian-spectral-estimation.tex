@@ -20,7 +20,7 @@
 \newtheorem*{remarkbox}{Remark}
 
 \newcommand{\Tr}{\operatorname{Tr}}
-\newcommand{\lab}{\href{https://samyakjainberk.github.io/hessian-spectral/}{interactive widget}} % update URL
+\newcommand{\lab}{\href{https://samyakjainberk.github.io/hessian-spectral/}{interactive widget}}
 
 \title{Peeking at the Hessian:\\ HVPs, Lanczos, and Stochastic Quadrature}
 \author{Samyak Jain}
@@ -62,7 +62,7 @@ At each layer, backprop has to compute \emph{two} things instead of one:
 \[
 \underbrace{\frac{\partial h_i}{\partial W_i}}_{\text{gradient for the weights}}
 \qquad\text{and}\qquad
-\underbrace{\frac{\partial W_i}{\partial h_{i-1}}}_{\text{signal passed to the previous layer}}
+\underbrace{\frac{\partial h_i}{\partial h_{i-1}}}_{\text{signal passed to the previous layer}}
 \]
 Each is a matrix product of the same size as the forward one, so the backward pass costs about $2np$.
 
@@ -75,7 +75,7 @@ Hv \;=\; \nabla_w \big( \nabla_w L(w)^\top v \big),
 i.e.\ the gradient of the scalar $g(w) = \nabla L(w)^\top v$. Autodiff computes this by differentiating \emph{through the gradient's own computational graph}. A clean way to think about it: the graph that computes the gradient is itself a network whose ``layers'' are the local Jacobians
 \[
 W_i \;\to\; \frac{\partial h_i}{\partial W_i}, \qquad
-h_i \;\to\; \frac{\partial W_{i}}{\partial h_i},
+h_i \;\to\; \frac{\partial h_{i+1}}{\partial h_i},
 \]
 and running one more backward pass through that graph. Think of it as replacing the original network with a modified one, $W_i \to \partial h_i / \partial W_i$ and $h_i \to \partial h_{i+1} / \partial h_i$. Now everything is the same as before, one level up. Thus we have:
 \[
@@ -187,7 +187,7 @@ Basically, if we read off column $j$, we will get: \textbf{three-term recurrence
 \[
 \beta_j \tilde v_{j+1} = A \tilde v_j - \alpha_j \tilde v_j - \beta_{j-1} \tilde v_{j-1},
 \]
-so in exact arithmetic each new basis vector needs orthogonalization against only the \emph{two} previous ones, not all of them. This is easier to implement as it overcomes the floating point errors which would occur if the Gram-Schmidt was done at the end. Thus the lanczos iteration, which one would find in most places is the following:
+so in exact arithmetic each new basis vector needs orthogonalization against only the \emph{two} previous ones, not all of them. This is cheaper and easier to implement, though in floating point orthogonality still degrades, which is why practical codes re-orthogonalize. Thus the lanczos iteration, which one would find in most places is the following:
 
 \begin{algorithmic}[1]
 \State $v_1 \gets z/\|z\|$; \quad $\beta_0 \gets 0$; \quad $v_0 \gets 0$
@@ -221,7 +221,7 @@ an exact eigendecomposition. For $k \ll p$ the same objects are approximations, 
 
 \section{Block Lanczos}
 
-Plain Lanczos has a blind spot: \textbf{eigenvalue multiplicity}. A single Krylov sequence started from one vector can only ever see a one-dimensional slice of each eigenspace, so eigenvalues that are exactly degenerate (or clustered so tightly that floating point cannot separate them) are found once, not with their multiplicity. Lanczos simply cannot tell them apart unless we run very large number of iterations.
+Plain Lanczos has a blind spot: \textbf{eigenvalue multiplicity}. A single Krylov sequence started from one vector can only ever see a one-dimensional slice of each eigenspace, so eigenvalues that are exactly degenerate (or clustered so tightly that floating point cannot separate them) are found once, not with their multiplicity. Lanczos simply cannot tell them apart.
 
 \textbf{Key idea.} Do power iteration on a rank-$b$ subspace instead of a rank-one subspace: start from a random $p \times b$ block $Q$ and build the block Krylov space from $Q, AQ, A^2Q, \dots$. A block of width $b$ can capture up to $b$ copies of a degenerate eigenvalue and cleanly separates tight clusters.
 
@@ -235,7 +235,7 @@ The projected matrix is then \textbf{block tridiagonal}: the same structure with
 A Q_j = Q_{j-1} B_{j-1}^\top + Q_j A_j + Q_{j+1} B_j,
 \qquad
 A_j = Q_j^\top A Q_j, \quad
-B_j \ \text{from the QR step } W_j = Q_{j+1} B_j,
+B_j \ \text{from QR of the residual } W_j = A Q_j - Q_j A_j - Q_{j-1} B_{j-1}^\top = Q_{j+1} B_j,
 \]
 so $T$ has the $A_j$ on its block diagonal and the $B_j$ on the block off-diagonals, and the eigendecomposition of the small $kb \times kb$ matrix $T$ supplies the Ritz pairs exactly as before.
 
@@ -337,7 +337,7 @@ f(A)\, v_1 = \sum_i f(\lambda_i)\, (u_i^\top v_1)\, u_i
 \qquad\Longrightarrow\qquad
 v_1^\top f(A)\, v_1 = \sum_i f(\lambda_i)\, (u_i^\top v_1)^2 .
 \]
-Note that the Lanczos run hands us exactly these quantities: the Ritz values $\theta_j$ stand in for the eigenvalues $\lambda_i$, and $(S_{1j})^2$ stands in for the weight $(u_j^\top v_1)^2$.
+Note that the Lanczos run hands us exactly these quantities: the Ritz values $\theta_j$ stand in for the eigenvalues $\lambda_i$, and $(S_{1j})^2$ stands in for the combined weight $(u_i^\top v_1)^2$ of the eigenvalues near $\theta_j$.
 %The Lanczos side is the same kind of object for the small matrix: $\sum_j (S_{1j})^2 f(\theta_j) = e_1^\top f(T)\, e_1$. And on polynomials the two sides match exactly: $v_1^\top A^n v_1 = e_1^\top T^n e_1$ for every $n \le 2k-1$, because $A^n v_1 = \tilde V\, T^n e_1$ for $n \le k-1$ (powers of $A$ stay inside the Krylov space, where $T$ reproduces them), and any $n \le 2k-1$ splits into two such halves.
 % \begin{remarkbox}
 % A rule with $k$ nodes that integrates every polynomial up to degree $2k-1$ exactly is the \emph{Gauss quadrature rule} of the weighted spectrum, so Lanczos constructs Gauss quadrature automatically. For a general $f$ the error is at most $\max_t |f(t) - q(t)|$ over the spectrum for the best degree-$(2k-1)$ polynomial $q$: geometrically small in $k$ for analytic $f$ (a Gaussian bump, or $\log t$ with $\lambda_{\min} > 0$), slow for hard steps, which is why eigenvalue counting uses a smoothed step.
@@ -405,7 +405,7 @@ where $\tilde\rho(x) = \frac1p \sum_i \delta(x - \tilde\lambda_i)$. Finding the 
 \[
 \hat\rho(x) = \frac{1}{\pi\sqrt{1 - x^2}} \Big[ \hat\mu_0 + 2 \sum_{k=1}^{K} \hat\mu_k\, T_k(x) \Big],
 \qquad
-\hat\mu_k = \frac{1}{p} \Tr\, T_k(\tilde A) .
+\mu_k = \frac{1}{p} \Tr\, T_k(\tilde A) .
 \]
 \end{resultbox}
 
@@ -454,13 +454,13 @@ The through line: a forward pass costs $np$, an HVP costs $5np$, and every quest
 
 Finally, let's play around with some widgets. Everything in this doc is runnable in the \lab{}, in ten numbered estimator tabs.
 
-There are two matrix sources. The first is a random symmetric matrix (GOE, Wishart, spiked, clustered, or log spaced), with the dimension $p$ as a hyperparameter. The second is the exact Hessian of a small one hidden layer MLP, touched only through HVPs; the architecture, $n$, the activation, and the training are all adjustable. Up to $p = 6000$ the ground truth is the exact eigendecomposition. For larger $p$ the widget uses an SLQ reference spectrum instead, clearly labeled in every chart, so any size runs. Every run also reports how many matvecs it spent.
+There are two matrix sources. The first is a random symmetric matrix (GOE, Wishart, spiked, clustered, or log spaced), with the dimension $p$ as a hyperparameter. The second is the exact Hessian of a small one hidden layer MLP, touched only through HVPs; the architecture, $n$, the activation, and the training are all adjustable. Up to $p = 6000$ the ground truth is the exact eigendecomposition. For larger $p$ the widget uses an SLQ reference spectrum instead, clearly labeled in every chart, so much larger sizes run (up to $p = 8000$ for the random source). Every run also reports how many matvecs it spent.
 
 Each tab shows two main plots. The density plot compares the estimated spectral density with the ground truth. The eigenvalue vs index plot shows $\lambda_i$ against $i$, from largest to smallest, which makes it easy to see how well the top of the spectrum is resolved. For the stochastic estimators this curve comes from inverting the estimated density, $\hat\lambda_i = \hat F^{-1}\big(1 - \tfrac{i - 1/2}{p}\big)$.
 
-Three tabs use ideas we have not defined yet:
+Tabs 6 to 9 use ideas we have not defined yet:
 \begin{itemize}
-  \item \textbf{Edge + deflated SLQ} (tab 6). First run a few rounds of Lanczos and collect the converged extreme Ritz vectors into an orthonormal $U$. Then run SLQ on the deflated operator $A' = (I - UU^\top)\, A\, (I - UU^\top)$, with probes kept orthogonal to $U$. The harvested eigenvalues enter the density exactly, and SLQ fills in the rest:
+  \item \textbf{Edge + deflated SLQ} (tab 6). First run a few rounds of Lanczos and collect the converged extreme Ritz vectors into an orthonormal $U$. Then run SLQ on the deflated operator $A' = (I - UU^\top)\, A\, (I - UU^\top)$, with probes kept orthogonal to $U$ (write $m$ for the number of harvested eigenpairs, the columns of $U$). The harvested eigenvalues enter the density exactly, and SLQ fills in the rest:
   \[
   \hat\rho(t) = \frac{1}{p}\sum_{\theta \in \text{harvested}} g_\sigma(t - \theta) \;+\; \frac{p - m}{p}\, \hat\rho_{\text{SLQ on } A'}(t) .
   \]

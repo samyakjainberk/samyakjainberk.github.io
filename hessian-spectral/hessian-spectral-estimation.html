@@ -237,7 +237,7 @@ window.MathJax = {
 
 <p><strong>Motivation:</strong> The Hessian of a neural network's loss is a \(p \times p\) matrix, where \(p\) is the number of parameters. For a model with 100 million parameters that is about <em>40&nbsp;petabytes</em> in float32, which is almost impossible to compute in closed form. But its spectrum can capture a lot of rich structure which influences the learning dynamics. Therefore, understanding the eigenspectrum of the hessian is important.</p>
 
-<p>The good news is that there are tools which prevent us from computing the closed form \(p \times p\) version of the hessian, yet we can understand its eigenspectrum. Everything in this doc is built from one primitive, the <strong>Hessian-vector product</strong>, which costs less than three gradient iterations. In this blogpost, we walk up the ladder of algorithms aiming to estimate the eigenvalues, statistics of eigenvalues like trace and eigenspectrum. At the end we play around with the <a href="#widgetcosts"><strong>interactive widget</strong></a> to build a deep intuition for each one, on random matrices and on real (small) neural net Hessians:</p>
+<p>The good news is that there are tools which prevent us from computing the closed form \(p \times p\) version of the hessian, yet we can understand its eigenspectrum. Everything in this doc is built from one primitive, the <strong>Hessian-vector product</strong>, which costs less than three gradient iterations. In this blogpost, we walk up the ladder of algorithms aiming to estimate the eigenvalues, statistics of eigenvalues like trace and eigenspectrum. At the end we play around with the <a href="#widgetcosts"><strong>interactive widget</strong></a> to build a deep intuition for each one, on random matrices and on real (small) neural net Hessians.</p>
 
 <nav class="toc">
 <strong>Contents</strong>
@@ -276,7 +276,7 @@ window.MathJax = {
 \[
 \underbrace{\frac{\partial h_i}{\partial W_i}}_{\text{gradient for the weights}}
 \qquad\text{and}\qquad
-\underbrace{\frac{\partial W_i}{\partial h_{i-1}}}_{\text{signal passed to the previous layer}}
+\underbrace{\frac{\partial h_i}{\partial h_{i-1}}}_{\text{signal passed to the previous layer}}
 \]
 <p>Each is a matrix product of the same size as the forward one, so the backward pass costs about \(2np\).</p>
 
@@ -289,7 +289,7 @@ Hv \;=\; \nabla_w \big( \nabla_w L(w)^\top v \big),
 <p>i.e. the gradient of the scalar \(g(w) = \nabla L(w)^\top v\). Autodiff computes this by differentiating <em>through the gradient's own computational graph</em>. A clean way to think about it: the graph that computes the gradient is itself a network whose "layers" are the local Jacobians</p>
 \[
 W_i \;\to\; \frac{\partial h_i}{\partial W_i}, \qquad
-h_i \;\to\; \frac{\partial W_{i}}{\partial h_i},
+h_i \;\to\; \frac{\partial h_{i+1}}{\partial h_i},
 \]
 <p>and running one more backward pass through that graph. Think of it as replacing the original network with a modified one, \(W_i \to \partial h_i / \partial W_i\) and \(h_i \to \partial h_{i+1} / \partial h_i\). Now everything is the same as before, one level up. Thus we have:</p>
 \[
@@ -385,7 +385,7 @@ T = \tilde V^\top A \tilde V =
 \[
 \beta_j \tilde v_{j+1} = A \tilde v_j - \alpha_j \tilde v_j - \beta_{j-1} \tilde v_{j-1},
 \]
-<p>so in exact arithmetic each new basis vector needs orthogonalization against only the <em>two</em> previous ones, not all of them. This is easier to implement as it overcomes the floating point errors which would occur if the Gram-Schmidt was done at the end. Thus the lanczos iteration, which one would find in most places is the following:</p>
+<p>so in exact arithmetic each new basis vector needs orthogonalization against only the <em>two</em> previous ones, not all of them. This is cheaper and easier to implement, though in floating point orthogonality still degrades, which is why practical codes re-orthogonalize. Thus the lanczos iteration, which one would find in most places is the following:</p>
 
 <pre class="algo">v₁ ← z/‖z‖ ;  β₀ ← 0 ;  v₀ ← 0
 for j = 1 … k:
@@ -411,7 +411,7 @@ A = \tilde V T \tilde V^\top = (\tilde V S)\, \Theta\, (\tilde V S)^\top ,
 
 <h2 id="block">5. Block Lanczos</h2>
 
-<p>Plain Lanczos has a blind spot: <strong>eigenvalue multiplicity</strong>. A single Krylov sequence started from one vector can only ever see a one-dimensional slice of each eigenspace, so eigenvalues that are exactly degenerate (or clustered so tightly that floating point cannot separate them) are found once, not with their multiplicity. Lanczos simply cannot tell them apart unless we run a very large number of iterations.</p>
+<p>Plain Lanczos has a blind spot: <strong>eigenvalue multiplicity</strong>. A single Krylov sequence started from one vector can only ever see a one-dimensional slice of each eigenspace, so eigenvalues that are exactly degenerate (or clustered so tightly that floating point cannot separate them) are found once, not with their multiplicity. Lanczos simply cannot tell them apart.</p>
 
 <p><strong>Key idea.</strong> Do power iteration on a rank-\(b\) subspace instead of a rank-one subspace: start from a random \(p \times b\) block \(Q\) and build the block Krylov space from \(Q, AQ, A^2Q, \dots\). A block of width \(b\) can capture up to \(b\) copies of a degenerate eigenvalue and cleanly separates tight clusters.</p>
 
@@ -425,7 +425,7 @@ A = \tilde V T \tilde V^\top = (\tilde V S)\, \Theta\, (\tilde V S)^\top ,
 A Q_j = Q_{j-1} B_{j-1}^\top + Q_j A_j + Q_{j+1} B_j,
 \qquad
 A_j = Q_j^\top A Q_j \ \ (b \times b \text{ symmetric}), \quad
-B_j \ \ (b \times b, \text{ from the QR step } W_j = Q_{j+1} B_j),
+B_j \ \ (b \times b, \text{ from QR of the residual } W_j = A Q_j - Q_j A_j - Q_{j-1} B_{j-1}^\top = Q_{j+1} B_j),
 \]
 <p>so \(T\) has the \(A_j\) on its block diagonal and the \(B_j\) on the block off-diagonals, and the eigendecomposition of the small \(kb \times kb\) matrix \(T\) supplies the Ritz pairs exactly as before.</p>
 
@@ -494,7 +494,7 @@ f(A)\, v_1 = \sum_i f(\lambda_i)\, (u_i^\top v_1)\, u_i
 \qquad\Longrightarrow\qquad
 v_1^\top f(A)\, v_1 = \sum_i f(\lambda_i)\, (u_i^\top v_1)^2 .
 \]
-<p>Note that the Lanczos run hands us exactly these quantities: the Ritz values \(\theta_j\) stand in for the eigenvalues \(\lambda_i\), and \((S_{1j})^2\) stands in for the weight \((u_j^\top v_1)^2\).</p>
+<p>Note that the Lanczos run hands us exactly these quantities: the Ritz values \(\theta_j\) stand in for the eigenvalues \(\lambda_i\), and \((S_{1j})^2\) stands in for the combined weight \((u_i^\top v_1)^2\) of the eigenvalues near \(\theta_j\).</p>
 
 <p>Thus repeating the process over multiple probes gives estimates of the form \(\operatorname{Tr}(f(A))\), exactly like Hutchinson:</p>
 
@@ -553,7 +553,7 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
 \[
 \hat\rho(x) = \frac{1}{\pi\sqrt{1 - x^2}} \Big[ \hat\mu_0 + 2 \sum_{k=1}^{K} \hat\mu_k\, T_k(x) \Big],
 \qquad
-\hat\mu_k = \frac{1}{p} \operatorname{Tr}\, T_k(\tilde A) .
+\mu_k = \frac{1}{p} \operatorname{Tr}\, T_k(\tilde A) .
 \]
 </div>
 
@@ -595,13 +595,13 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
 
 <p>Finally, let's play around with some widgets. Everything above is runnable below, in ten numbered estimator tabs.</p>
 
-<p>There are two matrix sources. The first is a random symmetric matrix (GOE, Wishart, spiked, clustered, or log spaced), with the dimension \(p\) as a hyperparameter. The second is the exact Hessian of a small one hidden layer MLP, touched only through HVPs; the architecture, \(n\), the activation, and the training are all adjustable. Up to \(p = 6000\) the ground truth is the exact eigendecomposition. For larger \(p\) the widget uses an SLQ reference spectrum instead, clearly labeled in every chart, so any size runs. Every run also reports how many matvecs it spent.</p>
+<p>There are two matrix sources. The first is a random symmetric matrix (GOE, Wishart, spiked, clustered, or log spaced), with the dimension \(p\) as a hyperparameter. The second is the exact Hessian of a small one hidden layer MLP, touched only through HVPs; the architecture, \(n\), the activation, and the training are all adjustable. Up to \(p = 6000\) the ground truth is the exact eigendecomposition. For larger \(p\) the widget uses an SLQ reference spectrum instead, clearly labeled in every chart, so much larger sizes run (up to \(p = 8000\) for the random source). Every run also reports how many matvecs it spent.</p>
 
 <p>Each tab shows two main plots. The density plot compares the estimated spectral density with the ground truth. The eigenvalue vs index plot shows \(\lambda_i\) against \(i\), from largest to smallest, which makes it easy to see how well the top of the spectrum is resolved. For the stochastic estimators this curve comes from inverting the estimated density, \(\hat\lambda_i = \hat F^{-1}\big(1 - \tfrac{i - 1/2}{p}\big)\).</p>
 
-<p>Three tabs use ideas we have not defined yet:</p>
+<p>Tabs 6 to 9 use ideas we have not defined yet:</p>
 <ul>
-  <li><strong>Edge + deflated SLQ</strong> (tab 6). First run a few rounds of Lanczos and collect the converged extreme Ritz vectors into an orthonormal \(U\). Then run SLQ on the deflated operator \(A' = (I - UU^\top)\, A\, (I - UU^\top)\), with probes kept orthogonal to \(U\). The harvested eigenvalues enter the density exactly, and SLQ fills in the rest:
+  <li><strong>Edge + deflated SLQ</strong> (tab 6). First run a few rounds of Lanczos and collect the converged extreme Ritz vectors into an orthonormal \(U\). Then run SLQ on the deflated operator \(A' = (I - UU^\top)\, A\, (I - UU^\top)\), with probes kept orthogonal to \(U\) (write \(m\) for the number of harvested eigenpairs, the columns of \(U\)). The harvested eigenvalues enter the density exactly, and SLQ fills in the rest:
 \[
 \hat\rho(t) = \frac{1}{p}\sum_{\theta \in \text{harvested}} g_\sigma(t - \theta) \;+\; \frac{p - m}{p}\, \hat\rho_{\text{SLQ on } A'}(t) .
 \]</li>
@@ -952,6 +952,9 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
       <div class="field"><label>block SLQ b</label><input type="number" id="ts-bslqb" value="4" min="1" max="16"></div>
       <div class="field"><label>block SLQ blocks s</label><input type="number" id="ts-bslqs" value="3" min="1" max="16"></div>
       <div class="field"><label>block SLQ k</label><input type="number" id="ts-bslqk" value="30" min="2" max="100"></div>
+      <div class="check"><input type="checkbox" id="ts-kpm"><label for="ts-kpm">KPM</label></div>
+      <div class="field hidden" id="ts-f-kpmp"><label>KPM probes</label><input type="number" id="ts-kpmp" value="8" min="1" max="64"></div>
+      <div class="field hidden" id="ts-f-kpmdeg"><label>KPM degree</label><input type="number" id="ts-kpmdeg" value="80" min="4" max="400"></div>
     </div>
     <div class="row" style="margin-top: 0.7rem">
       <button id="ts-run" disabled>Run on GPU</button>
@@ -1004,7 +1007,7 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
       <div><canvas id="ts-sharp-GN" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-sharp-GN-legend"></div></div>
       <div><canvas id="ts-sharp-F" width="620" height="440" class="hidden"></canvas><div class="legend" id="ts-sharp-F-legend"></div></div>
     </div>
-        <p class="note">One column per quantity (H, \(JJ^\top/n\), \(F = Q \cdot r\)); density and index panels share axes across columns, λ_max and error panels autoscale. Solid = exact / SLQ, dashed = block SLQ (dashed chips in the show strip too); gray dash = \(2/\eta\) (H panel), red marker = slider. Hover any panel to read off values. Axes stay fixed while scrubbing.</p>
+        <p class="note">One column per quantity (H, \(JJ^\top/n\), \(F = Q \cdot r\)); density and index panels share axes across columns, λ_max and error panels autoscale. Solid = exact / SLQ, dashed = block SLQ, dotted = KPM (optional, tick it in the estimators row; matching chips in the show strip); gray dash = \(2/\eta\) (H panel), red marker = slider. Hover any panel to read off values. Axes stay fixed while scrubbing.</p>
   </div>
   <div id="sl-tooltip"></div>
   <div id="ts-tooltip"></div>
@@ -1012,7 +1015,7 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
 
 <footer>
 Written from my handwritten notes on Lanczos and stochastic Lanczos quadrature.
-The widget runs entirely in your browser; its numerics live in <code>spectral-numerics.js</code> alongside this page.
+The estimator tabs run entirely in your browser (numerics in <code>spectral-numerics.js</code>); the training-time card streams from a GPU server.
 </footer>
 
 </main>
@@ -2046,6 +2049,8 @@ const QLABEL = { H: 'full Hessian H', GN: 'Gauss-Newton JJᵀ/n', F: 'functional
 const QDASH = { H: null, GN: [6, 4], F: [2, 3] };
 const BLABEL = q => QLABEL[q] + ' (block SLQ)';
 const BDASH = [2, 4];
+const KLABEL = q => QLABEL[q] + ' (KPM)';
+const KDASH = [1, 3];
 const qKeys = () => ['H', 'GN', 'F'];
 function fmt(x, d) {
   if (!isFinite(x)) return '—';
@@ -2134,10 +2139,10 @@ function clearCanvas(canvas) {
   canvas.classList.remove('hidden');
   return ctx;
 }
-function chipStyle(col, dashed) {
-  return dashed
-    ? `background: repeating-linear-gradient(90deg, ${col} 0 4px, transparent 4px 7px)`
-    : `background: ${col}`;
+function chipStyle(col, style) {
+  if (style === 'dot') return `background: repeating-linear-gradient(90deg, ${col} 0 2px, transparent 2px 4.5px)`;
+  if (style) return `background: repeating-linear-gradient(90deg, ${col} 0 4px, transparent 4px 7px)`;
+  return `background: ${col}`;
 }
 function zoomBar(el, ui, redraw, keyEntries) {
   el.innerHTML = (keyEntries || []).map(e => {
@@ -2273,6 +2278,53 @@ function bslqDensityOf(i, q) {
   }
   return bdensCache.get(key);
 }
+function ckKpm(i) { const k = cap && cap.ckpts[i]; return k && k.kpm ? k.kpm : null; }
+const kdensCache = new Map(), kscreeCache = new Map();
+function kpmDensityOf(i, q) {
+  const key = i + ':' + q;
+  if (!kdensCache.has(key)) {
+    const kd = ckKpm(i)[q];
+    const mu = kd.mu, a = kd.a, b = kd.b, K = mu.length - 1, N = K + 1;
+    const cot = Math.cos(Math.PI / (N + 1)) / Math.sin(Math.PI / (N + 1));
+    const jack = [];
+    for (let k = 0; k <= K; k++)
+      jack.push(((N - k + 1) * Math.cos(Math.PI * k / (N + 1)) + Math.sin(Math.PI * k / (N + 1)) * cot) / (N + 1));
+    const out = new Float64Array(NB);
+    for (let g = 0; g < NB; g++) {
+      const x = (2 * meta.grid[g] - (a + b)) / (b - a);
+      if (x <= -0.999999 || x >= 0.999999) continue;
+      const th = Math.acos(x);
+      let s = jack[0] * mu[0];
+      for (let k = 1; k <= K; k++) s += 2 * jack[k] * mu[k] * Math.cos(k * th);
+      out[g] = Math.max(0, s / (Math.PI * Math.sqrt(1 - x * x)) * 2 / (b - a));
+    }
+    kdensCache.set(key, out);
+  }
+  return kdensCache.get(key);
+}
+function screeFromDensArr(dens, p) {
+  const cum = new Float64Array(NB);
+  for (let g = 1; g < NB; g++)
+    cum[g] = cum[g - 1] + 0.5 * (dens[g] + dens[g - 1]) * (meta.grid[g] - meta.grid[g - 1]);
+  const total = cum[NB - 1] || 1;
+  const out = new Float64Array(p);
+  let g = NB - 1;
+  for (let r = 0; r < p; r++) {
+    const target = (1 - (r + 0.5) / p) * total;
+    while (g > 0 && cum[g - 1] > target) g--;
+    if (g === 0) { out[r] = meta.grid[0]; continue; }
+    const c0 = cum[g - 1], c1 = cum[g];
+    const t = c1 > c0 ? (target - c0) / (c1 - c0) : 0;
+    out[r] = meta.grid[g - 1] + t * (meta.grid[g] - meta.grid[g - 1]);
+  }
+  return out;
+}
+function kpmScreeOf(i, q) {
+  const key = i + ':' + q;
+  if (!kscreeCache.has(key))
+    kscreeCache.set(key, screeFromDensArr(kpmDensityOf(i, q), cap.config ? cap.config.p : cap.ckpts[i].evals.H.length));
+  return kscreeCache.get(key);
+}
 function bslqScreeOf(i, q) {
   const key = i + ':' + q;
   if (!bscreeCache.has(key)) {
@@ -2304,6 +2356,7 @@ function drawDens() {
   for (const q of qKeys()) {
     if (!qHidden.has(QLABEL[q])) for (const v of densityOf(ci, q)) ymax = Math.max(ymax, v);
     if (hasB && !qHidden.has(BLABEL(q))) for (const v of bslqDensityOf(ci, q)) ymax = Math.max(ymax, v);
+    if (ckKpm(ci) && !qHidden.has(KLABEL(q))) for (const v of kpmDensityOf(ci, q)) ymax = Math.max(ymax, v);
   }
   for (const q of qKeys()) {
     const ui = densViews[q];
@@ -2314,6 +2367,7 @@ function drawDens() {
     ctx.save(); ctx.beginPath(); ctx.rect(pa.x0, pa.y0, pa.x1 - pa.x0, pa.y1 - pa.y0); ctx.clip();
     if (!qHidden.has(QLABEL[q])) drawLine(ctx, XY, meta.grid, densityOf(ci, q), QCOLORS[q](), 2, null);
     if (hasB && !qHidden.has(BLABEL(q))) drawLine(ctx, XY, meta.grid, bslqDensityOf(ci, q), QCOLORS[q](), 1.2, BDASH);
+    if (ckKpm(ci) && !qHidden.has(KLABEL(q))) drawLine(ctx, XY, meta.grid, kpmDensityOf(ci, q), QCOLORS[q](), 1.2, KDASH);
     ctx.restore();
     canvas._XY = XY;
     if (!canvas._wired) {
@@ -2326,24 +2380,21 @@ function drawDens() {
         const parts = [`λ ≈ ${fmt(meta.grid[gi], 3)}`];
         if (!qHidden.has(QLABEL[q])) parts.push(`exact density: ${fmt(densityOf(ci, q)[gi])}`);
         if (ckBslq(ci) && !qHidden.has(BLABEL(q))) parts.push(`block SLQ: ${fmt(bslqDensityOf(ci, q)[gi])}`);
+        if (ckKpm(ci) && !qHidden.has(KLABEL(q))) parts.push(`KPM: ${fmt(kpmDensityOf(ci, q)[gi])}`);
         return parts.join('<br>');
       });
     }
     zoomBar($('ts-dens-' + q + '-legend'), ui, drawDens,
-      [{ color: QCOLORS[q](), label: 'exact' }].concat(hasB ? [{ color: QCOLORS[q](), dash: true, label: 'block SLQ' }] : []));
+      [{ color: QCOLORS[q](), label: 'exact' }].concat(hasB ? [{ color: QCOLORS[q](), dash: true, label: 'block SLQ' }] : [])
+        .concat(ckKpm(ci) ? [{ color: QCOLORS[q](), dash: 'dot', label: 'KPM' }] : []));
   }
 }
 function drawScree() {
   if (!cap || !cap.ckpts.length) return;
   const hasB = !!ckBslq(ci);
   const p = cap.config ? cap.config.p : cap.ckpts[0].evals.H.length;
-  let ymin = Infinity, ymax = -Infinity;
-  for (const ck of cap.ckpts) for (const q of qKeys()) {
-    if (qHidden.has(QLABEL[q])) continue;
-    const ev = ck.evals[q];
-    ymin = Math.min(ymin, ev[0]); ymax = Math.max(ymax, ev[ev.length - 1]);
-  }
-  if (!isFinite(ymin)) { ymin = 0; ymax = 1; }
+  let ymin = meta ? meta.rawLo : 0, ymax = meta ? meta.rawHi : 1;
+  if (!isFinite(ymin) || ymin === ymax) { ymin = 0; ymax = 1; }
   const padY = 0.05 * (ymax - ymin) + 1e-9;
   for (const q of qKeys()) {
     const ui = screeViews[q];
@@ -2364,6 +2415,12 @@ function drawScree() {
       for (let i2 = 0; i2 < es.length; i2++) { xs.push(i2 + 1); ys.push(es[i2]); }
       drawLine(ctx, XY, xs, ys, QCOLORS[q](), 1.2, BDASH);
     }
+    if (ckKpm(ci) && !qHidden.has(KLABEL(q))) {
+      const es = kpmScreeOf(ci, q);
+      const xs = [], ys = [];
+      for (let i2 = 0; i2 < es.length; i2++) { xs.push(i2 + 1); ys.push(es[i2]); }
+      drawLine(ctx, XY, xs, ys, QCOLORS[q](), 1.2, KDASH);
+    }
     ctx.restore();
     canvas._XY = XY;
     if (!canvas._wired) {
@@ -2376,11 +2433,13 @@ function drawScree() {
         const parts = [`index ${idx}`];
         if (!qHidden.has(QLABEL[q])) parts.push(`exact λ: ${fmt(ev[ev.length - idx], 4)}`);
         if (ckBslq(ci) && !qHidden.has(BLABEL(q))) parts.push(`block SLQ λ̂: ${fmt(bslqScreeOf(ci, q)[idx - 1], 4)}`);
+        if (ckKpm(ci) && !qHidden.has(KLABEL(q))) parts.push(`KPM λ̂: ${fmt(kpmScreeOf(ci, q)[idx - 1], 4)}`);
         return parts.join('<br>');
       });
     }
     zoomBar($('ts-scree-' + q + '-legend'), ui, drawScree,
-      [{ color: QCOLORS[q](), label: 'exact' }].concat(hasB ? [{ color: QCOLORS[q](), dash: true, label: 'block SLQ' }] : []));
+      [{ color: QCOLORS[q](), label: 'exact' }].concat(hasB ? [{ color: QCOLORS[q](), dash: true, label: 'block SLQ' }] : [])
+        .concat(ckKpm(ci) ? [{ color: QCOLORS[q](), dash: 'dot', label: 'KPM' }] : []));
   }
 }
 function syncQ() { drawDens(); drawScree(); renderQsel(); }
@@ -2388,8 +2447,10 @@ function renderQsel() {
   const el = $('ts-qsel');
   if (!cap || !cap.ckpts.length) { el.innerHTML = ''; return; }
   const hasB = !!ckBslq(ci) || !!(cap.config && cap.config.bslq_b);
+  const hasK = !!ckKpm(ci) || !!(cap.config && cap.config.kpm);
   const entries = qKeys().map(q => ({ label: QLABEL[q], color: QCOLORS[q]() }))
-    .concat(hasB ? qKeys().map(q => ({ label: BLABEL(q), color: QCOLORS[q](), dash: true })) : []);
+    .concat(hasB ? qKeys().map(q => ({ label: BLABEL(q), color: QCOLORS[q](), dash: true })) : [])
+    .concat(hasK ? qKeys().map(q => ({ label: KLABEL(q), color: QCOLORS[q](), dash: 'dot' })) : []);
   el.innerHTML = '<span class="lg-cap">show:</span>' + entries.map(e => {
     const off = qHidden.has(e.label);
     return `<span class="lg${off ? ' off' : ''}" data-label="${e.label}">` +
@@ -2411,15 +2472,16 @@ function renderStats() {
   const el = $('ts-stats');
   if (!cap || !cap.ckpts.length) { el.innerHTML = ''; return; }
   const ck = cap.ckpts[ci];
+  const hasK = !!ck.kpm_l1;
   const rows = qKeys().map(q => {
     const ev = ck.evals[q];
     let tr = 0; for (const v of ev) tr += v;
     return [QLABEL[q], fmt(ev[ev.length - 1], 4), fmt(ev[0], 4), fmt(tr, 4),
             fmt(ck.slq_l1 ? ck.slq_l1[q] : NaN, 4),
-            fmt(ck.bslq_l1 ? ck.bslq_l1[q] : NaN, 4)];
+            fmt(ck.bslq_l1 ? ck.bslq_l1[q] : NaN, 4)].concat(hasK ? [fmt(ck.kpm_l1[q], 4)] : []);
   });
   el.innerHTML = '<table class="metrics"><tr><th>quantity</th><th>λ_max</th><th>λ_min</th>' +
-    '<th>trace</th><th>SLQ L1 error</th><th>block SLQ L1</th></tr>' +
+    '<th>trace</th><th>SLQ L1 error</th><th>block SLQ L1</th>' + (hasK ? '<th>KPM L1</th>' : '') + '</tr>' +
     rows.map(r => '<tr>' + r.map(c => `<td>${c}</td>`).join('') + '</tr>').join('') + '</table>';
 }
 
@@ -2523,14 +2585,18 @@ function createCharts() {
         keyEntries: [{ color: QCOLORS[q], label: 'exact' }]
           .concat(hasB ? [{ color: QCOLORS[q], dash: true, label: 'block SLQ' }] : [])
           .concat(q === 'H' && g !== undefined ? [{ color: () => cssVar('--truth'), dash: true, label: '2/η' }] : []) });
+    const hasK = !!(cap.config && cap.config.kpm);
     const errSeries = [{ label: 'SLQ', color: QCOLORS[q], visKey: QLABEL[q],
         xs: ckptX, ys: () => cap.ckpts.map(kk => kk.slq_l1 ? kk.slq_l1[q] : NaN) }];
     if (hasB) errSeries.push({ label: 'block SLQ', color: QCOLORS[q], dash: BDASH, visKey: BLABEL(q),
         xs: ckptX, ys: () => cap.ckpts.map(kk => kk.bslq_l1 ? kk.bslq_l1[q] : NaN) });
+    if (hasK) errSeries.push({ label: 'KPM', color: QCOLORS[q], dash: KDASH, visKey: KLABEL(q),
+        xs: ckptX, ys: () => cap.ckpts.map(kk => kk.kpm_l1 ? kk.kpm_l1[q] : NaN) });
     lineChart('ts-errs-' + q, 'ts-errs-' + q + '-legend', errSeries,
       { ylog: true, xlabel: xl, ylabel: q === 'H' ? 'SLQ L1 error' : '', markerX: markerXv,
         keyEntries: [{ color: QCOLORS[q], label: 'SLQ' }]
-          .concat(hasB ? [{ color: QCOLORS[q], dash: true, label: 'block SLQ' }] : []) });
+          .concat(hasB ? [{ color: QCOLORS[q], dash: true, label: 'block SLQ' }] : [])
+          .concat(hasK ? [{ color: QCOLORS[q], dash: 'dot', label: 'KPM' }] : []) });
   }
 }
 function refreshTraining() {
@@ -2560,7 +2626,7 @@ function foldMeta() {
   meta = buildMeta(lo, hi);
 }
 function onNewCkpt() {
-  foldMeta(); densCache.clear(); bdensCache.clear(); bscreeCache.clear();
+  foldMeta(); densCache.clear(); bdensCache.clear(); bscreeCache.clear(); kdensCache.clear(); kscreeCache.clear();
   const sl = $('ts-slider');
   sl.max = Math.max(0, cap.ckpts.length - 1);
   if (follow) { ci = cap.ckpts.length - 1; sl.value = ci; }
@@ -2580,7 +2646,7 @@ function showConfig(cfg) {
 }
 function resetCap() {
   cap = { config: null, losses: [], lossSteps: [], lossWall: [], ckpts: [] };
-  ci = 0; meta = null; metaFolded = 0; densCache.clear(); bdensCache.clear(); bscreeCache.clear(); qHidden.clear();
+  ci = 0; meta = null; metaFolded = 0; densCache.clear(); bdensCache.clear(); bscreeCache.clear(); kdensCache.clear(); kscreeCache.clear(); qHidden.clear();
   for (const q of qKeys()) { densViews[q].view = null; screeViews[q].view = null; }
   follow = true; $('ts-follow').checked = true;
   const sl = $('ts-slider'); sl.max = 0; sl.value = 0;
@@ -2614,6 +2680,7 @@ async function startRun() {
     gn_damping: parseFloat($('ts-damp').value) || 1e-3,
     slq_probes: iv('ts-slqp', 1, 64), slq_k: iv('ts-slqk', 4, 200),
     bslq_b: iv('ts-bslqb', 1, 16), bslq_s: iv('ts-bslqs', 1, 16), bslq_k: iv('ts-bslqk', 2, 100),
+    kpm: $('ts-kpm').checked ? 1 : 0, kpm_probes: iv('ts-kpmp', 1, 64), kpm_deg: iv('ts-kpmdeg', 4, 400),
     dataset: $('ts-data').value,
     parity_k: iv('ts-parityk', 1, 64),
     cheby_deg: iv('ts-chebydeg', 1, 32),
@@ -2652,7 +2719,7 @@ async function poll() {
       let o;
       try { o = JSON.parse(ln); } catch (e) { continue; }
       if (o.t === 'config') showConfig(o.config);
-      else if (o.t === 'loss') { cap.losses.push(o.l); cap.lossSteps.push(o.s); cap.lossWall.push(o.wall); gotLoss = true; }
+      else if (o.t === 'loss') { if (o.l !== null && isFinite(o.l)) { cap.losses.push(o.l); cap.lossSteps.push(o.s); cap.lossWall.push(o.wall); gotLoss = true; } }
       else if (o.t === 'ckpt') { cap.ckpts.push(o); gotCkpt = true; }
       else if (o.t === 'done') finished = o;
     }
@@ -2666,12 +2733,23 @@ async function poll() {
     if (finished) setStatus(`done in ${finished.wall} s · saved on the server as captures/${live.id}.json`);
     if (j.done) {
       done = true;
-      if (!finished && j.exit !== 0)
+      if (!finished && j.exit !== 0 && live.stopping)
+        setStatus('stopped by user.');
+      else if (!finished && j.exit !== 0)
         setStatus('run failed (exit ' + j.exit + ')' + (j.log ? ': …' + j.log.slice(-300) : ''), true);
       else if (!finished && !cap.ckpts.length)
         setStatus('run ended before producing output', true);
     }
+    live.errs = 0;
   } catch (e) {
+    if (live) {
+      live.errs = (live.errs || 0) + 1;
+      if (live.errs <= 5) {
+        setStatus(`stream hiccup (${live.errs}/5), retrying…`);
+        setTimeout(poll, 2000);
+        return;
+      }
+    }
     setStatus('stream error: ' + e.message, true);
     done = true;
   }
@@ -2679,7 +2757,7 @@ async function poll() {
   setTimeout(poll, 1000);
 }
 $('ts-run').onclick = startRun;
-$('ts-stopbtn').onclick = () => { if (live) FETCH('api/stop?id=' + live.id).catch(() => {}); };
+$('ts-stopbtn').onclick = () => { if (live) { live.stopping = true; FETCH('api/stop?id=' + live.id).catch(() => {}); } };
 $('ts-slider').oninput = () => {
   follow = false; $('ts-follow').checked = false;
   ci = +$('ts-slider').value;
@@ -2707,9 +2785,12 @@ function updateFormVis() {
   $('ts-f-cifarsz').classList.toggle('hidden', ds !== 'cifar10');
   $('ts-f-din').classList.toggle('hidden', ds === 'cifar10');
   $('ts-f-damp').classList.toggle('hidden', $('ts-opt').value !== 'gn');
+  $('ts-f-kpmp').classList.toggle('hidden', !$('ts-kpm').checked);
+  $('ts-f-kpmdeg').classList.toggle('hidden', !$('ts-kpm').checked);
 }
 $('ts-data').onchange = updateFormVis;
 $('ts-opt').onchange = updateFormVis;
+$('ts-kpm').onchange = updateFormVis;
 updateFormVis();
 if (window.matchMedia) {
   const mq = window.matchMedia('(prefers-color-scheme: dark)');

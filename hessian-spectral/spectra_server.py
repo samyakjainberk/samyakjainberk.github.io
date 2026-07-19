@@ -43,6 +43,7 @@ INT_PARAMS = {   # name -> (min, max, default)
     'ckpt_every': (0, 20000, 1), 'ckpts': (0, 120, 0), 'seed': (0, 10 ** 9, 0),
     'slq_probes': (1, 64, 12), 'slq_k': (4, 200, 60),
     'bslq_b': (1, 16, 4), 'bslq_s': (1, 16, 3), 'bslq_k': (2, 100, 30),
+    'kpm': (0, 1, 0), 'kpm_probes': (1, 64, 8), 'kpm_deg': (4, 400, 80),
     'parity_k': (1, 64, 3), 'cheby_deg': (1, 32, 4), 'cifar_size': (4, 32, 8),
 }
 FLOAT_PARAMS = {'lr': (1e-8, 100.0, 0.05), 'gn_damping': (1e-10, 10.0, 1e-3),
@@ -54,6 +55,7 @@ CHOICE_PARAMS = {'act': ({'tanh', 'relu', 'gelu', 'elu', 'linear'}, 'tanh'),
 
 def clamp_params(body):
     args = []
+    vals = {}
     for name, (lo, hi, d) in INT_PARAMS.items():
         v = body.get(name, d)
         try:
@@ -61,6 +63,7 @@ def clamp_params(body):
         except (TypeError, ValueError):
             v = d
         v = max(lo, min(hi, v))
+        vals[name] = v
         args += ['--' + name.replace('_', '-'), str(v)]
     for name, (lo, hi, d) in FLOAT_PARAMS.items():
         v = body.get(name, d)
@@ -76,8 +79,9 @@ def clamp_params(body):
         v = body.get(name, d)
         if v not in choices:
             v = d
+        vals[name] = v
         args += ['--' + name, v]
-    return args
+    return args, vals
 
 
 def gpu_name():
@@ -119,6 +123,7 @@ class Handler(SimpleHTTPRequestHandler):
                 job = jobs.get(jid)
             if not job or not re.fullmatch(r'run\d+_\d+', jid):
                 return self.send_json({'error': 'unknown id'}, 404)
+            exit_code = job['proc'].poll()
             data = ''
             try:
                 with open(job['jsonl'], 'r') as fh:
@@ -126,7 +131,6 @@ class Handler(SimpleHTTPRequestHandler):
                     data = fh.read()
             except FileNotFoundError:
                 pass
-            exit_code = job['proc'].poll()
             resp = {'off': max(0, off) + len(data.encode()), 'data': data,
                     'done': exit_code is not None, 'exit': exit_code}
             if exit_code not in (None, 0):
@@ -168,8 +172,16 @@ class Handler(SimpleHTTPRequestHandler):
         jsonl = os.path.join(CAP_DIR, jid + '.jsonl')
         out = os.path.join(CAP_DIR, jid + '.json')
         log = os.path.join(CAP_DIR, jid + '.log')
+        cargs, vals = clamp_params(body)
+        din_eff = 3 * vals['cifar_size'] ** 2 if vals['dataset'] == 'cifar10' else vals['din']
+        dout = 10 if vals['dataset'] == 'cifar10' else 1
+        dims = [din_eff] + [vals['width']] * vals['depth'] + [dout]
+        p_est = sum(dims[i + 1] * dims[i] + dims[i + 1] for i in range(len(dims) - 1))
+        if p_est > 25000:
+            return self.send_json({'error': f'p = {p_est} parameters is too large for dense '
+                                            f'p×p spectra (limit 25000); shrink width/depth/d_in'}, 400)
         cmd = [sys.executable, os.path.join(BLOG_DIR, 'train_capture.py'),
-               '--stream', jsonl, '--out', out] + clamp_params(body)
+               '--stream', jsonl, '--out', out] + cargs
         with open(log, 'w') as lf:
             proc = subprocess.Popen(cmd, stdout=lf, stderr=subprocess.STDOUT, cwd=BLOG_DIR)
         with jobs_lock:

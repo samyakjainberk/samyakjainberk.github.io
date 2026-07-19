@@ -193,6 +193,48 @@ def slq_density(nodes, weights, grid, sigma):
     return dens / len(nodes)
 
 
+def kpm_moments(M, p, probes, deg, a, b, gen, device):
+    """Chebyshev moments mu_k = (1/p) Tr T_k(A~) via Hutchinson; A~ maps [a,b] -> [-1,1]."""
+    mus = torch.zeros(deg + 1, dtype=torch.float64)
+    scale = 2.0 / (b - a)
+    shift = (a + b) / (b - a)
+
+    def amap(v):
+        return scale * (M @ v) - shift * v
+
+    for _ in range(probes):
+        z = torch.randint(0, 2, (p,), generator=gen, device=device, dtype=torch.float32) * 2 - 1
+        w0 = z
+        w1 = amap(z)
+        mus[0] += p                       # z^T z = p exactly (Rademacher)
+        mus[1] += torch.dot(z, w1).item()
+        for k in range(2, deg + 1):
+            wn = 2 * amap(w1) - w0
+            mus[k] += torch.dot(z, wn).item()
+            w0, w1 = w1, wn
+    return (mus / (probes * p)).tolist()
+
+
+def kpm_density(mu, a, b, grid):
+    """Jackson-damped KPM density on the original axis, clipped at zero."""
+    K = len(mu) - 1
+    kk = torch.arange(K + 1, dtype=torch.float64)
+    N = K + 1
+    jack = ((N - kk + 1) * torch.cos(math.pi * kk / (N + 1))
+            + torch.sin(math.pi * kk / (N + 1)) / math.tan(math.pi / (N + 1))) / (N + 1)
+    x = (2 * grid.double() - (a + b)) / (b - a)
+    inside = (x.abs() < 1)
+    xs = x.clamp(-0.999999, 0.999999)
+    theta = torch.arccos(xs)
+    dens = torch.zeros_like(x)
+    for k in range(K + 1):
+        term = (jack[k] * mu[k]) * torch.cos(k * theta)
+        dens += term if k == 0 else 2 * term
+    dens = dens / (math.pi * torch.sqrt(1 - xs * xs)) * (2.0 / (b - a))
+    dens = torch.where(inside, dens.clamp(min=0.0), torch.zeros_like(dens))
+    return dens.to(grid.dtype)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--depth', type=int, default=3, help='number of hidden layers')
@@ -221,6 +263,9 @@ def main():
     ap.add_argument('--bslq-b', type=int, default=4, help='block SLQ block size')
     ap.add_argument('--bslq-s', type=int, default=3, help='block SLQ number of blocks')
     ap.add_argument('--bslq-k', type=int, default=30, help='block SLQ Lanczos steps')
+    ap.add_argument('--kpm', type=int, default=0, help='1 = also run KPM per checkpoint')
+    ap.add_argument('--kpm-probes', type=int, default=8)
+    ap.add_argument('--kpm-deg', type=int, default=80)
     ap.add_argument('--hvp-chunk', type=int, default=256)
     ap.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
     ap.add_argument('--out', default='training-capture.json')
@@ -257,7 +302,8 @@ def main():
     emit(dict(t='config', config=dict(depth=args.depth, width=args.width, din=din_eff, n=n,
                                       dataset=args.dataset, dout=C, parity_k=args.parity_k,
                                       cheby_deg=args.cheby_deg, cifar_size=args.cifar_size,
-                                      ckpt_every=args.ckpt_every,
+                                      ckpt_every=args.ckpt_every, kpm=args.kpm,
+                                      kpm_probes=args.kpm_probes, kpm_deg=args.kpm_deg,
                                       batch=B, act=args.act, opt=args.opt, lr=args.lr,
                                       steps=args.steps, gn_damping=args.gn_damping,
                                       seed=args.seed, p=p, slq_probes=args.slq_probes,
@@ -355,7 +401,7 @@ def main():
         for name, M in (('H', H), ('GN', G), ('F', F)):
             ev[name] = torch.linalg.eigvalsh(M.float()).cpu()
         # SLQ and block-SLQ error statistics per quantity
-        slq_l1, bslq_l1, bslq = {}, {}, {}
+        slq_l1, bslq_l1, bslq, kpm_l1, kpm = {}, {}, {}, {}, {}
         for name, M in (('H', H), ('GN', G), ('F', F)):
             evs = ev[name].to(dev)
             lo, hi = evs.min().item(), evs.max().item()
@@ -372,6 +418,13 @@ def main():
             bslq_l1[name] = l1_err(best, rho, grid)
             bslq[name] = dict(nodes=[[float(f'{v:.6g}') for v in blk] for blk in bnodes],
                               weights=[[float(f'{v:.6g}') for v in blk] for blk in bwts])
+            if args.kpm:
+                pad = 0.05 * span
+                ka, kb = lo - pad, hi + pad
+                mu = kpm_moments(M, p, args.kpm_probes, args.kpm_deg, ka, kb, gen, dev)
+                kest = kpm_density(mu, ka, kb, grid)
+                kpm_l1[name] = l1_err(kest, rho, grid)
+                kpm[name] = dict(mu=[float(f'{v:.6g}') for v in mu], a=float(f'{ka:.6g}'), b=float(f'{kb:.6g}'))
         checkpoints.append(dict(
             step=step,
             loss=loss_fn(flat, X, y).item(),
@@ -380,6 +433,7 @@ def main():
             slq_l1=slq_l1,
             bslq_l1=bslq_l1,
             bslq=bslq,
+            **(dict(kpm_l1=kpm_l1, kpm=kpm) if args.kpm else {}),
         ))
         ck = checkpoints[-1]
         emit(dict(t='ckpt', wall=round(time.time() - t_wall, 2), **ck))
@@ -393,7 +447,11 @@ def main():
               f'({time.time() - t0:.1f}s)', flush=True)
 
     for step in range(args.steps + 1):
-        losses.append(loss_fn(flat, X, y).item())
+        cur_loss = loss_fn(flat, X, y).item()
+        if not math.isfinite(cur_loss):
+            print(f'stopping early: non-finite loss at step {step} (diverged)', flush=True)
+            break
+        losses.append(cur_loss)
         emit(dict(t='loss', s=step, l=float(f'{losses[-1]:.6g}'), wall=round(time.time() - t_wall, 2)))
         if step in ck_steps:
             checkpoint(step)
@@ -436,7 +494,8 @@ def main():
         config=dict(depth=args.depth, width=args.width, din=din_eff, n=n, batch=B,
                     dataset=args.dataset, dout=C, parity_k=args.parity_k,
                     cheby_deg=args.cheby_deg, cifar_size=args.cifar_size,
-                    ckpt_every=args.ckpt_every,
+                    ckpt_every=args.ckpt_every, kpm=args.kpm,
+                    kpm_probes=args.kpm_probes, kpm_deg=args.kpm_deg,
                     act=args.act, opt=args.opt, lr=args.lr, steps=args.steps,
                     gn_damping=args.gn_damping, seed=args.seed, p=p,
                     slq_probes=args.slq_probes, slq_k=args.slq_k,
