@@ -165,6 +165,26 @@ class Handler(SimpleHTTPRequestHandler):
             assert isinstance(body, dict)
         except Exception:
             return self.send_json({'error': 'bad JSON body'}, 400)
+        init_arg = []
+        cont = body.get('continue_from')
+        if cont:
+            if not re.fullmatch(r'run\d+_\d+', str(cont)):
+                return self.send_json({'error': 'bad continue_from id'}, 400)
+            src_json = os.path.join(CAP_DIR, str(cont) + '.json')
+            if not os.path.isfile(src_json):
+                return self.send_json({'error': 'source run capture not found '
+                                                '(run still in progress?)'}, 404)
+            try:
+                with open(src_json) as fh:
+                    scfg = json.load(fh).get('config', {})
+            except Exception:
+                return self.send_json({'error': 'source capture unreadable'}, 400)
+            # architecture + data must match the source run; training/estimator knobs may change
+            for k2 in ('dataset', 'act', 'parity_k', 'cheby_deg', 'cifar_size',
+                       'din', 'width', 'depth', 'n', 'seed', 'noise'):
+                if k2 in scfg:
+                    body[k2] = scfg[k2]
+            init_arg = ['--init-from', src_json]
         os.makedirs(CAP_DIR, exist_ok=True)
         with jobs_lock:
             job_counter[0] += 1
@@ -181,7 +201,7 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_json({'error': f'p = {p_est} parameters is too large for dense '
                                             f'p×p spectra (limit 25000); shrink width/depth/d_in'}, 400)
         cmd = [sys.executable, os.path.join(BLOG_DIR, 'train_capture.py'),
-               '--stream', jsonl, '--out', out] + cargs
+               '--stream', jsonl, '--out', out] + cargs + init_arg
         with open(log, 'w') as lf:
             proc = subprocess.Popen(cmd, stdout=lf, stderr=subprocess.STDOUT, cwd=BLOG_DIR)
         with jobs_lock:

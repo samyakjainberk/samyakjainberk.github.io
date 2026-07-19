@@ -270,6 +270,8 @@ def main():
     ap.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
     ap.add_argument('--out', default='training-capture.json')
     ap.add_argument('--stream', default='', help='optional JSONL path; training progress is appended live')
+    ap.add_argument('--init-from', default='',
+                    help='path to a previous capture JSON; start from its final_params')
     args = ap.parse_args()
 
     dev = torch.device(args.device)
@@ -287,6 +289,14 @@ def main():
     forward = make_forward(shapes, args.act)
     flat = init_params(shapes, gen, dev)
     p = flat.numel()
+    if args.init_from:
+        prev = json.load(open(args.init_from))
+        fp = prev.get('final_params')
+        if fp is None or len(fp) != p:
+            raise SystemExit(f'--init-from: incompatible capture '
+                             f'(final_params len {len(fp) if fp else None} vs p={p})')
+        flat = torch.tensor(fp, dtype=torch.float32, device=dev)
+        print(f'continuing from {args.init_from}', flush=True)
     B = args.batch if 0 < args.batch <= n else n
     print(f'p = {p} parameters | dataset = {args.dataset} (d_in = {din_eff}, classes = {C}) '
           f'| device = {dev} | act = {args.act} | opt = {args.opt} '
@@ -302,7 +312,7 @@ def main():
     emit(dict(t='config', config=dict(depth=args.depth, width=args.width, din=din_eff, n=n,
                                       dataset=args.dataset, dout=C, parity_k=args.parity_k,
                                       cheby_deg=args.cheby_deg, cifar_size=args.cifar_size,
-                                      ckpt_every=args.ckpt_every, kpm=args.kpm,
+                                      ckpt_every=args.ckpt_every, kpm=args.kpm, noise=args.noise,
                                       kpm_probes=args.kpm_probes, kpm_deg=args.kpm_deg,
                                       batch=B, act=args.act, opt=args.opt, lr=args.lr,
                                       steps=args.steps, gn_damping=args.gn_damping,
@@ -494,7 +504,7 @@ def main():
         config=dict(depth=args.depth, width=args.width, din=din_eff, n=n, batch=B,
                     dataset=args.dataset, dout=C, parity_k=args.parity_k,
                     cheby_deg=args.cheby_deg, cifar_size=args.cifar_size,
-                    ckpt_every=args.ckpt_every, kpm=args.kpm,
+                    ckpt_every=args.ckpt_every, kpm=args.kpm, noise=args.noise,
                     kpm_probes=args.kpm_probes, kpm_deg=args.kpm_deg,
                     act=args.act, opt=args.opt, lr=args.lr, steps=args.steps,
                     gn_damping=args.gn_damping, seed=args.seed, p=p,
@@ -502,6 +512,7 @@ def main():
                     bslq_b=args.bslq_b, bslq_s=args.bslq_s, bslq_k=args.bslq_k,
                     device=str(dev)),
         losses=[float(f'{v:.6g}') for v in losses],
+        final_params=[float(f'{v:.8g}') for v in flat.tolist()],
         checkpoints=checkpoints,
     )
     with open(args.out, 'w') as fh:

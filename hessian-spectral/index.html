@@ -959,6 +959,7 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
     <div class="row" style="margin-top: 0.7rem">
       <button id="ts-run" disabled>Run on GPU</button>
       <button id="ts-stopbtn" disabled>Stop</button>
+      <button id="ts-cont" disabled>Continue training</button>
       <label style="font-size: 0.85rem; color: var(--text-secondary)">load a saved capture:
         <input type="file" id="ts-file" accept=".json"></label>
     </div>
@@ -1013,10 +1014,6 @@ T_{k+1}(x) = 2x\,T_k(x) - T_{k-1}(x), \qquad T_k(x) = \cos(k \arccos x),
   <div id="ts-tooltip"></div>
 </div>
 
-<footer>
-Written from my handwritten notes on Lanczos and stochastic Lanczos quadrature.
-The estimator tabs run entirely in your browser (numerics in <code>spectral-numerics.js</code>); the training-time card streams from a GPU server.
-</footer>
 
 </main>
 
@@ -2147,11 +2144,20 @@ function chipStyle(col, style) {
 function zoomBar(el, ui, redraw, keyEntries) {
   el.innerHTML = (keyEntries || []).map(e => {
     const col = typeof e.color === 'function' ? e.color() : e.color;
-    return `<span class="lg" style="cursor: default">` +
+    const off = e.key && qHidden.has(e.key);
+    return `<span class="lg${off ? ' off' : ''}${e.key ? ' tsk' : ''}"` +
+      (e.key ? ` data-key="${e.key}" style="cursor: pointer" title="click to hide/show"` : ' style="cursor: default"') + '>' +
       (col ? `<span class="chip" style="${chipStyle(col, e.dash)}"></span>` : '') + `${e.label}</span>`;
   }).join('') + (ui.view ? '<span class="lg reset">&#8634; reset zoom</span>' : '');
   const r = el.querySelector('.reset');
   if (r) r.onclick = () => { ui.view = null; redraw(); };
+  el.querySelectorAll('.tsk').forEach(sp => {
+    sp.onclick = () => {
+      const k = sp.getAttribute('data-key');
+      if (qHidden.has(k)) qHidden.delete(k); else qHidden.add(k);
+      syncQ(); refreshTraining();
+    };
+  });
 }
 const tooltip = $('ts-tooltip');
 function wireChart(canvas, ui, draw, lookup) {
@@ -2385,8 +2391,9 @@ function drawDens() {
       });
     }
     zoomBar($('ts-dens-' + q + '-legend'), ui, drawDens,
-      [{ color: QCOLORS[q](), label: 'exact' }].concat(hasB ? [{ color: QCOLORS[q](), dash: true, label: 'block SLQ' }] : [])
-        .concat(ckKpm(ci) ? [{ color: QCOLORS[q](), dash: 'dot', label: 'KPM' }] : []));
+      [{ color: QCOLORS[q](), label: 'exact', key: QLABEL[q] }]
+        .concat(hasB ? [{ color: QCOLORS[q](), dash: true, label: 'block SLQ', key: BLABEL(q) }] : [])
+        .concat(ckKpm(ci) ? [{ color: QCOLORS[q](), dash: 'dot', label: 'KPM', key: KLABEL(q) }] : []));
   }
 }
 function drawScree() {
@@ -2438,8 +2445,9 @@ function drawScree() {
       });
     }
     zoomBar($('ts-scree-' + q + '-legend'), ui, drawScree,
-      [{ color: QCOLORS[q](), label: 'exact' }].concat(hasB ? [{ color: QCOLORS[q](), dash: true, label: 'block SLQ' }] : [])
-        .concat(ckKpm(ci) ? [{ color: QCOLORS[q](), dash: 'dot', label: 'KPM' }] : []));
+      [{ color: QCOLORS[q](), label: 'exact', key: QLABEL[q] }]
+        .concat(hasB ? [{ color: QCOLORS[q](), dash: true, label: 'block SLQ', key: BLABEL(q) }] : [])
+        .concat(ckKpm(ci) ? [{ color: QCOLORS[q](), dash: 'dot', label: 'KPM', key: KLABEL(q) }] : []));
   }
 }
 function syncQ() { drawDens(); drawScree(); renderQsel(); }
@@ -2582,8 +2590,8 @@ function createCharts() {
     lineChart('ts-sharp-' + q, 'ts-sharp-' + q + '-legend', sharpSeries,
       { xlabel: xl, ylabel: q === 'H' ? 'λ_max (sharpness)' : 'λ_max',
         guideY: q === 'H' ? g : undefined, markerX: markerXv,
-        keyEntries: [{ color: QCOLORS[q], label: 'exact' }]
-          .concat(hasB ? [{ color: QCOLORS[q], dash: true, label: 'block SLQ' }] : [])
+        keyEntries: [{ color: QCOLORS[q], label: 'exact', key: QLABEL[q] }]
+          .concat(hasB ? [{ color: QCOLORS[q], dash: true, label: 'block SLQ', key: BLABEL(q) }] : [])
           .concat(q === 'H' && g !== undefined ? [{ color: () => cssVar('--truth'), dash: true, label: '2/η' }] : []) });
     const hasK = !!(cap.config && cap.config.kpm);
     const errSeries = [{ label: 'SLQ', color: QCOLORS[q], visKey: QLABEL[q],
@@ -2594,9 +2602,9 @@ function createCharts() {
         xs: ckptX, ys: () => cap.ckpts.map(kk => kk.kpm_l1 ? kk.kpm_l1[q] : NaN) });
     lineChart('ts-errs-' + q, 'ts-errs-' + q + '-legend', errSeries,
       { ylog: true, xlabel: xl, ylabel: q === 'H' ? 'SLQ L1 error' : '', markerX: markerXv,
-        keyEntries: [{ color: QCOLORS[q], label: 'SLQ' }]
-          .concat(hasB ? [{ color: QCOLORS[q], dash: true, label: 'block SLQ' }] : [])
-          .concat(hasK ? [{ color: QCOLORS[q], dash: 'dot', label: 'KPM' }] : []) });
+        keyEntries: [{ color: QCOLORS[q], label: 'SLQ', key: QLABEL[q] }]
+          .concat(hasB ? [{ color: QCOLORS[q], dash: true, label: 'block SLQ', key: BLABEL(q) }] : [])
+          .concat(hasK ? [{ color: QCOLORS[q], dash: 'dot', label: 'KPM', key: KLABEL(q) }] : []) });
   }
 }
 function refreshTraining() {
@@ -2670,7 +2678,8 @@ function setStatus(msg, err) {
   el.textContent = msg;
   el.classList.toggle('err', !!err);
 }
-async function startRun() {
+let lastRunId = null;
+async function startRun(contFrom) {
   const body = {
     depth: iv('ts-depth', 1, 8), width: iv('ts-width', 1, 256), din: iv('ts-din', 1, 512),
     n: iv('ts-n', 2, 4096), batch: iv('ts-batch', 0, 4096), steps: iv('ts-steps', 1, 20000),
@@ -2686,21 +2695,30 @@ async function startRun() {
     cheby_deg: iv('ts-chebydeg', 1, 32),
     cifar_size: iv('ts-cifarsz', 4, 32),
   };
-  $('ts-run').disabled = true;
-  setStatus('launching run on the GPU server…');
+  if (contFrom) body.continue_from = contFrom;
+  $('ts-run').disabled = true; $('ts-cont').disabled = true;
+  setStatus(contFrom ? 'continuing training on the GPU server…' : 'launching run on the GPU server…');
   try {
     const r = await FETCH('api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' },
                                        body: JSON.stringify(body) });
     const j = await r.json();
     if (!r.ok || j.error) throw new Error(j.error || ('HTTP ' + r.status));
-    resetCap();
-    live = { id: j.id, off: 0, buf: '' };
+    let append = null;
+    if (contFrom && cap && cap.ckpts.length) {
+      append = { stepBase: cap.ckpts[cap.ckpts.length - 1].step,
+                 wallBase: cap.lossWall.length ? (cap.lossWall[cap.lossWall.length - 1] || 0) : 0 };
+    } else {
+      resetCap();
+    }
+    live = { id: j.id, off: 0, buf: '', append };
     $('ts-stopbtn').disabled = false;
     setStatus('run ' + j.id + ' started; waiting for the stream…');
     poll();
   } catch (e) {
-    setStatus('could not start run: ' + e.message, true);
+    setStatus('could not start run: ' + (serverOk ? e.message
+      : 'no GPU server behind this page — open the copy served by spectra_server.py (port 8974) or a tunnel to it'), true);
     $('ts-run').disabled = false;
+    $('ts-cont').disabled = !lastRunId;
   }
 }
 async function poll() {
@@ -2718,9 +2736,26 @@ async function poll() {
       if (!ln.trim()) continue;
       let o;
       try { o = JSON.parse(ln); } catch (e) { continue; }
-      if (o.t === 'config') showConfig(o.config);
-      else if (o.t === 'loss') { if (o.l !== null && isFinite(o.l)) { cap.losses.push(o.l); cap.lossSteps.push(o.s); cap.lossWall.push(o.wall); gotLoss = true; } }
-      else if (o.t === 'ckpt') { cap.ckpts.push(o); gotCkpt = true; }
+      if (o.t === 'config') {
+        if (live.append && cap.config) cap.config.steps = live.append.stepBase + o.config.steps;
+        else showConfig(o.config);
+      }
+      else if (o.t === 'loss') {
+        if (o.l !== null && isFinite(o.l)) {
+          const s2 = live.append ? o.s + live.append.stepBase : o.s;
+          const w2 = live.append && o.wall !== undefined ? o.wall + live.append.wallBase : o.wall;
+          if (!(live.append && cap.lossSteps.length && s2 <= cap.lossSteps[cap.lossSteps.length - 1])) {
+            cap.losses.push(o.l); cap.lossSteps.push(s2); cap.lossWall.push(w2); gotLoss = true;
+          }
+        }
+      }
+      else if (o.t === 'ckpt') {
+        if (live.append) {
+          o.step += live.append.stepBase;
+          if (o.wall !== undefined) o.wall += live.append.wallBase;
+          if (!(cap.ckpts.length && o.step <= cap.ckpts[cap.ckpts.length - 1].step)) { cap.ckpts.push(o); gotCkpt = true; }
+        } else { cap.ckpts.push(o); gotCkpt = true; }
+      }
       else if (o.t === 'done') finished = o;
     }
     if (gotCkpt) onNewCkpt();
@@ -2730,7 +2765,7 @@ async function poll() {
       const w = cap.lossWall[cap.lossWall.length - 1];
       setStatus(`running · step ${s}/${cap.config.steps} · checkpoint ${cap.ckpts.length} · ${fmt(w, 1)} s`);
     }
-    if (finished) setStatus(`done in ${finished.wall} s · saved on the server as captures/${live.id}.json`);
+    if (finished) { lastRunId = live.id; setStatus(`done in ${finished.wall} s · saved on the server as captures/${live.id}.json — Continue training resumes from these weights`); }
     if (j.done) {
       done = true;
       if (!finished && j.exit !== 0 && live.stopping)
@@ -2753,10 +2788,11 @@ async function poll() {
     setStatus('stream error: ' + e.message, true);
     done = true;
   }
-  if (done) { live = null; $('ts-stopbtn').disabled = true; $('ts-run').disabled = false; return; }
+  if (done) { live = null; $('ts-stopbtn').disabled = true; $('ts-run').disabled = false; $('ts-cont').disabled = !lastRunId; return; }
   setTimeout(poll, 1000);
 }
-$('ts-run').onclick = startRun;
+$('ts-run').onclick = () => startRun(null);
+$('ts-cont').onclick = () => { if (lastRunId) startRun(lastRunId); };
 $('ts-stopbtn').onclick = () => { if (live) { live.stopping = true; FETCH('api/stop?id=' + live.id).catch(() => {}); } };
 $('ts-slider').oninput = () => {
   follow = false; $('ts-follow').checked = false;
@@ -2799,13 +2835,20 @@ if (window.matchMedia) {
 }
 
 /* server probe + example capture */
-FETCH('api/ping').then(r => r.json()).then(j => {
-  $('ts-server').textContent = `GPU server connected · ${j.gpu} · ${j.running} run(s) in flight`;
-  $('ts-run').disabled = false;
-}).catch(() => {
-  $('ts-server').textContent = 'no GPU server behind this page. Serve it with python3 spectra_server.py on a GPU box '
-    + '(or sbatch spectra_server.sbatch, then tunnel). You can still load a saved capture on the right.';
-});
+let serverOk = false;
+function probeServer() {
+  FETCH('api/ping').then(r => r.json()).then(j => {
+    serverOk = true;
+    $('ts-server').textContent = `GPU server connected · ${j.gpu} · ${j.running} run(s) in flight`;
+  }).catch(() => {
+    serverOk = false;
+    $('ts-server').textContent = 'no GPU server behind this page. Serve it with python3 spectra_server.py on a GPU box '
+      + '(or sbatch spectra_server.sbatch, then tunnel). You can still load a saved capture on the right.';
+  });
+}
+probeServer();
+setInterval(probeServer, 5000);
+$('ts-run').disabled = false;
 FETCH('training-capture.json').then(r => r.ok ? r.json() : null).then(c => {
   if (c && !live && (!cap || !cap.ckpts.length)) loadStatic(c, 'training-capture.json (example 10k-parameter run)');
 }).catch(() => {});
