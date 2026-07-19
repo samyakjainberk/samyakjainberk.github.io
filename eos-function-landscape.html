@@ -107,6 +107,9 @@
   #c5f,#c5L{height:340px}
   #c6f,#c6L{height:380px}
   .legend{display:flex; flex-wrap:wrap; gap:11px; margin-top:8px; font-size:11.5px; color:var(--ink2)}
+.legend span.tgl{cursor:pointer; user-select:none; border-radius:6px; padding:1px 4px;}
+.legend span.tgl:hover{background:color-mix(in srgb, currentColor 8%, transparent);}
+.legend span.off{opacity:.35; text-decoration:line-through;}
   .legend span{display:inline-flex; align-items:center; gap:5px}
   .legend .tg{cursor:pointer; user-select:none; border-radius:5px; padding:1px 4px}
   .legend .tg:hover{background:var(--chipbg)}
@@ -779,6 +782,8 @@ const clamp = (v,a,b) => Math.min(b, Math.max(a, v));
 
 /* ---------- palette ---------- */
 let PAL = {};
+/* per-canvas series registry: legend entries toggle series drawn via lineSeries */
+const SEQ = {}, SCNT = {}, HID = new Set();
 function readPal(){
   const cs = getComputedStyle(document.documentElement);
   const g = n => cs.getPropertyValue(n).trim();
@@ -839,6 +844,7 @@ function fullRange(arr, pLo, pHi, wide){
   return [Math.max(mn, a - wide*span), Math.min(mx, b + wide*span)];
 }
 function setup(cv){
+  if (cv.id) SEQ[cv.id] = 0;
   const dpr = window.devicePixelRatio || 1;
   const w = cv.clientWidth, h = cv.clientHeight;
   if (cv.width !== Math.round(w*dpr) || cv.height !== Math.round(h*dpr)){
@@ -946,7 +952,7 @@ function sim(){
   const Sm = new Float64Array(Math.max(0, m-1));
   for (let i = 0; i+1 < m; i++) Sm[i] = clip(S1(0.5*(xs[i]+xs[i+1])));
   const gEnd = 2*(f[m-1] - P.y)*clip(fP(xs[m-1]));
-  return { xs, f, r, L, S, Sm, rbar, rn, Xt, GdS, Ru, Rq, Ruv,
+  return { xs: xs.subarray(0, m), f, r, L, S, Sm, rbar, rn, Xt, GdS, Ru, Rq, Ruv,
            CK: lagCosArrays(sg, new Float64Array(m), m),
            RK: lagCosArrays(sgr, new Float64Array(m), m),
            GK1: lagCosArrays(sgS, new Float64Array(m), m)[0], n, div,
@@ -1162,13 +1168,20 @@ function cursorLine(ctx, A, px){
   ctx.beginPath(); ctx.moveTo(px, A.t); ctx.lineTo(px, A.t+A.h); ctx.stroke();
 }
 function lineSeries(ctx, A, arr, len, st, off, color, upTo){
+  const _id = ctx.canvas && ctx.canvas.id;
+  if (_id){
+    const i = SEQ[_id] = (SEQ[_id] || 0) + 1;
+    SCNT[_id] = Math.max(SCNT[_id] || 0, i);
+    if (HID.has(_id + '|' + (i - 1))) return;
+  }
   ctx.lineJoin = 'round'; ctx.lineWidth = 1.5;
   ctx.strokeStyle = alpha(color, 0.25); ctx.beginPath();
-  for (let i = 0; i < len; i += st){ const px = A.x(i+off), py = A.y(arr[i]); i === 0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py); }
+  let s0 = true;
+  for (let i = 0; i < len; i += st){ const v = arr[i]; if (!isFinite(v)){ s0 = true; continue; } const px = A.x(i+off), py = A.y(v); s0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py); s0 = false; }
   ctx.stroke();
   ctx.strokeStyle = color; ctx.beginPath();
   let first = true;
-  for (let i = 0; i < Math.min(upTo, len); i += st){ const px = A.x(i+off), py = A.y(arr[i]); first ? ctx.moveTo(px,py) : ctx.lineTo(px,py); first = false; }
+  for (let i = 0; i < Math.min(upTo, len); i += st){ const v = arr[i]; if (!isFinite(v)){ first = true; continue; } const px = A.x(i+off), py = A.y(v); first ? ctx.moveTo(px,py) : ctx.lineTo(px,py); first = false; }
   ctx.stroke();
 }
 function drawSharpStrip(cv, RR, t, lr, iterRange){
@@ -1184,8 +1197,8 @@ function drawSharpStrip(cv, RR, t, lr, iterRange){
   const pad = 0.10*(hi-lo); lo -= pad; hi += pad;
   A.y = v => A.t + (hi - clamp(v, lo, hi))/(hi - lo)*A.h;
   axes(ctx, A, ticks(0,F.n,6), ticks(lo,hi,5), fmt, fmt);
-  if (RR.Sm.length) lineSeries(ctx, A, RR.Sm, RR.Sm.length, F.st, 0.5, PAL.sharpmid, F.up);
   lineSeries(ctx, A, RR.S, RR.S.length, F.st, 0, PAL.sharp, F.up+1);
+  lineSeries(ctx, A, RR.Sm, RR.Sm.length, F.st, 0.5, PAL.sharpmid, F.up);
   ctx.strokeStyle = PAL.unst; ctx.setLineDash([6,4]); ctx.lineWidth = 1.4;
   ctx.beginPath(); ctx.moveTo(A.l, A.y(thr)); ctx.lineTo(A.l+A.w, A.y(thr)); ctx.stroke();
   ctx.setLineDash([]);
@@ -1425,8 +1438,8 @@ bindStrip($('cs5'), i => `t=${i}\ng·∇̂S=${fmt(R.GdS[i])}`, apply1);
 bindStrip($('cs6'), i => `t=${i}\nr·û=${fmt(R.Ru[i])}`, apply1);
 bindStrip($('cs7'), i => `t=${i}\nr·(J∇̂S)=${fmt(R.Rq[i])}`, apply1);
 bindStrip($('cs8'), i => `t=${i}\nr·(Ĵu)=${fmt(R.Ruv[i])}`, apply1);
-bindStrip($('cs9'), i => `t=${i}\ncos(J∇S): k1=${fmt(R.CK[0][i])} k2=${fmt(R.CK[1][i])} k5=${fmt(R.CK[2][i])} k10=${fmt(R.CK[3][i])}`, apply1);
-bindStrip($('cs10'), i => `t=${i}\ncos(r): l1=${fmt(R.RK[0][i])} l2=${fmt(R.RK[1][i])} l5=${fmt(R.RK[2][i])} l10=${fmt(R.RK[3][i])}`, apply1);
+bindStrip($('cs9'), i => `t=${i}\ncos(J∇S): ${cosTip('cs9', [['∇Sk1', R.GK1]].concat(KLAGS.map((k, s) => ['k' + k, R.CK[s]])), i)}`, apply1);
+bindStrip($('cs10'), i => `t=${i}\ncos(r): ${cosTip('cs10', KLAGS.map((k, s) => ['l' + k, R.RK[s]]), i)}`, apply1);
 
 /* ---------- shared helpers (kept from removed panels) ---------- */
 const GN = 46;
@@ -2027,8 +2040,8 @@ bindStrip($('c3s5'), i => `t=${i}\ng·∇̂S=${fmt(R3.GdS[i])}`, apply3);
 bindStrip($('c3s6'), i => `t=${i}\nr·û=${fmt(R3.Ru[i])}`, apply3);
 bindStrip($('c3s7'), i => `t=${i}\nr·(J∇̂S)=${fmt(R3.Rq[i])}`, apply3);
 bindStrip($('c3s8'), i => `t=${i}\nr·(Ĵu)=${fmt(R3.Ruv[i])}`, apply3);
-bindStrip($('c3s9'), i => `t=${i}\ncos(J∇S): k1=${fmt(R3.CK[0][i])} k2=${fmt(R3.CK[1][i])} k5=${fmt(R3.CK[2][i])} k10=${fmt(R3.CK[3][i])}`, apply3);
-bindStrip($('c3s10'), i => `t=${i}\ncos(r): l1=${fmt(R3.RK[0][i])} l2=${fmt(R3.RK[1][i])} l5=${fmt(R3.RK[2][i])} l10=${fmt(R3.RK[3][i])}`, apply3);
+bindStrip($('c3s9'), i => `t=${i}\ncos(J∇S): ${cosTip('c3s9', [['∇Sk1', R3.GK1]].concat(KLAGS.map((k, s) => ['k' + k, R3.CK[s]])), i)}`, apply3);
+bindStrip($('c3s10'), i => `t=${i}\ncos(r): ${cosTip('c3s10', KLAGS.map((k, s) => ['l' + k, R3.RK[s]]), i)}`, apply3);
 $('p3csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R3.n; i++) rows.push([i, R3.x1[i], R3.x2[i], R3.f[i], R3.r2[i], R3.L[i], R3.S[i], R3.Xt[i], R3.GdS[i], R3.Ru[i], R3.Rq[i], R3.Ruv[i], R3.CK[0][i], R3.CK[1][i], R3.CK[2][i], R3.CK[3][i], R3.RK[0][i], R3.RK[1][i], R3.RK[2][i], R3.RK[3][i]].join(','));
@@ -2090,6 +2103,11 @@ function lagCosArrays(u1, u2, m){
     return C;
   });
 }
+function cosTip(cvId, entries, i){
+  const parts = entries.map((e, s) => HID.has(cvId + '|' + s) ? null
+    : e[0] + '=' + fmt(e[1][i])).filter(Boolean);
+  return parts.length ? parts.join(' ') : 'all series hidden';
+}
 function drawCosStrip(cv, RR, t, KA, extra){
   const F = stripFrame(cv, t, RR.n), ctx = F.ctx, A = F.A;
   const lo = -1.15, hi = 1.15;
@@ -2098,9 +2116,9 @@ function drawCosStrip(cv, RR, t, KA, extra){
   ctx.strokeStyle = PAL.axis; ctx.lineWidth = 1.2;
   ctx.beginPath(); ctx.moveTo(A.l, A.y(0)); ctx.lineTo(A.l+A.w, A.y(0)); ctx.stroke();
   const cols = [PAL.sharp, PAL.now, PAL.accent, PAL.nt[2]];
+  if (extra) lineSeries(ctx, A, extra, extra.length, F.st, 0, PAL.zero, F.up+1);
   for (let s = 0; s < KA.length; s++)
     lineSeries(ctx, A, KA[s], KA[s].length, F.st, 0, cols[s], F.up+1);
-  if (extra) lineSeries(ctx, A, extra, extra.length, F.st, 0, PAL.zero, F.up+1);
   cursorLine(ctx, A, A.x(F.up));
   cv._map = { A, n: F.n };
 }
@@ -2779,8 +2797,8 @@ bindStrip($('c5s5'), i => `t=${i}\n(Pg)·∇̂S_P=${fmt(R5.GdS[i])}`, apply5);
 bindStrip($('c5s6'), i => `t=${i}\nr·û=${fmt(R5.Ru[i])}`, apply5);
 bindStrip($('c5s7'), i => `t=${i}\nr·(JP∇̂S_P)=${fmt(R5.Rq[i])}`, apply5);
 bindStrip($('c5s8'), i => `t=${i}\nr·(JPu)=${fmt(R5.Ruv[i])}`, apply5);
-bindStrip($('c5s9'), i => `t=${i}\ncos(J∇S): k1=${fmt(R5.CK[0][i])} k2=${fmt(R5.CK[1][i])} k5=${fmt(R5.CK[2][i])} k10=${fmt(R5.CK[3][i])}`, apply5);
-bindStrip($('c5s10'), i => `t=${i}\ncos(r): l1=${fmt(R5.RK[0][i])} l2=${fmt(R5.RK[1][i])} l5=${fmt(R5.RK[2][i])} l10=${fmt(R5.RK[3][i])}`, apply5);
+bindStrip($('c5s9'), i => `t=${i}\ncos(J∇S): ${cosTip('c5s9', [['∇Sk1', R5.GK1]].concat(KLAGS.map((k, s) => ['k' + k, R5.CK[s]])), i)}`, apply5);
+bindStrip($('c5s10'), i => `t=${i}\ncos(r): ${cosTip('c5s10', KLAGS.map((k, s) => ['l' + k, R5.RK[s]]), i)}`, apply5);
 bindStrip($('c6s1'), i => `t=${i}\nL=${fmt(R6.L[i])}`, apply6);
 bindStrip($('c6s2'), i => `t=${i}\nλ(PH)=${fmt(R6.S[i])}\n2/η=${fmt(2/P6.lr)}`, apply6);
 bindStrip($('c6s3'), i => `t=${i}\n‖r‖=${fmt(R6.rn[i])}`, apply6);
@@ -2789,8 +2807,8 @@ bindStrip($('c6s5'), i => `t=${i}\n(Pg)·∇̂S_P=${fmt(R6.GdS[i])}`, apply6);
 bindStrip($('c6s6'), i => `t=${i}\nr·û=${fmt(R6.Ru[i])}`, apply6);
 bindStrip($('c6s7'), i => `t=${i}\nr·(JP∇̂S_P)=${fmt(R6.Rq[i])}`, apply6);
 bindStrip($('c6s8'), i => `t=${i}\nr·(JPu)=${fmt(R6.Ruv[i])}`, apply6);
-bindStrip($('c6s9'), i => `t=${i}\ncos(J∇S): k1=${fmt(R6.CK[0][i])} k2=${fmt(R6.CK[1][i])} k5=${fmt(R6.CK[2][i])} k10=${fmt(R6.CK[3][i])}`, apply6);
-bindStrip($('c6s10'), i => `t=${i}\ncos(r): l1=${fmt(R6.RK[0][i])} l2=${fmt(R6.RK[1][i])} l5=${fmt(R6.RK[2][i])} l10=${fmt(R6.RK[3][i])}`, apply6);
+bindStrip($('c6s9'), i => `t=${i}\ncos(J∇S): ${cosTip('c6s9', [['∇Sk1', R6.GK1]].concat(KLAGS.map((k, s) => ['k' + k, R6.CK[s]])), i)}`, apply6);
+bindStrip($('c6s10'), i => `t=${i}\ncos(r): ${cosTip('c6s10', KLAGS.map((k, s) => ['l' + k, R6.RK[s]]), i)}`, apply6);
 $('p5csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R5.n; i++)
@@ -2884,6 +2902,31 @@ function redrawVisible(){
 function clearSurfCaches(){ cacheF3.key = ''; cacheL3.key = ''; cacheF6.key = ''; cacheL6.key = ''; }
 const ro = new ResizeObserver(() => { clearSurfCaches(); redrawVisible(); });
 document.querySelectorAll('canvas.plot').forEach(c => ro.observe(c));
+
+/* ---------- clickable legends: toggle series on multi-line charts ---------- */
+function wireLegends(){
+  document.querySelectorAll('.card').forEach(card => {
+    const cv = card.querySelector('canvas');
+    const lg = card.querySelector('.legend');
+    if (!cv || !lg || !cv.id) return;
+    const n = SCNT[cv.id] || 0;
+    const spans = [...lg.children];
+    if (n < 2 || spans.length !== n) return;          // only when entries map 1:1 to drawn series
+    spans.forEach((sp, i) => {
+      if (sp.classList.contains('tgl')) return;       // idempotent
+      sp.classList.add('tgl');
+      sp.title = 'click to hide/show this series';
+      sp.addEventListener('click', () => {
+        const k = cv.id + '|' + i;
+        if (HID.has(k)) HID.delete(k); else HID.add(k);
+        sp.classList.toggle('off', HID.has(k));
+        redrawVisible();
+      });
+    });
+  });
+}
+setTimeout(wireLegends, 400);
+setInterval(wireLegends, 1500);
 new MutationObserver(() => { clearSurfCaches(); readPal(); redrawVisible(); })
   .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 if (window.matchMedia){
