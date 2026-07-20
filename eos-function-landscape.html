@@ -105,7 +105,7 @@
   #cs1,#cs2,#cs3,#cs4,#cs5,#cs6,#cs7,#cs8,#c3s1,#c3s2,#c3s3,#c3s4,#c3s5,#c3s6,#c3s7,#c3s8,#c5s1,#c5s2,#c5s3,#c5s4,#c5s5,#c5s6,#c5s7,#c5s8,#c6s1,#c6s2,#c6s3,#c6s4,#c6s5,#c6s6,#c6s7,#c6s8,#cs9,#c3s9,#c5s9,#c6s9,#cs10,#c3s10,#c5s10,#c6s10,#cs11,#c3s11,#c5s11,#c6s11,#cs12,#c3s12,#c5s12,#c6s12,#cs13,#c3s13,#c5s13,#c6s13,#cs14,#c3s14,#c5s14,#c6s14,#c3s15,#c6s15,#cs16,#c3s16,#c5s16,#c6s16{height:190px}
   #c7f,#c7L{height:330px}
   #c8f,#c8L{height:380px}
-  #c7s1,#c7s2,#c7s3,#c7s4,#c7s5,#c7s6,#c7s7,#c7s8,#c7s9,#c3s17,#c6s17,#c8s14,#c7s10,#c7s11,#c8s12,#c8s13,#c8s1,#c8s2,#c8s3,#c8s4,#c8s5,#c8s6,#c8s7,#c8s8,#c8s9,#c8s10,#c8s11{height:180px}
+  #c7s1,#c7s2,#c7s3,#c7s4,#c7s5,#c7s6,#c7s7,#c7s8,#c7s9,#c3s18,#c6s18,#c8s15,#c3s17,#c6s17,#c8s14,#c7s10,#c7s11,#c8s12,#c8s13,#c8s1,#c8s2,#c8s3,#c8s4,#c8s5,#c8s6,#c8s7,#c8s8,#c8s9,#c8s10,#c8s11{height:180px}
   #c3f,#c3L{height:380px}
   #c5f,#c5L{height:340px}
   #c6f,#c6L{height:380px}
@@ -336,6 +336,7 @@
       <div class="row"><label for="p3lr">learning rate η</label><input id="p3lr" type="number" step="any" value="0.1"></div>
       <input id="p3lrs" type="range" min="0" max="1000" value="0" aria-label="learning rate slider">
       <div class="row"><label for="p3T">iterations</label><input id="p3T" type="number" min="10" max="20000" step="10" value="3000"></div>
+      <div class="row"><label class="toggle" for="p3lin"><input type="checkbox" id="p3lin"> linearise oscillation coupling</label></div>
       <div class="chips" id="p3info"></div>
     </div>
     <div class="card ctl">
@@ -483,6 +484,16 @@
       <div class="legend">
         <span><i class="sw" style="background:var(--crit)"></i>amplitude at kick-in</span>
         <span><i class="sw" style="background:var(--sharp)"></i>excess η·λ/2 − 1</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>What moves w₂ — fitting pull vs oscillation coupling</h3>
+      <p class="cap">the two contributions to the w₂ step · <b>green</b>: the fitting pull +2ημr₂, which drags the iterate toward <i>sharper</i> · <b>red</b>: the oscillation coupling −2ηE²b·w₁², which is a perfect square and therefore pushes toward <i>flatter</i> in <b>both</b> halves of every cycle — the two halves add instead of cancelling, which is why the net motion is always outward · their crossover is the pushback · symlog</p>
+      <canvas class="plot" id="c3s18" role="img" aria-label="the two contributions to the w2 step"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--zero)"></i>fitting pull (toward sharper)</span>
+        <span><i class="sw" style="background:var(--crit)"></i>oscillation coupling (toward flatter)</span>
       </div>
     </div>
 
@@ -681,6 +692,7 @@
       <div class="row"><label for="p6lr">learning rate η</label><input id="p6lr" type="number" step="any" value="0.1"></div>
       <input id="p6lrs" type="range" min="0" max="1000" value="0" aria-label="learning rate slider">
       <div class="row"><label for="p6T">iterations</label><input id="p6T" type="number" min="10" max="20000" step="10" value="600"></div>
+      <div class="row"><label class="toggle" for="p6lin"><input type="checkbox" id="p6lin"> linearise oscillation coupling</label></div>
       <div class="chips" id="p6info"></div>
     </div>
     <div class="card ctl">
@@ -818,6 +830,16 @@
       <div class="legend">
         <span><i class="sw" style="background:var(--crit)"></i>amplitude at kick-in</span>
         <span><i class="sw" style="background:var(--sharp)"></i>excess η·λ/2 − 1</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>What moves w₂ — fitting pull vs oscillation coupling</h3>
+      <p class="cap">the two contributions to the w₂ step · <b>green</b>: the fitting pull +2ημr₂, which drags the iterate toward <i>sharper</i> · <b>red</b>: the oscillation coupling −2ηE²b·w₁², which is a perfect square and therefore pushes toward <i>flatter</i> in <b>both</b> halves of every cycle — the two halves add instead of cancelling, which is why the net motion is always outward · their crossover is the pushback · symlog</p>
+      <canvas class="plot" id="c6s18" role="img" aria-label="the two contributions to the w2 step"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--zero)"></i>fitting pull (toward sharper)</span>
+        <span><i class="sw" style="background:var(--crit)"></i>oscillation coupling (toward flatter)</span>
       </div>
     </div>
 
@@ -999,6 +1021,7 @@
       <div class="row"><label for="p8lr">learning rate η</label><input id="p8lr" type="number" step="any" value="0.1"></div>
       <input id="p8lrs" type="range" min="0" max="1000" value="0" aria-label="learning rate slider">
       <div class="row"><label for="p8T">iterations</label><input id="p8T" type="number" min="10" max="20000" step="10" value="1500"></div>
+      <div class="row"><label class="toggle" for="p8lin"><input type="checkbox" id="p8lin"> linearise oscillation coupling</label></div>
       <div class="chips" id="p8info"></div>
     </div>
     <div class="card ctl"><h3>Presets</h3><div class="presets" id="p8presets"></div></div>
@@ -1116,6 +1139,16 @@
       <div class="legend">
         <span><i class="sw" style="background:var(--crit)"></i>amplitude at kick-in</span>
         <span><i class="sw" style="background:var(--sharp)"></i>excess η·λ/2 − 1</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>What moves w₂ — fitting pull vs oscillation coupling</h3>
+      <p class="cap">the two contributions to the w₂ step · <b>green</b>: the fitting pull +2ημr₂, which drags the iterate toward <i>sharper</i> · <b>red</b>: the oscillation coupling −2ηE²b·w₁², which is a perfect square and therefore pushes toward <i>flatter</i> in <b>both</b> halves of every cycle — the two halves add instead of cancelling, which is why the net motion is always outward · their crossover is the pushback · symlog</p>
+      <canvas class="plot" id="c8s15" role="img" aria-label="the two contributions to the w2 step"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--zero)"></i>fitting pull (toward sharper)</span>
+        <span><i class="sw" style="background:var(--crit)"></i>oscillation coupling (toward flatter)</span>
       </div>
     </div>
 
@@ -1872,7 +1905,7 @@ function bindRotate(cv, camo, redraw, active){
 
 /* ================= PANEL 3 : θ-lab — tunable angle between oscillation and ∇S ================= */
 /* f(x1,x2) = a·e^{b·s}·x1,  s = cosθ·x1 + sinθ·(x2 − x20),  target y = 0, L = f² */
-const P3 = { th:90, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, x20:0, lr:0.1, T:3000 };
+const P3 = { lin:false, th:90, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, x20:0, lr:0.1, T:3000 };
 let R3 = null, t3 = 0, playing3 = false;
 
 function trig3(){ const t = P3.th*Math.PI/180; return { ct: Math.cos(t), st: Math.sin(t) }; }
@@ -1919,7 +1952,11 @@ function sim3(){
     if (!isFinite(E)){ n = t; div = true; break; }
     const f1v = E*x1, r2v = P3.y2 - mu*s;
     const g1 = 2*f1v*E*(1 + b*ct*x1) - 2*r2v*mu*ct;
-    const g2 = 2*f1v*E*b*st*x1 - 2*r2v*mu*st;
+    // split w₂'s gradient: the oscillation coupling is ∝ w₁² (rectified) and the fitting pull is not.
+    // P3.lin multiplies the first by sign(w₁) so it becomes ∝ w₁ and cancels over each cycle — the
+    // counterfactual that isolates rectification as the cause of self-stabilization.
+    const g2osc = 2*f1v*E*b*st*x1, g2fit = -2*r2v*mu*st;
+    const g2 = (P3.lin ? g2osc*(x1 > 0 ? 1 : x1 < 0 ? -1 : 0) : g2osc) + g2fit;
     x1 = x1 - P3.lr*g1; x2 = x2 - P3.lr*g2;
     if (!isFinite(x1) || !isFinite(x2) || Math.max(Math.abs(x1), Math.abs(x2)) > 1e8){ n = t; div = true; break; }
     X1[t+1] = x1; X2[t+1] = x2;
@@ -1932,6 +1969,7 @@ function sim3(){
         uS1 = new Float64Array(m), uS2 = new Float64Array(m),
         rr1 = new Float64Array(m), rr2 = new Float64Array(m),
         ug1 = new Float64Array(m), ug2 = new Float64Array(m),
+        Dfit = new Float64Array(m), Dosc = new Float64Array(m),
         JS1 = new Float64Array(m), T3n = new Float64Array(m), JQn = new Float64Array(m),
         EV1 = new Float64Array(m), EV2 = new Float64Array(m),
         EF1 = new Float64Array(m), EF2 = new Float64Array(m), RqL = new Float64Array(m),
@@ -2016,6 +2054,8 @@ function sim3(){
       NK1[i] = clip3((jl1*nkA1 + jl2*nkA2)/nl);
       NK2[i] = clip3((jl1*nkB1 + jl2*nkB2)/nl);
     }
+    Dfit[i] = clip3(2*P3.lr*H.r2*mu*st);      // step toward sharper
+    Dosc[i] = clip3(-2*P3.lr*H.f1*H.d2);      // rectified step toward flatter
     const jr1 = H.d1*ur1 + H.d2*ur2, jr2 = mu*(ct*ur1 + st*ur2);
     const nr = Math.hypot(jr1, jr2);
     Ruv[i] = nr > 1e-300 ? clip3((-H.f1*jr1 + H.r2*jr2)/nr) : 0;
@@ -2056,7 +2096,7 @@ function sim3(){
   const Sm = new Float64Array(Math.max(0, m-1));
   for (let i = 0; i+1 < m; i++) Sm[i] = clip3(lam3(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1])));
   return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), f, r2, L, rn, S, Sm,
-           Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, RqL, tcJ,
+           Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, RqL, tcJ, Dfit, Dosc,
            KC: kickCycles(X1.subarray(0,m), X2.subarray(0,m), S, P3.lr, m), NK: [NK1, NK2], tNK,
            DM: [dirMemory([cR1, cR2], m), dirMemory([cJ1, cJ2, cJ3, cJ4], m), dirMemory([cS1, cS2], m)],
            EV: [EV1, EV2], EVF: [EF1, EF2], CK: lagCosArrays(uS1, uS2, m),
@@ -2415,6 +2455,7 @@ function drawAll3(){
   drawCosStrip($('c3s10'), R3, t3, R3.RK);
   drawWhoTurnsStrip($('c3s16'), R3, t3, R3.tcJ);
   drawCycleStrip($('c3s17'), R3, t3);
+  drawSymlogMulti($('c3s18'), R3, t3, [R3.Dfit, R3.Dosc], [PAL.zero, PAL.crit]);
   const up = Math.min(Math.round(t3), R3.n);
   const ratio = R3.S[up]*P3.lr/2;
   let cls = PAL.good, txt = 'stable';
@@ -2458,7 +2499,7 @@ function recompute3(keepT){
   saveHash();
 }
 const BIND3 = [['p3th','th'],['p3a','a'],['p3b','b'],['p3mu','mu'],['p3y2','y2'],['p3x10','x10'],['p3lr','lr'],['p3T','T']];
-function syncInputs3(){
+function syncInputs3(){ $('p3lin').checked = !!P3.lin;
   for (const [id, k] of BIND3) $(id).value = P3[k];
   $('p3lrs').value = lr2slider(P3.lr);
   $('p3ths').value = Math.round(P3.th*10);
@@ -2514,6 +2555,7 @@ $('p3play').addEventListener('click', () => {
   if (t3 >= R3.n){ t3 = 0; $('p3scrub').value = 0; }
   playing3 = true; $('p3play').textContent = '❚❚';
 });
+$('p3lin').addEventListener('change', () => { P3.lin = $('p3lin').checked; recompute3(false); });
 $('p3view').addEventListener('change', () => {
   view3 = $('p3view').value === 'map' ? 'map' : '3d';
   drawAll3();
@@ -2535,6 +2577,7 @@ bindStrip($('c3s8'), i => `t=${i}\nr·(Ĵu)=${fmt(R3.Ruv[i])}`, apply3);
 bindStrip($('c3s10'), i => `t=${i}\ncos(r): ${cosTip('c3s10', KLAGS.map((k, s) => ['l' + k, R3.RK[s]]), i)}`, apply3);
 bindStrip($('c3s16'), i => `t=${i}\nresidual ${fmt(R3.DM[0][i])}\nJacobian ${fmt(R3.DM[1][i])}\n∇S ${fmt(R3.DM[2][i])}`, apply3);
 bindStrip($('c3s17'), i => `t=${i}` + (R3.KC.tev[i] ? `\ncycle fired at t=${R3.KC.tev[i]}\n  w₁=${fmt(R3.KC.osc[i])}  w₂=${fmt(R3.KC.w2[i])}\n  amplitude=${fmt(R3.KC.amp[i])}  excess=${fmt(R3.KC.exc[i])}` : '\nno cycle yet'), apply3);
+bindStrip($('c3s18'), i => `t=${i}\nfitting pull = ${fmt(R3.Dfit[i])}\noscillation  = ${fmt(R3.Dosc[i])}\nnet Δw₂ = ${fmt(R3.Dfit[i] + R3.Dosc[i])}`, apply3);
 $('p3csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R3.n; i++) rows.push([i, R3.x1[i], R3.x2[i], R3.f[i], R3.r2[i], R3.L[i], R3.S[i], R3.Xt[i], R3.GdS[i], R3.Ru[i], R3.Rq[i], R3.RqL[i], R3.Ruv[i], R3.CK[0][i], R3.CK[1][i], R3.CK[2][i], R3.CK[3][i], R3.RK[0][i], R3.RK[1][i], R3.RK[2][i], R3.RK[3][i], R3.JS1[i], R3.T3n[i], R3.JQn[i], R3.EV[0][i], R3.EV[1][i], R3.DM[0][i], R3.DM[1][i], R3.DM[2][i], R3.EVF[0][i], R3.EVF[1][i], R3.NK[0][i], R3.NK[1][i]].join(','));
@@ -3018,7 +3061,7 @@ function drawLand5(cv, kind, XR){
 }
 
 /* ---------- panel 6 : tilted valley, preconditioned ---------- */
-const P6 = { opt:'spec', th:90, a:2.5, b:0.08, mu:0.3, y2:2.0, x10:1.5, lr:0.1, T:600 };
+const P6 = { lin:false, opt:'spec', th:90, a:2.5, b:0.08, mu:0.3, y2:2.0, x10:1.5, lr:0.1, T:600 };
 let R6 = null, t6 = 0, playing6 = false;
 function trig6(){ const t = P6.th*Math.PI/180; return { ct: Math.cos(t), st: Math.sin(t) }; }
 function hess6(x1, x2){
@@ -3070,8 +3113,10 @@ function sim6(){
     const H = hess6(x1, x2);
     if (!isFinite(H.g1) || !isFinite(H.g2)){ n = t; div = true; break; }
     const P = pre6(H);
-    x1 = x1 - P6.lr*(P.p11*H.g1 + P.p12*H.g2);
-    x2 = x2 - P6.lr*(P.p12*H.g1 + P.p22*H.g2);
+    const g2osc = 2*H.f1*H.d2, g2fit = H.g2 - g2osc;
+    const g2u = (P6.lin ? g2osc*(x1 > 0 ? 1 : x1 < 0 ? -1 : 0) : g2osc) + g2fit;
+    x1 = x1 - P6.lr*(P.p11*H.g1 + P.p12*g2u);
+    x2 = x2 - P6.lr*(P.p12*H.g1 + P.p22*g2u);
     if (!isFinite(x1) || !isFinite(x2) || Math.max(Math.abs(x1), Math.abs(x2)) > 1e9){ n = t; div = true; break; }
     X1[t+1] = x1; X2[t+1] = x2;
   }
@@ -3082,6 +3127,7 @@ function sim6(){
         uS1 = new Float64Array(m), uS2 = new Float64Array(m),
         rr1 = new Float64Array(m), rr2 = new Float64Array(m),
         ug1 = new Float64Array(m), ug2 = new Float64Array(m),
+        Dfit = new Float64Array(m), Dosc = new Float64Array(m),
         JS1 = new Float64Array(m), T3n = new Float64Array(m), JQn = new Float64Array(m),
         EV1 = new Float64Array(m), EV2 = new Float64Array(m),
         EF1 = new Float64Array(m), EF2 = new Float64Array(m), RqL = new Float64Array(m),
@@ -3167,6 +3213,8 @@ function sim6(){
       NK1[i] = clip((jl1*nkA1 + jl2*nkA2)/nl);
       NK2[i] = clip((jl1*nkB1 + jl2*nkB2)/nl);
     }
+    Dosc[i] = clip(-2*P6.lr*H.f1*H.d2);
+    Dfit[i] = clip(-P6.lr*(H.g2 - 2*H.f1*H.d2));
     const pu1 = P.p11*UPHI6a + P.p12*UPHI6b, pu2 = P.p12*UPHI6a + P.p22*UPHI6b;
     const jr1 = H.d1*pu1 + H.d2*pu2, jr2 = mu*(H.ct*pu1 + H.st*pu2);
     const nr = Math.hypot(jr1, jr2);
@@ -3218,7 +3266,7 @@ function sim6(){
     Sm[i] = clip(symEig2(c11*Qi.q11 + c12*Qi.q12, c11*Qi.q12 + c12*Qi.q22,
                          c21*Qi.q12 + c22*Qi.q22).lam);
   }
-  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, RqL, tcJ,
+  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, RqL, tcJ, Dfit, Dosc,
            KC: kickCycles(X1.subarray(0,m), X2.subarray(0,m), S, P6.lr, m), NK: [NK1, NK2], tNK,
            DM: [dirMemory([cR1, cR2], m), dirMemory([cJ1, cJ2, cJ3, cJ4], m), dirMemory([cS1, cS2], m)],
            EV: [EV1, EV2], EVF: [EF1, EF2],
@@ -3450,6 +3498,7 @@ function drawAll6(){
   else if (!is3d6){ drawMap6($('c6f'), 'f'); drawMap6($('c6L'), 'L'); }
   drawAdaptive('c6', R6, t6, P6.lr);
   drawCycleStrip($('c6s17'), R6, t6);
+  drawSymlogMulti($('c6s18'), R6, t6, [R6.Dfit, R6.Dosc], [PAL.zero, PAL.crit]);
   const st6 = statusAdaptive(R6, t6, P6.lr);
   $('p6read').innerHTML =
     chip('t', st6.up) + chip('w₁', fmt(R6.x1[st6.up])) + chip('w₂', fmt(R6.x2[st6.up])) +
@@ -3484,7 +3533,7 @@ function syncInputs5(){
   for (const [id, k] of BIND5) $(id).value = P5[k];
   $('p5lrs').value = lr2slider(P5.lr); $('p5opt').value = P5.opt;
 }
-function syncInputs6(){
+function syncInputs6(){ $('p6lin').checked = !!P6.lin;
   for (const [id, k] of BIND6) $(id).value = P6[k];
   $('p6lrs').value = lr2slider(P6.lr); $('p6opt').value = P6.opt;
 }
@@ -3585,6 +3634,7 @@ bindStrip($('c6s8'), i => `t=${i}\nr·(JPu)=${fmt(R6.Ruv[i])}`, apply6);
 bindStrip($('c6s10'), i => `t=${i}\ncos(r): ${cosTip('c6s10', KLAGS.map((k, s) => ['l' + k, R6.RK[s]]), i)}`, apply6);
 bindStrip($('c6s16'), i => `t=${i}\nresidual ${fmt(R6.DM[0][i])}\nJacobian ${fmt(R6.DM[1][i])}\n∇S ${fmt(R6.DM[2][i])}`, apply6);
 bindStrip($('c6s17'), i => `t=${i}` + (R6.KC.tev[i] ? `\ncycle fired at t=${R6.KC.tev[i]}\n  w₁=${fmt(R6.KC.osc[i])}  w₂=${fmt(R6.KC.w2[i])}\n  amplitude=${fmt(R6.KC.amp[i])}  excess=${fmt(R6.KC.exc[i])}` : '\nno cycle yet'), apply6);
+bindStrip($('c6s18'), i => `t=${i}\nfitting pull = ${fmt(R6.Dfit[i])}\noscillation  = ${fmt(R6.Dosc[i])}\nnet Δw₂ = ${fmt(R6.Dfit[i] + R6.Dosc[i])}`, apply6);
 $('p5csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R5.n; i++)
@@ -3604,6 +3654,7 @@ $('p6csv').addEventListener('click', () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 });
 $('p6logz').addEventListener('change', () => { cacheL6.key = ''; drawAll6(); });
+$('p6lin').addEventListener('change', () => { P6.lin = $('p6lin').checked; recompute6(false); });
 $('p6view').addEventListener('change', () => { view6 = $('p6view').value === 'map' ? 'map' : '3d'; drawAll6(); });
 bindRotate($('c6f'), cam6, drawAll6, () => view6 === '3d');
 bindMapRot($('c6f'), 'a6', drawAll6, () => view6 === 'map');
@@ -3801,7 +3852,7 @@ function sim7(){
    f_i(w1,w2) = a·e^{b·w2}·w1·c_i + μ·w2,  target y2 for every sample.
    The oscillating output enters weighted by c (spread over samples) while the
    fitting pull acts along 1 (uniform) — two different function-space directions. */
-const P8 = { opt:'gd', n:8, sig:0.6, tau:0.4, bs:8, seed:1, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 };
+const P8 = { lin:false, opt:'gd', n:8, sig:0.6, tau:0.4, bs:8, seed:1, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 };
 let R8 = null, t8 = 0, playing8 = false;
 function st8(w1, w2, c, yv){
   // MEAN squared error (see st7): all aggregates below are divided by n
@@ -3880,8 +3931,17 @@ function sim8(){
     const bg = batchGrad8(w1, w2, c, yv, idx, B);
     if (!isFinite(bg.g1) || !isFinite(bg.g2)){ n = t; div = true; break; }
     const P = preFrom8(bg);
-    w1 -= P8.lr*(P.p11*bg.g1 + P.p12*bg.g2);
-    w2 -= P8.lr*(P.p12*bg.g1 + P.p22*bg.g2);
+    // the piece of g₂ quadratic in w₁ is the rectified coupling; P8.lin swaps w₁² for |w₁|·sign
+    let g2u = bg.g2;
+    if (P8.lin){
+      const Eb = P8.a*Math.exp(Math.min(P8.b*w2, 60));
+      let scc = 0;
+      for (let k = 0; k < nS; k++) scc += c[k]*c[k];
+      const q = 2*Eb*Eb*P8.b*w1*w1*(scc/nS);
+      g2u = bg.g2 - q + q*(w1 > 0 ? 1 : w1 < 0 ? -1 : 0);
+    }
+    w1 -= P8.lr*(P.p11*bg.g1 + P.p12*g2u);
+    w2 -= P8.lr*(P.p12*bg.g1 + P.p22*g2u);
     if (!isFinite(w1) || !isFinite(w2) || Math.max(Math.abs(w1), Math.abs(w2)) > 1e9){ n = t; div = true; break; }
     X1[t+1] = w1; X2[t+1] = w2;
   }
@@ -4590,6 +4650,7 @@ function drawAll8(){
   drawCosStrip($('c8s10'), R8, t8, R8.RK);
   drawWhoTurnsStrip($('c8s11'), R8, t8, R8.tcJ);
   drawCycleStrip($('c8s14'), R8, t8);
+  drawSymlogMulti($('c8s15'), R8, t8, [R8.Dfit, R8.Dosc], [PAL.zero, PAL.crit]);
   const up = Math.min(Math.round(t8), R8.n), ratio = R8.S[up]*P8.lr/2;
   let cls = PAL.good, txt = 'stable';
   if (R8.div){ cls = PAL.crit; txt = 'diverged'; }
@@ -4619,7 +4680,7 @@ function recompute8(keepT){
 const BIND7 = [['p7n','n'],['p7bs','bs'],['p7seed','seed'],['p7sig','sig'],['p7b','b'],['p7y','y'],['p7x0','x0'],['p7lr','lr'],['p7T','T']];
 const BIND8 = [['p8n','n'],['p8bs','bs'],['p8seed','seed'],['p8sig','sig'],['p8tau','tau'],['p8a','a'],['p8b','b'],['p8mu','mu'],['p8y2','y2'],['p8x10','x10'],['p8lr','lr'],['p8T','T']];
 function syncInputs7(){ for (const [id,k] of BIND7) $(id).value = P7[k]; $('p7lrs').value = lr2slider(P7.lr); $('p7opt').value = P7.opt; }
-function syncInputs8(){ for (const [id,k] of BIND8) $(id).value = P8[k]; $('p8lrs').value = lr2slider(P8.lr); $('p8opt').value = P8.opt; }
+function syncInputs8(){ $('p8lin').checked = !!P8.lin; for (const [id,k] of BIND8) $(id).value = P8[k]; $('p8lrs').value = lr2slider(P8.lr); $('p8opt').value = P8.opt; }
 function wireMulti(binds, PP, pid, rec){
   for (const [id, k] of binds){
     $(id).addEventListener('input', () => {
@@ -4732,6 +4793,7 @@ bindStrip($('c8s13'), i => `t=${i}\nr·(Ĵu)=${fmt(R8.Ruv[i])}`, apply8);
 bindStrip($('c8s10'), i => `t=${i}\ncos(r): ${cosTip('c8s10', KLAGS.map((k,s)=>['l'+k, R8.RK[s]]), i)}`, apply8);
 bindStrip($('c8s11'), i => `t=${i}\nresidual ${fmt(R8.DM[0][i])}\nJacobian ${fmt(R8.DM[1][i])}\n∇S ${fmt(R8.DM[2][i])}`, apply8);
 bindStrip($('c8s14'), i => `t=${i}` + (R8.KC.tev[i] ? `\ncycle fired at t=${R8.KC.tev[i]}\n  w₁=${fmt(R8.KC.osc[i])}  w₂=${fmt(R8.KC.w2[i])}\n  amplitude=${fmt(R8.KC.amp[i])}  excess=${fmt(R8.KC.exc[i])}` : '\nno cycle yet'), apply8);
+bindStrip($('c8s15'), i => `t=${i}\nfitting pull = ${fmt(R8.Dfit[i])}\noscillation  = ${fmt(R8.Dosc[i])}\nnet Δw₂ = ${fmt(R8.Dfit[i] + R8.Dosc[i])}`, apply8);
 $('p7csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R7.n; i++)
@@ -4743,6 +4805,7 @@ $('p7csv').addEventListener('click', () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 });
 $('p8logz').addEventListener('change', () => { cacheL8.key = ''; drawAll8(); });
+$('p8lin').addEventListener('change', () => { P8.lin = $('p8lin').checked; recompute8(false); });
 $('p8view').addEventListener('change', () => { view8 = $('p8view').value === 'map' ? 'map' : '3d'; drawAll8(); });
 bindRotate($('c8f'), cam8, drawAll8, () => view8 === '3d');
 bindMapRot($('c8f'), 'a8', drawAll8, () => view8 === 'map');
