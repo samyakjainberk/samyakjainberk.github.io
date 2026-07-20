@@ -103,6 +103,8 @@
   canvas.plot{width:100%; display:block; touch-action:none; border-radius:6px}
   #chero,#clhero{height:340px}
   #cs1,#cs2,#cs3,#cs4,#cs5,#cs6,#cs7,#cs8,#c3s1,#c3s2,#c3s3,#c3s4,#c3s5,#c3s6,#c3s7,#c3s8,#c5s1,#c5s2,#c5s3,#c5s4,#c5s5,#c5s6,#c5s7,#c5s8,#c6s1,#c6s2,#c6s3,#c6s4,#c6s5,#c6s6,#c6s7,#c6s8,#cs9,#c3s9,#c5s9,#c6s9,#cs10,#c3s10,#c5s10,#c6s10,#cs11,#c3s11,#c5s11,#c6s11,#cs12,#c3s12,#c5s12,#c6s12,#cs13,#c3s13,#c5s13,#c6s13,#cs14,#c3s14,#c5s14,#c6s14,#c3s15,#c6s15,#cs16,#c3s16,#c5s16,#c6s16{height:190px}
+  #c7f,#c7L{height:330px}
+  #c8f,#c8L{height:380px}
   #c7s1,#c7s2,#c7s3,#c7s4,#c7s5,#c7s6,#c7s7,#c7s8,#c7s9,#c8s1,#c8s2,#c8s3,#c8s4,#c8s5,#c8s6,#c8s7,#c8s8,#c8s9,#c8s10,#c8s11{height:180px}
   #c3f,#c3L{height:380px}
   #c5f,#c5L{height:340px}
@@ -1025,6 +1027,18 @@
       </select>
     </div>
 
+        <div class="card">
+      <h3>Function landscape — all n sample outputs</h3>
+      <p class="cap">every curve is one sample's output fᵢ(w) = −cᵢ·e<sup>b·w</sup> · dashed: the common target y · vertical line + dots: the current w and the n outputs there · red band: λ(PH) &gt; 2/η · <b>one parameter cannot bring all n curves to the target at once</b></p>
+      <canvas class="plot" id="c7f" role="img" aria-label="function landscape with all sample output curves"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Loss landscape L(w)</h3>
+      <p class="cap">mean squared error over the n samples, with the trajectory as hop arcs · the dashed red line is the <b>unfittable floor</b> min<sub>w</sub> L = ‖r⊥‖², which no optimizer can cross</p>
+      <canvas class="plot" id="c7L" role="img" aria-label="loss landscape with hop arcs and the unfittable floor"></canvas>
+    </div>
+
     <div class="card">
       <h3>Training loss</h3>
       <p class="cap">L = (1/n)Σᵢ rᵢ² (mean, so the sharpness scale is independent of n) · log · the floor is exactly ‖r⊥‖²</p>
@@ -1103,8 +1117,9 @@
       <b>cᵢ = 1 + σ·zᵢ</b> (spread across samples) while the fitting pull μ·w₂ moves every output
       equally — so in function space the <b>oscillation direction</b> and the <b>fitting direction</b>
       are different vectors whenever σ ≠ 0, and coincide exactly when σ = 0 (the single-datapoint
-      degeneracy). Targets are all y₂, which two parameters cannot match exactly, so part of the
-      residual is permanently unfittable. With n &gt; 1 the oscillation also re-centres: it happens around w₁* ≠ 0 rather than around the valley, so watch x_t rather than the sign of w₁.
+      degeneracy). Targets are yᵢ = y₂ + τ·(zᵢ² − ⅓): the Jacobian rows span {1, c} = {1, z}, so the <b>quadratic</b>
+      part τ·zᵢ² is what the two parameters can never reach — set τ = 0 and the targets become exactly
+      reachable and ‖r⊥‖ collapses to zero. With n &gt; 1 the oscillation also re-centres: it happens around w₁* ≠ 0 rather than around the valley, so watch x_t rather than the sign of w₁.
       <b>n</b>: samples · <b>σ</b>: spread · <b>a, b</b>: valley sharpness and its gradient ·
       <b>μ</b>: fitting strength · <b>y₂</b>: target · <b>η</b>, <b>T</b>: optimizer.</div>
       <div class="row"><label for="p8opt">optimizer</label>
@@ -1115,6 +1130,7 @@
           <option value="gn">Gauss–Newton</option></select></div>
       <div class="row"><label for="p8n">samples n</label><input id="p8n" type="number" min="2" max="32" step="1" value="8"></div>
       <div class="row"><label for="p8sig">spread σ</label><input id="p8sig" type="number" step="any" value="0.6"></div>
+      <div class="row"><label for="p8tau">target curvature τ</label><input id="p8tau" type="number" step="any" value="0.4"></div>
       <div class="row"><label for="p8a">a &nbsp;(valley sharpness √)</label><input id="p8a" type="number" step="any" value="2.5"></div>
       <div class="row"><label for="p8b">b &nbsp;(sharpness gradient)</label><input id="p8b" type="number" step="any" value="0.05"></div>
       <div class="row"><label for="p8mu">μ &nbsp;(fitting strength)</label><input id="p8mu" type="number" step="any" value="0.3"></div>
@@ -1141,6 +1157,19 @@
         <option value="0.25">¼×</option><option value="1" selected>1×</option>
         <option value="4">4×</option><option value="16">16×</option>
       </select>
+    </div>
+
+        <div class="card">
+      <h3>Per-sample zero-residual curves in (w₁, w₂)</h3>
+      <p class="cap">each curve is where one sample is fitted exactly, w₁ = (yᵢ − μw₂)/(a·e<sup>b·w₂</sup>·cᵢ) · <b>they do not meet at a common point</b> — that gap is precisely the unfittable residual · red tint: λ(PH) &gt; 2/η · set τ = 0 and they all collapse through one point</p>
+      <canvas class="plot" id="c8f" role="img" aria-label="per-sample zero residual curves with the trajectory"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="hd"><h3>Loss landscape L(w₁, w₂)</h3>
+        <label class="toggle"><input type="checkbox" id="p8logz" checked> log z</label></div>
+      <p class="cap">mean squared error surface · red tint: λ(PH) &gt; 2/η for the selected optimizer · drag to rotate</p>
+      <canvas class="plot" id="c8L" role="img" aria-label="loss surface with the trajectory"></canvas>
     </div>
 
     <div class="card">
@@ -3685,6 +3714,17 @@ function sampleCoef(n, sig){
   for (let i = 0; i < n; i++) c[i] = 1 + sig*(n > 1 ? -1 + 2*i/(n-1) : 0);
   return c;
 }
+function sampleTarget(n, y0, tau){
+  // targets carry a z² component. The Jacobian rows span {1, c} = {1, z}, so a purely
+  // linear-in-z target would be exactly reachable and the ⊥ residual would vanish
+  // identically; the quadratic part is what makes the targets genuinely unfittable.
+  const y = new Float64Array(n);
+  for (let i = 0; i < n; i++){
+    const z = n > 1 ? -1 + 2*i/(n-1) : 0;
+    y[i] = y0 + tau*(z*z - 1/3);
+  }
+  return y;
+}
 function drawLogMulti(cv, RR, t, arrs, cols){
   const F = stripFrame(cv, t, RR.n), ctx = F.ctx, A = F.A;
   const lg = v => Math.log10(Math.max(v, 1e-16));
@@ -3799,16 +3839,16 @@ function sim7(){
    f_i(w1,w2) = a·e^{b·w2}·w1·c_i + μ·w2,  target y2 for every sample.
    The oscillating output enters weighted by c (spread over samples) while the
    fitting pull acts along 1 (uniform) — two different function-space directions. */
-const P8 = { opt:'gd', n:8, sig:0.6, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 };
+const P8 = { opt:'gd', n:8, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 };
 let R8 = null, t8 = 0, playing8 = false;
-function st8(w1, w2, c){
+function st8(w1, w2, c, yv){
   // MEAN squared error (see st7): all aggregates below are divided by n
   const nS = c.length, e = P8.b*w2, E = P8.a*(e > 60 ? Infinity : Math.exp(e)), inv = 1/nS;
   const r = new Float64Array(nS), J1 = new Float64Array(nS), J2 = new Float64Array(nS);
   let L = 0, g1 = 0, g2 = 0, M11 = 0, M12 = 0, M22 = 0, N12 = 0, N22 = 0, sumR = 0, sumRc = 0;
   for (let i = 0; i < nS; i++){
     const fi = E*w1*c[i] + P8.mu*w2;
-    r[i] = P8.y2 - fi;
+    r[i] = yv[i] - fi;
     J1[i] = E*c[i];
     J2[i] = E*P8.b*w1*c[i] + P8.mu;
     L += r[i]*r[i];
@@ -3840,14 +3880,15 @@ function lamPH8(s){
   const b21 = Q.q12*s.h11 + Q.q22*s.h12, b22 = Q.q12*s.h12 + Q.q22*s.h22;
   return symEig2(b11*Q.q11 + b12*Q.q12, b11*Q.q12 + b12*Q.q22, b21*Q.q12 + b22*Q.q22);
 }
-function lamP8(w1, w2, c){ return lamPH8(st8(w1, w2, c)).lam; }
+function lamP8(w1, w2, c, yv){ return lamPH8(st8(w1, w2, c, yv)).lam; }
 function sim8(){
   const c = sampleCoef(Math.max(2, Math.round(P8.n)), P8.sig), nS = c.length, T = P8.T;
+  const yv = sampleTarget(nS, P8.y2, P8.tau);
   const X1 = new Float64Array(T+1), X2 = new Float64Array(T+1);
   let w1 = P8.x10, w2 = 0, n = T, div = false;
   X1[0] = w1; X2[0] = w2;
   for (let t = 0; t < T; t++){
-    const s = st8(w1, w2, c);
+    const s = st8(w1, w2, c, yv);
     if (!isFinite(s.g1) || !isFinite(s.g2)){ n = t; div = true; break; }
     const P = pre8(s);
     w1 -= P8.lr*(P.p11*s.g1 + P.p12*s.g2);
@@ -3864,7 +3905,7 @@ function sim8(){
   for (let i = 0; i < nS; i++){ Rc.push(new Float64Array(m)); Jc.push(new Float64Array(m)); Jc.push(new Float64Array(m)); }
   let pv1 = null, pv2 = 0;
   for (let i = 0; i < m; i++){
-    const s = st8(X1[i], X2[i], c), P = pre8(s), eA = lamPH8(s);
+    const s = st8(X1[i], X2[i], c, yv), P = pre8(s), eA = lamPH8(s);
     L[i] = clip(s.L); rn[i] = Math.sqrt(Math.max(0, L[i])); S[i] = clip(eA.lam);
     const Q = symSqrt2(P.p11, P.p12, P.p22);
     let vw1 = Q.q11*eA.v1 + Q.q12*eA.v2, vw2 = Q.q12*eA.v1 + Q.q22*eA.v2;
@@ -3875,8 +3916,8 @@ function sim8(){
     const pg1 = P.p11*s.g1 + P.p12*s.g2, pg2 = P.p12*s.g1 + P.p22*s.g2;
     Xt[i] = clip(pg1*vw1 + pg2*vw2);
     const h = 1e-5*(1 + Math.abs(X1[i]) + Math.abs(X2[i]));
-    const gS1 = (lamP8(X1[i]+h, X2[i], c) - lamP8(X1[i]-h, X2[i], c))/(2*h);
-    const gS2 = (lamP8(X1[i], X2[i]+h, c) - lamP8(X1[i], X2[i]-h, c))/(2*h);
+    const gS1 = (lamP8(X1[i]+h, X2[i], c, yv) - lamP8(X1[i]-h, X2[i], c, yv))/(2*h);
+    const gS2 = (lamP8(X1[i], X2[i]+h, c, yv) - lamP8(X1[i], X2[i]-h, c, yv))/(2*h);
     const nSg = Math.hypot(gS1, gS2);
     GdS[i] = nSg > 1e-12 ? clip((pg1*gS1 + pg2*gS2)/nSg) : 0;
     cS1[i] = gS1; cS2[i] = gS2;
@@ -3917,11 +3958,11 @@ function sim8(){
     Dfit[i] = clip(2*P8.lr*P8.mu*s.sumR);                     // w₂ advance from the fitting pull
     Dosc[i] = clip(2*P8.lr*s.E*P8.b*X1[i]*s.sumRc);           // w₂ change from the oscillation coupling
     for (let k = 0; k < nS; k++){ Rc[k][i] = s.r[k]; Jc[2*k][i] = s.J1[k]; Jc[2*k+1][i] = s.J2[k]; }
-    if (i+1 < m) Sm[i] = clip(lamP8(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1]), c));
+    if (i+1 < m) Sm[i] = clip(lamP8(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1]), c, yv));
   }
   let tcJ = Infinity;
   for (let i = 0; i < m; i++){ if (isFinite(S[i]) && S[i] > 2/P8.lr){ tcJ = i; break; } }
-  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), c, L, rn, S, Sm, Xt, GdS,
+  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), c, yv, L, rn, S, Sm, Xt, GdS,
            Rpar, Rperp, Ru1, Ru2, AngO, AngN, Dfit, Dosc, tcJ,
            RK: lagCosArrays2(Rc, m),
            DM: [dirMemory(Rc, m), dirMemory(Jc, m), dirMemory([cS1, cS2], m)],
@@ -3940,10 +3981,335 @@ function lagCosArrays2(comps, m){
   });
 }
 
+
+/* ---------- panel 7 landscapes: n function curves + the loss curve ---------- */
+function xRange7(){
+  const [qlo, qhi] = fullRange(R7.xs, 1, 99, 3);
+  let lo = Math.min(qlo, P7.x0), hi = Math.max(qhi, P7.x0);
+  const sp = hi - lo || 1;
+  return { lo: lo - 0.18*sp, hi: hi + 0.18*sp };
+}
+function drawLand7(cv, kind, XR){
+  const { ctx, w, h } = setup(cv);
+  if (w < 10 || h < 10) return;
+  const A = area(w, h);
+  const up = Math.min(Math.round(t7), R7.n);
+  const c = R7.c, nS = c.length, lo = XR.lo, hi = XR.hi, N = 320;
+  const xs = [], curves = [], LL = [];
+  for (let i = 0; i <= N; i++){
+    const x = lo + (hi-lo)*i/N; xs.push(x);
+    const e = P7.b*x, E = e > 60 ? 1e100 : Math.exp(e);
+    const row = new Float64Array(nS); let L = 0;
+    for (let k = 0; k < nS; k++){
+      const fi = -E*c[k]; row[k] = fi;
+      const r = P7.y - fi; L += r*r;
+    }
+    curves.push(row); LL.push(L/nS);
+  }
+  let ylo, yhi;
+  if (kind === 'f'){
+    ylo = P7.y; yhi = P7.y;
+    for (const row of curves) for (let k = 0; k < nS; k++){
+      const v = row[k];
+      if (v > -1e50 && v < 1e50){ if (v < ylo) ylo = v; if (v > yhi) yhi = v; }
+    }
+    const p = 0.10*(yhi - ylo || 1); ylo -= p; yhi += p;
+  } else {
+    let mx = 0; for (const v of LL) if (isFinite(v) && v < 1e50 && v > mx) mx = v;
+    const seen = [];
+    for (let i = 0; i <= up; i++) if (isFinite(R7.L[i])) seen.push(R7.L[i]);
+    yhi = Math.max(pctl(LL.filter(v => isFinite(v) && v < 1e50), 96), seen.length ? pctl(seen, 99) : 0, 1e-12)*1.25;
+    ylo = -0.05*yhi;
+  }
+  A.x = x => A.l + (x - lo)/(hi - lo)*A.w;
+  A.y = v => A.t + (yhi - v)/(yhi - ylo)*A.h;
+  // unstable band for the selected optimizer
+  ctx.fillStyle = alpha(PAL.unst, 0.09);
+  const thr = 2/P7.lr;
+  let runA = null;
+  for (let i = 0; i <= N; i++){
+    const lam = lamP7(xs[i], c);
+    const un = isFinite(lam) && lam > thr && i < N;
+    if (un && runA === null) runA = xs[i];
+    if (!un && runA !== null){
+      const p1 = clamp(A.x(runA), A.l, A.l+A.w), p2 = clamp(A.x(xs[i]), A.l, A.l+A.w);
+      ctx.fillRect(p1, A.t, Math.max(p2-p1, 1), A.h); runA = null;
+    }
+  }
+  axes(ctx, A, ticks(lo,hi,7), ticks(ylo,yhi,5), fmt, fmt);
+  if (kind === 'f'){
+    ctx.strokeStyle = PAL.zero; ctx.setLineDash([5,4]); ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.moveTo(A.l, A.y(P7.y)); ctx.lineTo(A.l+A.w, A.y(P7.y)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = PAL.ink2; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+    ctx.fillText('target y (all samples)', A.l + 6, A.y(P7.y) - 3);
+    ctx.save(); ctx.beginPath(); ctx.rect(A.l, A.t, A.w, A.h); ctx.clip();
+    for (let k = 0; k < nS; k++){
+      ctx.strokeStyle = alpha(mix(PAL.surflo, PAL.surfhi, nS > 1 ? k/(nS-1) : 0.5), 0.95);
+      ctx.lineWidth = 1.5; ctx.beginPath();
+      for (let i = 0; i <= N; i++){
+        const py = clamp(A.y(curves[i][k]), A.t-50, A.t+A.h+50);
+        i === 0 ? ctx.moveTo(A.x(xs[i]), py) : ctx.lineTo(A.x(xs[i]), py);
+      }
+      ctx.stroke();
+    }
+    // current parameter: one dot per sample output
+    const wc = R7.xs[up], e = P7.b*wc, E = e > 60 ? 1e100 : Math.exp(e);
+    ctx.strokeStyle = alpha(PAL.now, 0.85); ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(A.x(wc), A.t); ctx.lineTo(A.x(wc), A.t+A.h); ctx.stroke();
+    for (let k = 0; k < nS; k++){
+      ctx.fillStyle = PAL.now;
+      ctx.beginPath(); ctx.arc(A.x(wc), clamp(A.y(-E*c[k]), A.t-50, A.t+A.h+50), 3, 0, 7); ctx.fill();
+    }
+    ctx.restore();
+    ctx.fillStyle = PAL.muted; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+    ctx.fillText('w', A.l + A.w, A.t + A.h - 4);
+  } else {
+    // unfittable floor
+    let floor = Infinity;
+    for (const v of LL) if (isFinite(v) && v < floor) floor = v;
+    if (isFinite(floor) && floor > 0 && floor < yhi){
+      ctx.strokeStyle = PAL.crit; ctx.setLineDash([4,4]); ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.moveTo(A.l, A.y(floor)); ctx.lineTo(A.l+A.w, A.y(floor)); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = PAL.crit; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+      ctx.fillText('unfittable floor ‖r⊥‖²', A.l + 6, A.y(floor) - 3);
+    }
+    ctx.save(); ctx.beginPath(); ctx.rect(A.l, A.t, A.w, A.h); ctx.clip();
+    ctx.strokeStyle = PAL.ink2; ctx.lineWidth = 1.8; ctx.beginPath();
+    for (let i = 0; i <= N; i++){
+      const py = clamp(A.y(LL[i]), A.t-50, A.t+A.h+50);
+      i === 0 ? ctx.moveTo(A.x(xs[i]), py) : ctx.lineTo(A.x(xs[i]), py);
+    }
+    ctx.stroke();
+    // hop arcs along the trajectory
+    const st = decim(up, 2000), arcs = st === 1 && up <= 800;
+    for (let i = 0; i + st <= up; i += st){
+      const x1 = A.x(R7.xs[i]), y1 = clamp(A.y(R7.L[i]), A.t-50, A.t+A.h+50);
+      const x2 = A.x(R7.xs[i+st]), y2 = clamp(A.y(R7.L[i+st]), A.t-50, A.t+A.h+50);
+      ctx.strokeStyle = trajCol(R7.n ? i/R7.n : 0); ctx.lineWidth = 1.3;
+      if (arcs){
+        const d = Math.hypot(x2-x1, y2-y1), lift = Math.min(46, 8 + 0.30*d);
+        ctx.beginPath(); ctx.moveTo(x1, y1);
+        ctx.quadraticCurveTo((x1+x2)/2, (y1+y2)/2 - lift, x2, y2); ctx.stroke();
+      } else {
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    }
+    for (let i = 0; i <= up; i += st){
+      ctx.fillStyle = trajCol(R7.n ? i/R7.n : 0);
+      ctx.beginPath(); ctx.arc(A.x(R7.xs[i]), clamp(A.y(R7.L[i]), A.t-50, A.t+A.h+50), 2.3, 0, 7); ctx.fill();
+    }
+    ctx.fillStyle = PAL.now;
+    ctx.beginPath(); ctx.arc(A.x(R7.xs[up]), clamp(A.y(R7.L[up]), A.t-50, A.t+A.h+50), 5.5, 0, 7); ctx.fill();
+    ctx.strokeStyle = PAL.surface; ctx.lineWidth = 2; ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = PAL.muted; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+    ctx.fillText('w', A.l + A.w, A.t + A.h - 4);
+  }
+}
+
+/* ---------- panel 8 landscapes: per-sample zero-residual curves + loss surface ---------- */
+function L8full(w1, w2, c, yv){
+  const E = P8.a*Math.exp(Math.min(P8.b*w2, 60));
+  let L = 0;
+  for (let k = 0; k < c.length; k++){ const r = yv[k] - (E*w1*c[k] + P8.mu*w2); L += r*r; }
+  return Math.min(L/c.length, 1e300);
+}
+function drawMap8(cv){
+  const { ctx, w, h } = setup(cv);
+  if (w < 10 || h < 10) return;
+  const A = area(w, h);
+  const up = Math.min(Math.round(t8), R8.n);
+  const c = R8.c, yv = R8.yv, nS = c.length;
+  const [m1l, m1h] = fullRange(R8.x1, 1, 99, 3), [m2l, m2h] = fullRange(R8.x2, 1, 99, 3);
+  let lo1 = Math.min(m1l, P8.x10, 0), hi1 = Math.max(m1h, P8.x10, 0);
+  let lo2 = Math.min(m2l, 0), hi2 = Math.max(m2h, 0);
+  let s1 = hi1-lo1 || 1, s2 = hi2-lo2 || 1;
+  lo1 -= 0.18*s1; hi1 += 0.18*s1; lo2 -= 0.18*s2; hi2 += 0.18*s2;
+  s1 = hi1-lo1; s2 = hi2-lo2;
+  A.x = x => A.l + (x-lo1)/s1*A.w;
+  A.y = x => A.t + (hi2-x)/s2*A.h;
+  // unstable tint for the selected optimizer
+  const thr = 2/P8.lr, M = 46;
+  ctx.save(); ctx.beginPath(); ctx.rect(A.l, A.t, A.w, A.h); ctx.clip();
+  ctx.fillStyle = alpha(PAL.unst, 0.10);
+  const cw = A.w/M + 0.5, chh = A.h/M + 0.5;
+  for (let i = 0; i < M; i++) for (let j = 0; j < M; j++){
+    const lam = lamP8(lo1 + s1*(i+0.5)/M, lo2 + s2*(j+0.5)/M, c, yv);
+    if (isFinite(lam) && lam > thr) ctx.fillRect(A.x(lo1 + s1*i/M), A.y(lo2 + s2*(j+1)/M), cw, chh);
+  }
+  ctx.restore();
+  axes(ctx, A, ticks(lo1,hi1,7), ticks(lo2,hi2,6), fmt, fmt);
+  ctx.save(); ctx.beginPath(); ctx.rect(A.l-1, A.t-1, A.w+2, A.h+2); ctx.clip();
+  // per-sample zero-residual curves: w1 = (y_i − μ w2)/(a e^{b w2} c_i)
+  const NP = 160;
+  for (let k = 0; k < nS; k++){
+    ctx.strokeStyle = alpha(mix(PAL.surflo, PAL.surfhi, nS > 1 ? k/(nS-1) : 0.5), 0.9);
+    ctx.lineWidth = 1.4; ctx.beginPath();
+    let started = false;
+    for (let j = 0; j <= NP; j++){
+      const w2 = lo2 + s2*j/NP;
+      const E = P8.a*Math.exp(Math.min(P8.b*w2, 60));
+      if (!isFinite(E) || Math.abs(E*c[k]) < 1e-300) { started = false; continue; }
+      const w1 = (yv[k] - P8.mu*w2)/(E*c[k]);
+      const px = A.x(w1), py = A.y(w2);
+      if (!isFinite(px) || !isFinite(py)) { started = false; continue; }
+      started ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+      started = true;
+    }
+    ctx.stroke();
+  }
+  // trajectory
+  const stp = decim(up, 3000);
+  let prev = null;
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= up; i += stp){
+    const px = A.x(R8.x1[i]), py = A.y(R8.x2[i]);
+    if (prev){ ctx.strokeStyle = alpha(PAL.traj1, 0.30); ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(px, py); ctx.stroke(); }
+    prev = [px, py];
+  }
+  for (let i = 0; i <= up; i += stp){
+    ctx.fillStyle = trajCol(R8.n ? i/R8.n : 0);
+    ctx.beginPath(); ctx.arc(A.x(R8.x1[i]), A.y(R8.x2[i]), 2.2, 0, 7); ctx.fill();
+  }
+  ctx.fillStyle = PAL.now;
+  ctx.beginPath(); ctx.arc(A.x(R8.x1[up]), A.y(R8.x2[up]), 5.5, 0, 7); ctx.fill();
+  ctx.strokeStyle = PAL.surface; ctx.lineWidth = 2; ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle = PAL.muted; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+  ctx.fillText('w₁', A.l + A.w, A.t + A.h - 4);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('w₂', A.l + 4, A.t + 2);
+}
+const cam8 = { al: -0.95, ph: 0.50 };
+const cacheL8 = { cv: document.createElement('canvas'), key: '' };
+let surf8 = null;
+function buildSurf8(){
+  const [q1l, q1h] = fullRange(R8.x1, 2, 98, 3), [q2l, q2h] = fullRange(R8.x2, 2, 98, 3);
+  let l1 = Math.min(q1l, P8.x10, 0), h1 = Math.max(q1h, P8.x10, 0);
+  let l2 = Math.min(q2l, 0), h2 = Math.max(q2h, 0);
+  const s1 = (h1-l1 || 2), s2 = (h2-l2 || 2);
+  l1 -= 0.25*s1; h1 += 0.25*s1; l2 -= 0.25*s2; h2 += 0.25*s2;
+  const w1r = h1-l1, w2r = h2-l2;
+  if (w1r < 0.3*w2r){ const cc = 0.5*(l1+h1), half = 0.15*w2r; l1 = cc-half; h1 = cc+half; }
+  if (w2r < 0.3*w1r){ const cc = 0.5*(l2+h2), half = 0.15*w1r; l2 = cc-half; h2 = cc+half; }
+  const LM = [], UN = [], thr = 2/P8.lr;
+  for (let i = 0; i <= GN; i++){
+    LM.push([]);
+    const x1 = l1 + (h1-l1)*i/GN;
+    for (let j = 0; j <= GN; j++) LM[i].push(L8full(x1, l2 + (h2-l2)*j/GN, R8.c, R8.yv));
+  }
+  for (let i = 0; i < GN; i++){
+    UN.push([]);
+    for (let j = 0; j < GN; j++){
+      const lam = lamP8(l1 + (h1-l1)*(i+0.5)/GN, l2 + (h2-l2)*(j+0.5)/GN, R8.c, R8.yv);
+      UN[i].push(isFinite(lam) && lam > thr);
+    }
+  }
+  surf8 = { l1, h1, l2, h2, LM, UN };
+}
+function proj8(u, v, z, s, cx, cyv){
+  const ca = Math.cos(cam8.al), sa = Math.sin(cam8.al);
+  const cp = Math.cos(cam8.ph), sp = Math.sin(cam8.ph);
+  const wv = u*ca + v*sa, tv = -u*sa + v*ca;
+  return [cx + s*tv, cyv - s*(z*cp - wv*sp), wv*cp + z*sp];
+}
+function drawSurf8(cv){
+  if (!surf8) return;
+  const logz = $('p8logz').checked;
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  if (w < 10 || h < 10) return;
+  const key = [w, h, dpr, cam8.al.toFixed(3), cam8.ph.toFixed(3), logz, PAL.ink,
+    surf8.l1, surf8.h1, surf8.l2, surf8.h2, P8.n, P8.sig, P8.tau, P8.a, P8.b, P8.mu, P8.y2, P8.lr, P8.opt].join('|');
+  const G = surf8.LM;
+  const zf = logz ? (v => Math.log10(1 + Math.max(0, v))) : (v => v);
+  let zlo = Infinity, zhi = -Infinity;
+  for (let i = 0; i <= GN; i++) for (let j = 0; j <= GN; j++){
+    const z = zf(G[i][j]); if (z < zlo) zlo = z; if (z > zhi) zhi = z;
+  }
+  if (!(zhi > zlo)) zhi = zlo + 1;
+  const ZH = 0.85;
+  const nz = v => (zf(v) - zlo)/(zhi - zlo)*ZH;
+  const NX = x => -1 + 2*(x - surf8.l1)/(surf8.h1 - surf8.l1);
+  const NY = x => -1 + 2*(x - surf8.l2)/(surf8.h2 - surf8.l2);
+  const s = Math.min(w, h)/3.05, cx = w/2, cyv = h*0.56;
+  const P3d = (x1, x2, zv) => proj8(NX(x1), NY(x2), nz(zv), s, cx, cyv);
+  const floorz = logz ? Math.pow(10, zlo) - 1 : zlo;
+  if (cacheL8.key !== key){
+    cacheL8.key = key;
+    cacheL8.cv.width = Math.round(w*dpr); cacheL8.cv.height = Math.round(h*dpr);
+    const ctx = cacheL8.cv.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,w,h);
+    ctx.strokeStyle = PAL.axis; ctx.lineWidth = 1;
+    const corners = [[surf8.l1,surf8.l2],[surf8.h1,surf8.l2],[surf8.h1,surf8.h2],[surf8.l1,surf8.h2]];
+    ctx.beginPath();
+    corners.forEach((cc,i) => { const p = P3d(cc[0], cc[1], floorz); i===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]); });
+    ctx.closePath(); ctx.stroke();
+    const quads = [];
+    for (let i = 0; i < GN; i++) for (let j = 0; j < GN; j++){
+      const x1a = surf8.l1 + (surf8.h1-surf8.l1)*i/GN, x1b = surf8.l1 + (surf8.h1-surf8.l1)*(i+1)/GN;
+      const x2a = surf8.l2 + (surf8.h2-surf8.l2)*j/GN, x2b = surf8.l2 + (surf8.h2-surf8.l2)*(j+1)/GN;
+      const pa = P3d(x1a,x2a,G[i][j]), pb = P3d(x1b,x2a,G[i+1][j]),
+            pc = P3d(x1b,x2b,G[i+1][j+1]), pd = P3d(x1a,x2b,G[i][j+1]);
+      quads.push({ pa, pb, pc, pd, un: surf8.UN[i][j],
+        zn: (nz(G[i][j]) + nz(G[i+1][j]) + nz(G[i+1][j+1]) + nz(G[i][j+1]))/(4*ZH),
+        depth: (pa[2]+pb[2]+pc[2]+pd[2])/4 });
+    }
+    quads.sort((q1,q2) => q1.depth - q2.depth);
+    for (const q of quads){
+      ctx.beginPath();
+      ctx.moveTo(q.pa[0], q.pa[1]); ctx.lineTo(q.pb[0], q.pb[1]);
+      ctx.lineTo(q.pc[0], q.pc[1]); ctx.lineTo(q.pd[0], q.pd[1]); ctx.closePath();
+      ctx.fillStyle = mix(PAL.surflo, PAL.surfhi, clamp(q.zn, 0, 1));
+      ctx.fill();
+      if (q.un){ ctx.fillStyle = alpha(PAL.unst, 0.13); ctx.fill(); }
+      ctx.strokeStyle = alpha(PAL.muted, 0.18); ctx.lineWidth = 0.5; ctx.stroke();
+    }
+    ctx.fillStyle = PAL.muted; ctx.font = '11px ui-monospace,Menlo,Consolas,monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`w₁∈[${fmt(surf8.l1)}, ${fmt(surf8.h1)}]  w₂∈[${fmt(surf8.l2)}, ${fmt(surf8.h2)}]`, 8, h - 8);
+    ctx.textAlign = 'right';
+    ctx.fillText((logz ? 'log₁₀(1+L)' : 'L') + `∈[${fmt(zlo)}, ${fmt(zhi)}]`, w - 8, h - 8);
+  }
+  const { ctx } = setup(cv);
+  ctx.drawImage(cacheL8.cv, 0, 0, w, h);
+  const up = Math.min(Math.round(t8), R8.n);
+  const st = decim(up, 2500);
+  const inD = i => R8.x1[i] >= surf8.l1 && R8.x1[i] <= surf8.h1 && R8.x2[i] >= surf8.l2 && R8.x2[i] <= surf8.h2;
+  const zcl = v => clamp(zf(v), zlo, zhi);
+  ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+  let prev = null;
+  for (let i = 0; i <= up; i += st){
+    if (!inD(i)){ prev = null; continue; }
+    const p = proj8(NX(R8.x1[i]), NY(R8.x2[i]), (zcl(R8.L[i]) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
+    if (prev){ ctx.strokeStyle = alpha(PAL.traj1, 0.35); ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(p[0], p[1]); ctx.stroke(); }
+    prev = p;
+  }
+  for (let i = 0; i <= up; i += st){
+    if (!inD(i)) continue;
+    const p = proj8(NX(R8.x1[i]), NY(R8.x2[i]), (zcl(R8.L[i]) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
+    ctx.fillStyle = trajCol(R8.n ? i/R8.n : 0);
+    ctx.beginPath(); ctx.arc(p[0], p[1], 2.3, 0, 7); ctx.fill();
+  }
+  if (inD(up)){
+    const p = proj8(NX(R8.x1[up]), NY(R8.x2[up]), (zcl(R8.L[up]) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
+    ctx.fillStyle = PAL.now; ctx.beginPath(); ctx.arc(p[0], p[1], 5.5, 0, 7); ctx.fill();
+    ctx.strokeStyle = PAL.surface; ctx.lineWidth = 2; ctx.stroke();
+  }
+}
+
 /* ---------- panels 7/8 drawing + wiring ---------- */
 function drawAll7(){
   if (!R7) return;
   readPal();
+  const XR7 = xRange7();
+  drawLand7($('c7f'), 'f', XR7);
+  drawLand7($('c7L'), 'L', XR7);
   drawLogStrip($('c7s1'), R7, t7, R7.L, 0, PAL.accent);
   drawSharpStrip($('c7s2'), R7, t7, P7.lr, true);
   drawLogStrip($('c7s3'), R7, t7, R7.rn, 0, PAL.accent);
@@ -3968,6 +4334,8 @@ function drawAll7(){
 function drawAll8(){
   if (!R8) return;
   readPal();
+  drawMap8($('c8f'));
+  drawSurf8($('c8L'));
   drawLogStrip($('c8s1'), R8, t8, R8.L, 0, PAL.accent);
   drawSharpStrip($('c8s2'), R8, t8, P8.lr, true);
   drawLogStrip($('c8s3'), R8, t8, R8.rn, 0, PAL.accent);
@@ -3999,12 +4367,12 @@ function recompute7(keepT){
   drawAll7(); saveHash();
 }
 function recompute8(keepT){
-  R8 = sim8(); $('p8scrub').max = R8.n;
+  R8 = sim8(); buildSurf8(); $('p8scrub').max = R8.n;
   t8 = keepT ? Math.min(t8, R8.n) : R8.n; $('p8scrub').value = t8;
   drawAll8(); saveHash();
 }
 const BIND7 = [['p7n','n'],['p7sig','sig'],['p7b','b'],['p7y','y'],['p7x0','x0'],['p7lr','lr'],['p7T','T']];
-const BIND8 = [['p8n','n'],['p8sig','sig'],['p8a','a'],['p8b','b'],['p8mu','mu'],['p8y2','y2'],['p8x10','x10'],['p8lr','lr'],['p8T','T']];
+const BIND8 = [['p8n','n'],['p8sig','sig'],['p8tau','tau'],['p8a','a'],['p8b','b'],['p8mu','mu'],['p8y2','y2'],['p8x10','x10'],['p8lr','lr'],['p8T','T']];
 function syncInputs7(){ for (const [id,k] of BIND7) $(id).value = P7[k]; $('p7lrs').value = lr2slider(P7.lr); $('p7opt').value = P7.opt; }
 function syncInputs8(){ for (const [id,k] of BIND8) $(id).value = P8[k]; $('p8lrs').value = lr2slider(P8.lr); $('p8opt').value = P8.opt; }
 function wireMulti(binds, PP, pid, rec){
@@ -4043,17 +4411,19 @@ const PRESETS7 = [
 ];
 const PRESETS8 = [
   { n:'Default · oscillate, then get pushed back', d:'GD, 8 spread points: sharpen to 2/η, then oscillate WHILE w₂ still advances and the loss falls, then the oscillation coupling overtakes the fitting pull and drags w₂ back',
-    v:{ opt:'gd', n:8, sig:0.6, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
-  { n:'Directions collapsed (σ = 0)', d:'identical samples: cos(oscillation, fitting) = 1 — the two effects become the same direction, exactly the single-datapoint degeneracy',
-    v:{ opt:'gd', n:8, sig:0.0, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+    v:{ opt:'gd', n:8, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+  { n:'Exactly reachable targets (τ = 0)', d:'with τ = 0 the targets lie inside span{1, c} = range(J): ‖r⊥‖ collapses to zero and the loss can reach machine precision',
+    v:{ opt:'gd', n:8, sig:0.6, tau:0.0, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+  { n:'Directions collapsed (σ = 0)', d:'identical samples: cos(oscillation, fitting) = ±1 — the oscillation and the fitting pull become the same function-space direction, exactly the single-datapoint degeneracy',
+    v:{ opt:'gd', n:8, sig:0.0, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
   { n:'Strongly separated (σ = 0.95)', d:'a wide spread pulls the oscillation direction far from the uniform fitting direction',
-    v:{ opt:'gd', n:8, sig:0.95, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+    v:{ opt:'gd', n:8, sig:0.95, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
   { n:'Spectral GD', d:'normalized steps ride the edge while the two directions stay separated',
-    v:{ opt:'spec', n:8, sig:0.6, a:2.5, b:0.08, mu:0.3, y2:2.0, x10:1.5, lr:0.1, T:600 } },
+    v:{ opt:'spec', n:8, sig:0.6, tau:0.4, a:2.5, b:0.08, mu:0.3, y2:2.0, x10:1.5, lr:0.1, T:600 } },
   { n:'Signed GD', d:'per-coordinate normalization; watch the fitting/oscillation balance chart change character',
-    v:{ opt:'sign', n:8, sig:0.6, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.35, lr:0.02, T:1000 } },
+    v:{ opt:'sign', n:8, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.35, lr:0.02, T:1000 } },
   { n:'Gauss–Newton', d:'GN removes the curvature dependence: λ(PH) ≈ 2 and the pushback never happens',
-    v:{ opt:'gn', n:8, sig:0.6, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, lr:0.9, T:300 } },
+    v:{ opt:'gn', n:8, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, lr:0.9, T:300 } },
 ];
 for (const [list, host, PP, sync_, rec_] of [[PRESETS7, 'p7presets', P7, syncInputs7, recompute7],
                                              [PRESETS8, 'p8presets', P8, syncInputs8, recompute8]]){
@@ -4108,6 +4478,8 @@ $('p7csv').addEventListener('click', () => {
   a.href = URL.createObjectURL(blob); a.download = 'eos_multisample_1param.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 });
+$('p8logz').addEventListener('change', () => { cacheL8.key = ''; drawAll8(); });
+bindRotate($('c8L'), cam8, drawAll8, () => true);
 $('p8csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R8.n; i++)
@@ -4199,7 +4571,7 @@ function redrawVisible(){
   if (!$('panel7').hidden) drawAll7();
   if (!$('panel8').hidden) drawAll8();
 }
-function clearSurfCaches(){ cacheF3.key = ''; cacheL3.key = ''; cacheF6.key = ''; cacheL6.key = ''; }
+function clearSurfCaches(){ cacheF3.key = ''; cacheL3.key = ''; cacheF6.key = ''; cacheL6.key = ''; cacheL8.key = ''; }
 const ro = new ResizeObserver(() => { clearSurfCaches(); redrawVisible(); });
 document.querySelectorAll('canvas.plot').forEach(c => ro.observe(c));
 
