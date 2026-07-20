@@ -248,6 +248,18 @@
     </div>
 
     <div class="card">
+      <h3>Direction memory of the residual — cos at lag l</h3>
+      <p class="cap">cos(r(t), r(t+l)) for l = 1, 2, 5, 10 · in 1-D this is sign(r_t)·sign(r_{t+l}) = ±1 (deflating the top NTK direction is impossible here: function space is one-dimensional)</p>
+      <canvas class="plot" id="cs10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
+        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
+        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
+        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
+      </div>
+    </div>
+
+    <div class="card">
       <h3>x_t — gradient projection on the top eigenvector</h3>
       <p class="cap">in 1-D the only direction is x̂, so x_t = ∇L(xₜ) · signed, symlog · flips at every bounce</p>
       <canvas class="plot" id="cs4" role="img" aria-label="signed gradient versus step"></canvas>
@@ -280,57 +292,7 @@
       <p class="cap">r·sign(f′·u), u a fixed random scalar · the generic baseline (±r in 1-D)</p>
       <canvas class="plot" id="cs8" role="img" aria-label="residual projection on a random direction versus step"></canvas>
     </div>
-    <div class="card">
-      <h3>Direction memory of J∇S — cos at lag k</h3>
-      <p class="cap">cos(J*∇S*(t), J*∇S*(t+k)) for k = 1, 2, 5, 10, with f′ and S′ frozen at the first S &gt; 2/η crossing — constant (+1) after it by construction · 1-D sign products</p>
-      <canvas class="plot" id="cs9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
-      <div class="legend">
-        <span><i class="sw" style="background:var(--zero)"></i>∇S itself (param space) · k = 1</span>
-        <span><i class="sw" style="background:var(--sharp)"></i>k = 1</span>
-        <span><i class="sw" style="background:var(--now)"></i>k = 2</span>
-        <span><i class="sw" style="background:var(--accent)"></i>k = 5</span>
-        <span><i class="sw" style="background:var(--nt3)"></i>k = 10</span>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Direction memory of the residual — cos at lag l</h3>
-      <p class="cap">cos(r(t), r(t+l)) for l = 1, 2, 5, 10 · in 1-D this is sign(r_t)·sign(r_{t+l}) = ±1 (deflating the top NTK direction is impossible here: function space is one-dimensional)</p>
-      <canvas class="plot" id="cs10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
-      <div class="legend">
-        <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
-        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
-        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
-        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Σᵢ ∇fᵢ · ∇̂S* — Jacobian rows on the frozen sharpness direction</h3>
-      <p class="cap">1-D reduction: f′(t)·sign(S′*) with S′ frozen at the first crossing · signed, symlog</p>
-      <canvas class="plot" id="cs11" role="img" aria-label="sum over samples of the Jacobian row projected on the frozen sharpness gradient direction"></canvas>
-    </div>
-
-    <div class="card">
-      <h3>‖∇S‖ building blocks — third-derivative and J·Q terms</h3>
-      <p class="cap">1-D reductions: |r·f‴| (residual-weighted third derivative) and |f′·f″| (J·Q term) · log-scale norms</p>
-      <canvas class="plot" id="cs12" role="img" aria-label="norms of the residual-weighted third derivative contraction and the Jacobian function-Hessian contraction"></canvas>
-      <div class="legend">
-        <span><i class="sw" style="background:var(--sharp)"></i>‖Σᵢ rᵢ ∇³fᵢ[v₁,v₁,·]‖</span>
-        <span><i class="sw" style="background:var(--accent)"></i>‖Σᵢ (Jv₁)ᵢ ∇²fᵢ v₁‖</span>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Jacobian singular directions on ∇̂S</h3>
-      <p class="cap">1-D: J has a single singular direction v₁ = ±x̂, so this is sign(f′·S′) = ±1 (the top-5 request needs a multi-parameter model)</p>
-      <canvas class="plot" id="cs13" role="img" aria-label="projection of the top singular vectors of the Jacobian onto the sharpness gradient direction"></canvas>
-      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ = ±x̂</span></div>
-    </div>
-    <div class="card">
-      <h3>Jacobian singular directions on the frozen ∇̂S*</h3>
-      <p class="cap">1-D: sign(f′)·sign(S′*) with S′ frozen at the crossing — ±1; compare with the live-∇S version above</p>
-      <canvas class="plot" id="cs14" role="img" aria-label="projection of the Jacobian singular vectors onto the sharpness gradient frozen at the threshold crossing"></canvas>
-      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ = ±x̂</span></div>
-    </div>
-    <div class="card">
+                            <div class="card">
       <h3>Who actually turns? — step-to-step direction memory</h3>
       <p class="cap">cos(X(t), X(t+1)) · dashed line: S first crosses 2/η · in 1-D these are sign products — the residual flips to −1 at the edge of stability while f′ (the Jacobian) keeps its sign throughout</p>
       <canvas class="plot" id="cs16" role="img" aria-label="step to step direction memory of the residual, the Jacobian and the sharpness gradient"></canvas>
@@ -459,6 +421,18 @@
     </div>
 
     <div class="card">
+      <h3>Direction memory of the deflated residual — cos(r̃̂(t), r̃̂(t+l))</h3>
+      <p class="cap">r̃ = r − (r·û₁)û₁ with û₁ the top NTK (JJᵀ) eigenvector — the oscillating component is projected out, so the lag-cosines show only the slow residual dynamics: all lags ≈ +1 during a clean ride; deviations mark real direction changes of the non-oscillating part</p>
+      <canvas class="plot" id="c3s10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
+        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
+        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
+        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
+      </div>
+    </div>
+
+    <div class="card">
       <h3>x_t — gradient projection on the top eigenvector</h3>
       <p class="cap">x_t = g·v₁ (signed, v₁ orientation continuous in t) · symlog · alternates every step while bouncing</p>
       <canvas class="plot" id="c3s4" role="img" aria-label="signed gradient projection on top eigenvector versus step"></canvas>
@@ -491,68 +465,7 @@
       <p class="cap">r·(Ju)/‖Ju‖, u a fixed random parameter direction — the generic-direction baseline for the structured projections above · symlog</p>
       <canvas class="plot" id="c3s8" role="img" aria-label="residual projection on the image of a random parameter direction versus step"></canvas>
     </div>
-    <div class="card">
-      <h3>Direction memory of J∇S — cos(û(t), û(t+k))</h3>
-      <p class="cap">û = normalize(J∇S) evaluated LIVE at the iterate, lags k = 1, 2, 5, 10 · (the fully-frozen variant was constant +1 by construction and carried no information — the frozen frame now lives on the r·J∇S chart above as its own series) · green: ∇S alone in parameter space (k = 1) for comparison</p>
-      <canvas class="plot" id="c3s9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
-      <div class="legend">
-        <span><i class="sw" style="background:var(--zero)"></i>∇S itself (param space) · k = 1</span>
-        <span><i class="sw" style="background:var(--sharp)"></i>k = 1</span>
-        <span><i class="sw" style="background:var(--now)"></i>k = 2</span>
-        <span><i class="sw" style="background:var(--accent)"></i>k = 5</span>
-        <span><i class="sw" style="background:var(--nt3)"></i>k = 10</span>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Direction memory of the deflated residual — cos(r̃̂(t), r̃̂(t+l))</h3>
-      <p class="cap">r̃ = r − (r·û₁)û₁ with û₁ the top NTK (JJᵀ) eigenvector — the oscillating component is projected out, so the lag-cosines show only the slow residual dynamics: all lags ≈ +1 during a clean ride; deviations mark real direction changes of the non-oscillating part</p>
-      <canvas class="plot" id="c3s10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
-      <div class="legend">
-        <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
-        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
-        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
-        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Σᵢ ∇fᵢ · ∇̂S* — Jacobian rows on the frozen sharpness direction</h3>
-      <p class="cap">each sample's Jacobian row projected on ∇̂S frozen at the first 2/η crossing, summed over the two samples: Σᵢ ⟨∇fᵢ(t), ∇̂S*⟩ · signed, symlog</p>
-      <canvas class="plot" id="c3s11" role="img" aria-label="sum over samples of the Jacobian row projected on the frozen sharpness gradient direction"></canvas>
-    </div>
-
-    <div class="card">
-      <h3>‖∇S‖ building blocks — third-derivative and J·Q terms</h3>
-      <p class="cap">the two parameter-space vectors that build ∇S: the residual-weighted third derivative Σᵢ rᵢ∇³fᵢ[v₁,v₁,·] and the curvature term Σᵢ (Jv₁)ᵢ∇²fᵢv₁ · v₁ = top eigenvector of the (plain) loss Hessian at the iterate · log-scale norms</p>
-      <canvas class="plot" id="c3s12" role="img" aria-label="norms of the residual-weighted third derivative contraction and the Jacobian function-Hessian contraction"></canvas>
-      <div class="legend">
-        <span><i class="sw" style="background:var(--sharp)"></i>‖Σᵢ rᵢ ∇³fᵢ[v₁,v₁,·]‖</span>
-        <span><i class="sw" style="background:var(--accent)"></i>‖Σᵢ (Jv₁)ᵢ ∇²fᵢ v₁‖</span>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Jacobian singular directions on ∇̂S</h3>
-      <p class="cap">⟨v_k, ∇̂S⟩ for the eigenvectors of JᵀJ (= right singular vectors of J), sign-continuous over t · with p = 2 parameters there are only 2 (the requested top-5 truncates here) · ∇̂S live at the iterate</p>
-      <canvas class="plot" id="c3s13" role="img" aria-label="projection of the top singular vectors of the Jacobian onto the sharpness gradient direction"></canvas>
-      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ (top)</span>
-        <span><i class="sw" style="background:var(--accent)"></i>v₂</span></div>
-    </div>
-    <div class="card">
-      <h3>Jacobian singular directions on the frozen ∇̂S*</h3>
-      <p class="cap">⟨v_k, ∇̂S*⟩ with ∇̂S* FROZEN at the first λ<sub>max</sub> &gt; 2/η crossing (not live at the iterate) — so all motion here is the Jacobian's singular frame rotating against a fixed sharpness direction · sign-continuous · p = 2 ⇒ 2 directions</p>
-      <canvas class="plot" id="c3s14" role="img" aria-label="projection of the Jacobian singular vectors onto the sharpness gradient frozen at the threshold crossing"></canvas>
-      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ (top)</span>
-        <span><i class="sw" style="background:var(--accent)"></i>v₂</span></div>
-    </div>
-    <div class="card">
-      <h3>J∇S in the NTK basis (frozen 2 steps before self-stabilization)</h3>
-      <p class="cap">⟨J∇S(t)/‖J∇S(t)‖, û_k⟩ — the LIVE sharpness pushforward resolved in the NTK (JJᵀ) eigenbasis captured at step t_c − 2, two steps before sharpness crosses 2/η · the basis is fixed, so every wiggle is real motion of J∇S · p = n = 2 ⇒ top-k truncates to k = 1, 2</p>
-      <canvas class="plot" id="c3s15" role="img" aria-label="live sharpness pushforward resolved in the NTK eigenbasis frozen two steps before the threshold crossing"></canvas>
-      <div class="legend">
-        <span><i class="sw" style="background:var(--sharp)"></i>û₁ (top NTK)</span>
-        <span><i class="sw" style="background:var(--accent)"></i>û₂</span>
-      </div>
-    </div>
-    <div class="card">
+                                <div class="card">
       <h3>Who actually turns? — step-to-step direction memory</h3>
       <p class="cap">cos(X(t), X(t+1)) for each object · dashed line: the step where sharpness first crosses 2/η · there the <b>residual</b> collapses toward −1 — it reverses direction every step — while the <b>Jacobian</b> and <b>∇S</b> stay pinned near +1 · J is compared as a whole 2×2 matrix (Frobenius inner product), so this is not a basis artifact</p>
       <canvas class="plot" id="c3s16" role="img" aria-label="step to step direction memory of the residual, the Jacobian and the sharpness gradient"></canvas>
@@ -668,6 +581,18 @@
     </div>
 
     <div class="card">
+      <h3>Direction memory of the residual — cos at lag l</h3>
+      <p class="cap">cos(r(t), r(t+l)) for l = 1, 2, 5, 10 · 1-D: ±1 sign products (deflation impossible in one-dimensional function space)</p>
+      <canvas class="plot" id="c5s10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
+        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
+        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
+        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
+      </div>
+    </div>
+
+    <div class="card">
       <h3>x_t — preconditioned gradient on the top PH-eigenvector</h3>
       <p class="cap">(Pg)·v̂₁ with v₁ the top eigenvector of P<sup>½</sup>HP<sup>½</sup> mapped to parameter space · signed, symlog</p>
       <canvas class="plot" id="c5s4" role="img" aria-label="preconditioned gradient projection on top eigenvector versus step"></canvas>
@@ -700,57 +625,7 @@
       <p class="cap">r·normalize(J·P·u), u a fixed random parameter direction · the generic baseline · symlog</p>
       <canvas class="plot" id="c5s8" role="img" aria-label="residual projection on the image of a random direction versus step"></canvas>
     </div>
-    <div class="card">
-      <h3>Direction memory of JP∇S_P — cos at lag k</h3>
-      <p class="cap">cos(J*P∇S*_P(t), J*P∇S*_P(t+k)) for k = 1, 2, 5, 10, with f′ and S_P′ frozen at the first λ(PH) &gt; 2/η crossing · 1-D: ±1 sign products</p>
-      <canvas class="plot" id="c5s9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
-      <div class="legend">
-        <span><i class="sw" style="background:var(--zero)"></i>∇S itself (param space) · k = 1</span>
-        <span><i class="sw" style="background:var(--sharp)"></i>k = 1</span>
-        <span><i class="sw" style="background:var(--now)"></i>k = 2</span>
-        <span><i class="sw" style="background:var(--accent)"></i>k = 5</span>
-        <span><i class="sw" style="background:var(--nt3)"></i>k = 10</span>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Direction memory of the residual — cos at lag l</h3>
-      <p class="cap">cos(r(t), r(t+l)) for l = 1, 2, 5, 10 · 1-D: ±1 sign products (deflation impossible in one-dimensional function space)</p>
-      <canvas class="plot" id="c5s10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
-      <div class="legend">
-        <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
-        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
-        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
-        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Σᵢ ∇fᵢ · ∇̂S* — Jacobian rows on the frozen sharpness direction</h3>
-      <p class="cap">1-D reduction: f′(t)·sign(S_P′*) with S′ frozen at the first crossing · signed, symlog</p>
-      <canvas class="plot" id="c5s11" role="img" aria-label="sum over samples of the Jacobian row projected on the frozen sharpness gradient direction"></canvas>
-    </div>
-
-    <div class="card">
-      <h3>‖∇S‖ building blocks — third-derivative and J·Q terms</h3>
-      <p class="cap">1-D reductions: |r·f‴| (residual-weighted third derivative) and |f′·f″| (J·Q term) · log-scale norms</p>
-      <canvas class="plot" id="c5s12" role="img" aria-label="norms of the residual-weighted third derivative contraction and the Jacobian function-Hessian contraction"></canvas>
-      <div class="legend">
-        <span><i class="sw" style="background:var(--sharp)"></i>‖Σᵢ rᵢ ∇³fᵢ[v₁,v₁,·]‖</span>
-        <span><i class="sw" style="background:var(--accent)"></i>‖Σᵢ (Jv₁)ᵢ ∇²fᵢ v₁‖</span>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Jacobian singular directions on ∇̂S</h3>
-      <p class="cap">1-D: J has a single singular direction v₁ = ±x̂, so this is sign(f′·S′) = ±1 (the top-5 request needs a multi-parameter model)</p>
-      <canvas class="plot" id="c5s13" role="img" aria-label="projection of the top singular vectors of the Jacobian onto the sharpness gradient direction"></canvas>
-      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ = ±x̂</span></div>
-    </div>
-    <div class="card">
-      <h3>Jacobian singular directions on the frozen ∇̂S*</h3>
-      <p class="cap">1-D: sign(f′)·sign(S′*) with S′ frozen at the crossing — ±1; compare with the live-∇S version above</p>
-      <canvas class="plot" id="c5s14" role="img" aria-label="projection of the Jacobian singular vectors onto the sharpness gradient frozen at the threshold crossing"></canvas>
-      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ = ±x̂</span></div>
-    </div>
-    <div class="card">
+                            <div class="card">
       <h3>Who actually turns? — step-to-step direction memory</h3>
       <p class="cap">cos(X(t), X(t+1)) · dashed line: S first crosses 2/η · in 1-D these are sign products — the residual flips to −1 at the edge of stability while f′ (the Jacobian) keeps its sign throughout</p>
       <canvas class="plot" id="c5s16" role="img" aria-label="step to step direction memory of the residual, the Jacobian and the sharpness gradient"></canvas>
@@ -871,6 +746,18 @@
     </div>
 
     <div class="card">
+      <h3>Direction memory of the deflated residual — cos(r̃̂(t), r̃̂(t+l))</h3>
+      <p class="cap">r̃ = r − (r·û₁)û₁ with û₁ the top NTK (JJᵀ) eigenvector (plain J, not preconditioned) — oscillation projected out; lags show only the slow residual dynamics</p>
+      <canvas class="plot" id="c6s10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
+        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
+        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
+        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
+      </div>
+    </div>
+
+    <div class="card">
       <h3>x_t — preconditioned gradient on the top PH-eigenvector</h3>
       <p class="cap">(Pg)·v̂₁ with v₁ the top eigenvector of P<sup>½</sup>HP<sup>½</sup> mapped to parameter space · signed, symlog</p>
       <canvas class="plot" id="c6s4" role="img" aria-label="preconditioned gradient projection on top eigenvector versus step"></canvas>
@@ -903,68 +790,7 @@
       <p class="cap">r·normalize(J·P·u), u a fixed random parameter direction · the generic baseline · symlog</p>
       <canvas class="plot" id="c6s8" role="img" aria-label="residual projection on the image of a random direction versus step"></canvas>
     </div>
-    <div class="card">
-      <h3>Direction memory of JP∇S_P — cos(û(t), û(t+k))</h3>
-      <p class="cap">û = normalize(J·P·∇S_P) evaluated LIVE at the iterate, lags k = 1, 2, 5, 10 · (the fully-frozen variant was constant by construction; it lives on the r·JP∇S chart above) · green: ∇S_P alone in parameter space (k = 1)</p>
-      <canvas class="plot" id="c6s9" role="img" aria-label="cosine similarity between the sharpness-gradient image direction at step t and step t plus k"></canvas>
-      <div class="legend">
-        <span><i class="sw" style="background:var(--zero)"></i>∇S itself (param space) · k = 1</span>
-        <span><i class="sw" style="background:var(--sharp)"></i>k = 1</span>
-        <span><i class="sw" style="background:var(--now)"></i>k = 2</span>
-        <span><i class="sw" style="background:var(--accent)"></i>k = 5</span>
-        <span><i class="sw" style="background:var(--nt3)"></i>k = 10</span>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Direction memory of the deflated residual — cos(r̃̂(t), r̃̂(t+l))</h3>
-      <p class="cap">r̃ = r − (r·û₁)û₁ with û₁ the top NTK (JJᵀ) eigenvector (plain J, not preconditioned) — oscillation projected out; lags show only the slow residual dynamics</p>
-      <canvas class="plot" id="c6s10" role="img" aria-label="cosine similarity between the residual direction at step t and step t plus l"></canvas>
-      <div class="legend">
-        <span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
-        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
-        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
-        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Σᵢ ∇fᵢ · ∇̂S* — Jacobian rows on the frozen sharpness direction</h3>
-      <p class="cap">each sample's Jacobian row projected on ∇̂S_P frozen at the first 2/η crossing, summed over the two samples: Σᵢ ⟨∇fᵢ(t), ∇̂S*⟩ · signed, symlog</p>
-      <canvas class="plot" id="c6s11" role="img" aria-label="sum over samples of the Jacobian row projected on the frozen sharpness gradient direction"></canvas>
-    </div>
-
-    <div class="card">
-      <h3>‖∇S‖ building blocks — third-derivative and J·Q terms</h3>
-      <p class="cap">the two parameter-space vectors that build ∇S: the residual-weighted third derivative Σᵢ rᵢ∇³fᵢ[v₁,v₁,·] and the curvature term Σᵢ (Jv₁)ᵢ∇²fᵢv₁ · v₁ = top eigenvector of the (plain) loss Hessian at the iterate · log-scale norms</p>
-      <canvas class="plot" id="c6s12" role="img" aria-label="norms of the residual-weighted third derivative contraction and the Jacobian function-Hessian contraction"></canvas>
-      <div class="legend">
-        <span><i class="sw" style="background:var(--sharp)"></i>‖Σᵢ rᵢ ∇³fᵢ[v₁,v₁,·]‖</span>
-        <span><i class="sw" style="background:var(--accent)"></i>‖Σᵢ (Jv₁)ᵢ ∇²fᵢ v₁‖</span>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Jacobian singular directions on ∇̂S</h3>
-      <p class="cap">⟨v_k, ∇̂S_P⟩ for the eigenvectors of JᵀJ (plain J, right singular vectors), sign-continuous · only 2 exist at p = 2 (top-5 truncates) · ∇̂S_P live at the iterate</p>
-      <canvas class="plot" id="c6s13" role="img" aria-label="projection of the top singular vectors of the Jacobian onto the sharpness gradient direction"></canvas>
-      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ (top)</span>
-        <span><i class="sw" style="background:var(--accent)"></i>v₂</span></div>
-    </div>
-    <div class="card">
-      <h3>Jacobian singular directions on the frozen ∇̂S*</h3>
-      <p class="cap">⟨v_k, ∇̂S*_P⟩ with ∇̂S*_P FROZEN at the first λ(PH) &gt; 2/η crossing — all motion is J's singular frame rotating against a fixed direction · sign-continuous · p = 2 ⇒ 2 directions</p>
-      <canvas class="plot" id="c6s14" role="img" aria-label="projection of the Jacobian singular vectors onto the sharpness gradient frozen at the threshold crossing"></canvas>
-      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>v₁ (top)</span>
-        <span><i class="sw" style="background:var(--accent)"></i>v₂</span></div>
-    </div>
-    <div class="card">
-      <h3>J∇S in the NTK basis (frozen 2 steps before self-stabilization)</h3>
-      <p class="cap">⟨JP∇S_P(t)/‖·‖, û_k⟩ — live preconditioned pushforward in the NTK (JJᵀ, plain J) eigenbasis captured at t_c − 2, two steps before λ(PH) crosses 2/η · fixed basis ⇒ all motion is real · k = 1, 2 (n = 2 samples)</p>
-      <canvas class="plot" id="c6s15" role="img" aria-label="live sharpness pushforward resolved in the NTK eigenbasis frozen two steps before the threshold crossing"></canvas>
-      <div class="legend">
-        <span><i class="sw" style="background:var(--sharp)"></i>û₁ (top NTK)</span>
-        <span><i class="sw" style="background:var(--accent)"></i>û₂</span>
-      </div>
-    </div>
-    <div class="card">
+                                <div class="card">
       <h3>Who actually turns? — step-to-step direction memory</h3>
       <p class="cap">cos(X(t), X(t+1)) for each object · dashed line: the step where sharpness first crosses 2/η · there the <b>residual</b> collapses toward −1 — it reverses direction every step — while the <b>Jacobian</b> and <b>∇S</b> stay pinned near +1 · J is compared as a whole 2×2 matrix (Frobenius inner product), so this is not a basis artifact</p>
       <canvas class="plot" id="c6s16" role="img" aria-label="step to step direction memory of the residual, the Jacobian and the sharpness gradient"></canvas>
@@ -1065,6 +891,16 @@
     </div>
 
     <div class="card">
+      <h3>Direction memory of the residual</h3>
+      <p class="cap">cos(r(t), r(t+l)), l = 1, 2, 5, 10 · with n samples this is a genuine n-dimensional rotation, not a sign flip</p>
+      <canvas class="plot" id="c7s8" role="img" aria-label="Direction memory of the residual"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
+        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
+        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
+        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span></div>
+    </div>
+
+    <div class="card">
       <h3>Residual split — fittable vs unfittable</h3>
       <p class="cap">‖r∥‖ = |r·û₁| lives in range(J) (rank 1 here, so a single direction); ‖r⊥‖ is everything else and is untouchable · <b>this split needs n &gt; 1 to exist at all</b></p>
       <canvas class="plot" id="c7s4" role="img" aria-label="Residual split — fittable vs unfittable"></canvas>
@@ -1090,17 +926,7 @@
       <canvas class="plot" id="c7s7" role="img" aria-label="Residual on the NTK direction"></canvas>
     </div>
 
-    <div class="card">
-      <h3>Direction memory of the residual</h3>
-      <p class="cap">cos(r(t), r(t+l)), l = 1, 2, 5, 10 · with n samples this is a genuine n-dimensional rotation, not a sign flip</p>
-      <canvas class="plot" id="c7s8" role="img" aria-label="Direction memory of the residual"></canvas>
-      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
-        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
-        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
-        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span></div>
-    </div>
-
-    <div class="card">
+        <div class="card">
       <h3>Who actually turns?</h3>
       <p class="cap">cos(X(t), X(t+1)) for the residual, the Jacobian and ∇S · dashed line: S first crosses 2/η</p>
       <canvas class="plot" id="c7s9" role="img" aria-label="Who actually turns?"></canvas>
@@ -1202,6 +1028,16 @@
     </div>
 
     <div class="card">
+      <h3>Direction memory of the residual</h3>
+      <p class="cap">cos(r(t), r(t+l)), l = 1, 2, 5, 10</p>
+      <canvas class="plot" id="c8s10" role="img" aria-label="Direction memory of the residual"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
+        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
+        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
+        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span></div>
+    </div>
+
+    <div class="card">
       <h3>Residual split — fittable vs unfittable</h3>
       <p class="cap">‖r∥‖ inside range(J) (2-dimensional here) vs ‖r⊥‖ orthogonal to it</p>
       <canvas class="plot" id="c8s4" role="img" aria-label="Residual split — fittable vs unfittable"></canvas>
@@ -1242,17 +1078,7 @@
       <div class="legend"><span><i class="sw" style="background:var(--zero)"></i>fitting pull</span>\n        <span><i class="sw" style="background:var(--crit)"></i>oscillation coupling</span></div>
     </div>
 
-    <div class="card">
-      <h3>Direction memory of the residual</h3>
-      <p class="cap">cos(r(t), r(t+l)), l = 1, 2, 5, 10</p>
-      <canvas class="plot" id="c8s10" role="img" aria-label="Direction memory of the residual"></canvas>
-      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
-        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
-        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
-        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span></div>
-    </div>
-
-    <div class="card">
+        <div class="card">
       <h3>Who actually turns?</h3>
       <p class="cap">cos(X(t), X(t+1)) for the residual, the Jacobian and ∇S · dashed line: λ first crosses 2/η</p>
       <canvas class="plot" id="c8s11" role="img" aria-label="Who actually turns?"></canvas>
@@ -1781,12 +1607,7 @@ function drawAll(){
   drawSymlogStrip($('cs6'), R, tCur, R.Ru, PAL.sharpmid);
   drawSymlogMulti($('cs7'), R, tCur, [R.Rq, R.RqL], [PAL.accent, PAL.sharp]);
   drawSymlogStrip($('cs8'), R, tCur, R.Ruv, PAL.nt[2]);
-  drawCosStrip($('cs9'), R, tCur, R.CK, R.GK1);
   drawCosStrip($('cs10'), R, tCur, R.RK);
-  drawSymlogStrip($('cs11'), R, tCur, R.JS1, PAL.now);
-  drawNormsStrip($('cs12'), R, tCur);
-  drawEvecStrip($('cs13'), R, tCur, R.EV);
-  drawEvecStrip($('cs14'), R, tCur, R.EVF);
   drawWhoTurnsStrip($('cs16'), R, tCur, R.tcJ);
   const up = Math.min(Math.round(tCur), R.n);
   const ratio = R.S[up]*P.lr/2;
@@ -1979,12 +1800,7 @@ bindStrip($('cs5'), i => `t=${i}\ng·∇̂S=${fmt(R.GdS[i])}`, apply1);
 bindStrip($('cs6'), i => `t=${i}\nr·û=${fmt(R.Ru[i])}`, apply1);
 bindStrip($('cs7'), i => `t=${i}\nfrozen = ${fmt(R.Rq[i])}\nlive = ${fmt(R.RqL[i])}`, apply1);
 bindStrip($('cs8'), i => `t=${i}\nr·(Ĵu)=${fmt(R.Ruv[i])}`, apply1);
-bindStrip($('cs9'), i => `t=${i}\ncos(J∇S): ${cosTip('cs9', [['∇Sk1', R.GK1]].concat(KLAGS.map((k, s) => ['k' + k, R.CK[s]])), i)}`, apply1);
 bindStrip($('cs10'), i => `t=${i}\ncos(r): ${cosTip('cs10', KLAGS.map((k, s) => ['l' + k, R.RK[s]]), i)}`, apply1);
-bindStrip($('cs11'), i => `t=${i}\nΣ ∇fᵢ·∇̂S* = ${fmt(R.JS1[i])}`, apply1);
-bindStrip($('cs12'), i => `t=${i}\n‖Σ rᵢ∇³fᵢ[v,v,·]‖ = ${fmt(R.T3n[i])}\n‖Σ (Jv)ᵢ∇²fᵢv‖ = ${fmt(R.JQn[i])}`, apply1);
-bindStrip($('cs13'), i => `t=${i}\nv₁·∇̂S = ${fmt(R.EV[0][i])}`, apply1);
-bindStrip($('cs14'), i => `t=${i}\nv₁·∇̂S* = ${fmt(R.EVF[0][i])}`, apply1);
 bindStrip($('cs16'), i => `t=${i}\nresidual ${fmt(R.DM[0][i])}\nJacobian ${fmt(R.DM[1][i])}\n∇S ${fmt(R.DM[2][i])}`, apply1);
 
 /* ---------- shared helpers (kept from removed panels) ---------- */
@@ -2558,13 +2374,7 @@ function drawAll3(){
   drawSymlogStrip($('c3s6'), R3, t3, R3.Ru, PAL.sharpmid);
   drawSymlogMulti($('c3s7'), R3, t3, [R3.Rq, R3.RqL], [PAL.accent, PAL.sharp]);
   drawSymlogStrip($('c3s8'), R3, t3, R3.Ruv, PAL.nt[2]);
-  drawCosStrip($('c3s9'), R3, t3, R3.CK, R3.GK1);
   drawCosStrip($('c3s10'), R3, t3, R3.RK);
-  drawSymlogStrip($('c3s11'), R3, t3, R3.JS1, PAL.now);
-  drawNormsStrip($('c3s12'), R3, t3);
-  drawEvecStrip($('c3s13'), R3, t3, R3.EV);
-  drawEvecStrip($('c3s14'), R3, t3, R3.EVF);
-  drawEvecStrip($('c3s15'), R3, t3, R3.NK);
   drawWhoTurnsStrip($('c3s16'), R3, t3, R3.tcJ);
   const up = Math.min(Math.round(t3), R3.n);
   const ratio = R3.S[up]*P3.lr/2;
@@ -2681,13 +2491,7 @@ bindStrip($('c3s5'), i => `t=${i}\ng·∇̂S=${fmt(R3.GdS[i])}`, apply3);
 bindStrip($('c3s6'), i => `t=${i}\nr·û=${fmt(R3.Ru[i])}`, apply3);
 bindStrip($('c3s7'), i => `t=${i}\nfrozen = ${fmt(R3.Rq[i])}\nlive = ${fmt(R3.RqL[i])}`, apply3);
 bindStrip($('c3s8'), i => `t=${i}\nr·(Ĵu)=${fmt(R3.Ruv[i])}`, apply3);
-bindStrip($('c3s9'), i => `t=${i}\ncos(J∇S): ${cosTip('c3s9', [['∇Sk1', R3.GK1]].concat(KLAGS.map((k, s) => ['k' + k, R3.CK[s]])), i)}`, apply3);
 bindStrip($('c3s10'), i => `t=${i}\ncos(r): ${cosTip('c3s10', KLAGS.map((k, s) => ['l' + k, R3.RK[s]]), i)}`, apply3);
-bindStrip($('c3s11'), i => `t=${i}\nΣ ∇fᵢ·∇̂S* = ${fmt(R3.JS1[i])}`, apply3);
-bindStrip($('c3s12'), i => `t=${i}\n‖Σ rᵢ∇³fᵢ[v,v,·]‖ = ${fmt(R3.T3n[i])}\n‖Σ (Jv)ᵢ∇²fᵢv‖ = ${fmt(R3.JQn[i])}`, apply3);
-bindStrip($('c3s13'), i => `t=${i}\nv₁·∇̂S = ${fmt(R3.EV[0][i])}\nv₂·∇̂S = ${fmt(R3.EV[1][i])}`, apply3);
-bindStrip($('c3s14'), i => `t=${i}\nv₁·∇̂S* = ${fmt(R3.EVF[0][i])}\nv₂·∇̂S* = ${fmt(R3.EVF[1][i])}`, apply3);
-bindStrip($('c3s15'), i => `t=${i}\nû₁ (frozen @t={R3.tNK}) = ${fmt(R3.NK[0][i])}\nû₂ = ${fmt(R3.NK[1][i])}`, apply3);
 bindStrip($('c3s16'), i => `t=${i}\nresidual ${fmt(R3.DM[0][i])}\nJacobian ${fmt(R3.DM[1][i])}\n∇S ${fmt(R3.DM[2][i])}`, apply3);
 $('p3csv').addEventListener('click', () => {
   const rows = [];
@@ -3501,12 +3305,7 @@ function drawAdaptive(px, RR, t, lr){
   drawSymlogStrip($(px + 's6'), RR, t, RR.Ru, PAL.sharpmid);
   drawSymlogMulti($(px + 's7'), RR, t, [RR.Rq, RR.RqL], [PAL.accent, PAL.sharp]);
   drawSymlogStrip($(px + 's8'), RR, t, RR.Ruv, PAL.nt[2]);
-  drawCosStrip($(px + 's9'), RR, t, RR.CK, RR.GK1);
   drawCosStrip($(px + 's10'), RR, t, RR.RK);
-  drawSymlogStrip($(px + 's11'), RR, t, RR.JS1, PAL.now);
-  drawNormsStrip($(px + 's12'), RR, t);
-  drawEvecStrip($(px + 's13'), RR, t, RR.EV);
-  drawEvecStrip($(px + 's14'), RR, t, RR.EVF);
   drawWhoTurnsStrip($(px + 's16'), RR, t, RR.tcJ);
 }
 function statusAdaptive(RR, t, lr){
@@ -3546,7 +3345,6 @@ function drawAll6(){
   if (is3d6 && surf6){ drawSurf6($('c6f'), 'f'); drawSurf6($('c6L'), 'L'); }
   else if (!is3d6){ drawMap6($('c6f'), 'f'); drawMap6($('c6L'), 'L'); }
   drawAdaptive('c6', R6, t6, P6.lr);
-  drawEvecStrip($('c6s15'), R6, t6, R6.NK);
   const st6 = statusAdaptive(R6, t6, P6.lr);
   $('p6read').innerHTML =
     chip('t', st6.up) + chip('w₁', fmt(R6.x1[st6.up])) + chip('w₂', fmt(R6.x2[st6.up])) +
@@ -3669,12 +3467,7 @@ bindStrip($('c5s5'), i => `t=${i}\n(Pg)·∇̂S_P=${fmt(R5.GdS[i])}`, apply5);
 bindStrip($('c5s6'), i => `t=${i}\nr·û=${fmt(R5.Ru[i])}`, apply5);
 bindStrip($('c5s7'), i => `t=${i}\nfrozen = ${fmt(R5.Rq[i])}\nlive = ${fmt(R5.RqL[i])}`, apply5);
 bindStrip($('c5s8'), i => `t=${i}\nr·(JPu)=${fmt(R5.Ruv[i])}`, apply5);
-bindStrip($('c5s9'), i => `t=${i}\ncos(J∇S): ${cosTip('c5s9', [['∇Sk1', R5.GK1]].concat(KLAGS.map((k, s) => ['k' + k, R5.CK[s]])), i)}`, apply5);
 bindStrip($('c5s10'), i => `t=${i}\ncos(r): ${cosTip('c5s10', KLAGS.map((k, s) => ['l' + k, R5.RK[s]]), i)}`, apply5);
-bindStrip($('c5s11'), i => `t=${i}\nΣ ∇fᵢ·∇̂S* = ${fmt(R5.JS1[i])}`, apply5);
-bindStrip($('c5s12'), i => `t=${i}\n‖Σ rᵢ∇³fᵢ[v,v,·]‖ = ${fmt(R5.T3n[i])}\n‖Σ (Jv)ᵢ∇²fᵢv‖ = ${fmt(R5.JQn[i])}`, apply5);
-bindStrip($('c5s13'), i => `t=${i}\nv₁·∇̂S = ${fmt(R5.EV[0][i])}`, apply5);
-bindStrip($('c5s14'), i => `t=${i}\nv₁·∇̂S* = ${fmt(R5.EVF[0][i])}`, apply5);
 bindStrip($('c5s16'), i => `t=${i}\nresidual ${fmt(R5.DM[0][i])}\nJacobian ${fmt(R5.DM[1][i])}\n∇S ${fmt(R5.DM[2][i])}`, apply5);
 bindStrip($('c6s1'), i => `t=${i}\nL=${fmt(R6.L[i])}`, apply6);
 bindStrip($('c6s2'), i => `t=${i}\nλ(PH)=${fmt(R6.S[i])}\n2/η=${fmt(2/P6.lr)}`, apply6);
@@ -3684,13 +3477,7 @@ bindStrip($('c6s5'), i => `t=${i}\n(Pg)·∇̂S_P=${fmt(R6.GdS[i])}`, apply6);
 bindStrip($('c6s6'), i => `t=${i}\nr·û=${fmt(R6.Ru[i])}`, apply6);
 bindStrip($('c6s7'), i => `t=${i}\nfrozen = ${fmt(R6.Rq[i])}\nlive = ${fmt(R6.RqL[i])}`, apply6);
 bindStrip($('c6s8'), i => `t=${i}\nr·(JPu)=${fmt(R6.Ruv[i])}`, apply6);
-bindStrip($('c6s9'), i => `t=${i}\ncos(J∇S): ${cosTip('c6s9', [['∇Sk1', R6.GK1]].concat(KLAGS.map((k, s) => ['k' + k, R6.CK[s]])), i)}`, apply6);
 bindStrip($('c6s10'), i => `t=${i}\ncos(r): ${cosTip('c6s10', KLAGS.map((k, s) => ['l' + k, R6.RK[s]]), i)}`, apply6);
-bindStrip($('c6s11'), i => `t=${i}\nΣ ∇fᵢ·∇̂S* = ${fmt(R6.JS1[i])}`, apply6);
-bindStrip($('c6s12'), i => `t=${i}\n‖Σ rᵢ∇³fᵢ[v,v,·]‖ = ${fmt(R6.T3n[i])}\n‖Σ (Jv)ᵢ∇²fᵢv‖ = ${fmt(R6.JQn[i])}`, apply6);
-bindStrip($('c6s13'), i => `t=${i}\nv₁·∇̂S = ${fmt(R6.EV[0][i])}\nv₂·∇̂S = ${fmt(R6.EV[1][i])}`, apply6);
-bindStrip($('c6s14'), i => `t=${i}\nv₁·∇̂S* = ${fmt(R6.EVF[0][i])}\nv₂·∇̂S* = ${fmt(R6.EVF[1][i])}`, apply6);
-bindStrip($('c6s15'), i => `t=${i}\nû₁ (frozen @t={R6.tNK}) = ${fmt(R6.NK[0][i])}\nû₂ = ${fmt(R6.NK[1][i])}`, apply6);
 bindStrip($('c6s16'), i => `t=${i}\nresidual ${fmt(R6.DM[0][i])}\nJacobian ${fmt(R6.DM[1][i])}\n∇S ${fmt(R6.DM[2][i])}`, apply6);
 $('p5csv').addEventListener('click', () => {
   const rows = [];
