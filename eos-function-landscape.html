@@ -814,6 +814,10 @@
       <button id="p6play" aria-label="play or pause">▶</button>
       <input id="p6scrub" type="range" min="0" max="600" value="600" aria-label="gradient step">
       <span class="tlab num" id="p6tlab">t = 600 / 600</span>
+      <select id="p6view" aria-label="landscape view mode">
+        <option value="3d" selected>3-D surfaces</option>
+        <option value="map">top-down maps</option>
+      </select>
       <select id="p6speed" aria-label="playback speed">
         <option value="0.01">1/100×</option><option value="0.02">1/50×</option>
         <option value="0.04">1/25×</option><option value="0.1">⅒×</option>
@@ -1151,6 +1155,10 @@
       <button id="p8play" aria-label="play or pause">▶</button>
       <input id="p8scrub" type="range" min="0" max="1500" value="1500" aria-label="gradient step">
       <span class="tlab num" id="p8tlab">t = 1500 / 1500</span>
+      <select id="p8view" aria-label="landscape view mode">
+        <option value="3d" selected>3-D surfaces</option>
+        <option value="map">top-down maps</option>
+      </select>
       <select id="p8speed" aria-label="playback speed">
         <option value="0.01">1/100×</option><option value="0.02">1/50×</option>
         <option value="0.04">1/25×</option><option value="0.1">⅒×</option>
@@ -1161,7 +1169,7 @@
 
         <div class="card">
       <h3>Per-sample zero-residual curves in (w₁, w₂)</h3>
-      <p class="cap">each curve is where one sample is fitted exactly, w₁ = (yᵢ − μw₂)/(a·e<sup>b·w₂</sup>·cᵢ) · <b>they do not meet at a common point</b> — that gap is precisely the unfittable residual · red tint: λ(PH) &gt; 2/η · set τ = 0 and they all collapse through one point</p>
+      <p class="cap">3-D: the mean output surface f̄ = a·e<sup>b·w₂</sup>·w₁·c̄ + μ·w₂ with each sample's zero-residual curve drawn on it · top-down: the same curves in the (w₁, w₂) plane · <b>they do not meet at a common point</b> — that gap is precisely the unfittable residual (set τ = 0 and they collapse through one point) · red tint: λ(PH) &gt; 2/η · drag to rotate</p>
       <canvas class="plot" id="c8f" role="img" aria-label="per-sample zero residual curves with the trajectory"></canvas>
     </div>
 
@@ -3534,7 +3542,9 @@ function drawAll5(){
 function drawAll6(){
   if (!R6) return;
   readPal();
-  if (surf6){ drawSurf6($('c6f'), 'f'); drawSurf6($('c6L'), 'L'); }
+  const is3d6 = view6 === '3d';
+  if (is3d6 && surf6){ drawSurf6($('c6f'), 'f'); drawSurf6($('c6L'), 'L'); }
+  else if (!is3d6){ drawMap6($('c6f'), 'f'); drawMap6($('c6L'), 'L'); }
   drawAdaptive('c6', R6, t6, P6.lr);
   drawEvecStrip($('c6s15'), R6, t6, R6.NK);
   const st6 = statusAdaptive(R6, t6, P6.lr);
@@ -3701,8 +3711,9 @@ $('p6csv').addEventListener('click', () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 });
 $('p6logz').addEventListener('change', () => { cacheL6.key = ''; drawAll6(); });
-bindRotate($('c6f'), cam6, drawAll6, () => true);
-bindRotate($('c6L'), cam6, drawAll6, () => true);
+$('p6view').addEventListener('change', () => { view6 = $('p6view').value === 'map' ? 'map' : '3d'; drawAll6(); });
+bindRotate($('c6f'), cam6, drawAll6, () => view6 === '3d');
+bindRotate($('c6L'), cam6, drawAll6, () => view6 === '3d');
 
 
 /* ================= PANELS 7 & 8 : MULTIPLE DATAPOINTS =================
@@ -3982,6 +3993,127 @@ function lagCosArrays2(comps, m){
 }
 
 
+/* ---------- panel 6: top-down maps (companion to the 3-D surfaces) ---------- */
+function drawMap6(cv, kind){
+  const { ctx, w, h } = setup(cv);
+  if (w < 10 || h < 10) return;
+  const A = area(w, h);
+  const up = Math.min(Math.round(t6), R6.n);
+  const { ct, st } = trig6();
+  const thr = 2/P6.lr;
+  const [m1l, m1h] = fullRange(R6.x1, 1, 99, 3), [m2l, m2h] = fullRange(R6.x2, 1, 99, 3);
+  let lo1 = Math.min(m1l, P6.x10, 0), hi1 = Math.max(m1h, P6.x10, 0);
+  let lo2 = Math.min(m2l, 0), hi2 = Math.max(m2h, 0);
+  let s1 = hi1-lo1 || 1, s2 = hi2-lo2 || 1;
+  lo1 -= 0.15*s1; hi1 += 0.15*s1; lo2 -= 0.15*s2; hi2 += 0.15*s2;
+  s1 = hi1-lo1; s2 = hi2-lo2;
+  const AR = A.w/A.h;
+  if (s1/s2 > AR){ const c0 = 0.5*(lo2+hi2), ns = s1/AR; lo2 = c0-ns/2; hi2 = c0+ns/2; s2 = ns; }
+  else { const c0 = 0.5*(lo1+hi1), ns = s2*AR; lo1 = c0-ns/2; hi1 = c0+ns/2; s1 = ns; }
+  A.x = x => A.l + (x-lo1)/s1*A.w;
+  A.y = x => A.t + (hi2-x)/s2*A.h;
+  const M = 64, G = [];
+  for (let i = 0; i <= M; i++){
+    G.push([]);
+    const x1 = lo1 + s1*i/M;
+    for (let j = 0; j <= M; j++){
+      const x2 = lo2 + s2*j/M;
+      G[i].push(kind === 'f' ? f6(x1, x2) : Math.log10(L6full(x1, x2) + 1e-12));
+    }
+  }
+  ctx.save(); ctx.beginPath(); ctx.rect(A.l, A.t, A.w, A.h); ctx.clip();
+  ctx.fillStyle = alpha(PAL.unst, 0.10);
+  const cw = A.w/M + 0.5, chh = A.h/M + 0.5;
+  for (let i = 0; i < M; i++) for (let j = 0; j < M; j++){
+    const lam = lamP6(lo1 + s1*(i+0.5)/M, lo2 + s2*(j+0.5)/M);
+    if (isFinite(lam) && lam > thr) ctx.fillRect(A.x(lo1 + s1*i/M), A.y(lo2 + s2*(j+1)/M), cw, chh);
+  }
+  ctx.restore();
+  axes(ctx, A, ticks(lo1,hi1,7), ticks(lo2,hi2,6), fmt, fmt);
+  ctx.save(); ctx.beginPath(); ctx.rect(A.l-1, A.t-1, A.w+2, A.h+2); ctx.clip();
+  contourGrid(ctx, A, G, M, lo1, s1, lo2, s2, kind === 'f');
+  ctx.strokeStyle = PAL.zero; ctx.lineWidth = 2.2;
+  ctx.beginPath(); ctx.moveTo(A.x(0), A.t); ctx.lineTo(A.x(0), A.t+A.h); ctx.stroke();
+  ctx.fillStyle = PAL.zero; ctx.font = '600 11px system-ui,sans-serif';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('r₁ = 0', A.x(0) + 5, A.t + 4);
+  ctx.font = '10.5px ui-monospace,Menlo,Consolas,monospace';
+  if (P6.th > 0.5 && Math.abs(P6.mu) > 1e-12){
+    const wfit = (P6.y2/P6.mu)/Math.sin(P6.th*Math.PI/180);
+    if (isFinite(wfit) && wfit > lo2 && wfit < hi2 && lo1 < 0 && hi1 > 0){
+      ctx.fillStyle = PAL.nt[2]; ctx.beginPath(); ctx.arc(A.x(0), A.y(wfit), 5, 0, 7); ctx.fill();
+      ctx.strokeStyle = PAL.surface; ctx.lineWidth = 2; ctx.stroke();
+    }
+  }
+  trajOnMap(ctx, A, R6.x1, R6.x2, up, R6.n);
+  ctx.restore();
+  mapAxisLabels(ctx, A, 'w₁', 'w₂');
+}
+/* shared helpers for the top-down maps */
+function contourGrid(ctx, A, G, M, lo1, s1, lo2, s2, linear){
+  let gmin = Infinity, gmax = -Infinity;
+  for (let i = 0; i <= M; i++) for (let j = 0; j <= M; j++){
+    const v = G[i][j];
+    if (isFinite(v)){ if (v < gmin) gmin = v; if (v > gmax) gmax = v; }
+  }
+  if (!isFinite(gmin) || !(gmax > gmin)) return;
+  let levels;
+  if (linear) levels = ticks(gmin, gmax, 9).filter(v => Math.abs(v) > 1e-9);
+  else {
+    levels = [];
+    const dec = Math.max(1, Math.round((gmax-gmin)/8));
+    for (let d = Math.ceil(gmin); d <= gmax; d += dec) levels.push(d);
+  }
+  ctx.strokeStyle = alpha(PAL.muted, 0.55); ctx.lineWidth = 1;
+  for (const lv of levels){
+    ctx.beginPath();
+    for (let i = 0; i < M; i++) for (let j = 0; j < M; j++){
+      const v = [G[i][j]-lv, G[i+1][j]-lv, G[i+1][j+1]-lv, G[i][j+1]-lv];
+      const Pn = [[i,j],[i+1,j],[i+1,j+1],[i,j+1]];
+      const pts = [];
+      for (let e = 0; e < 4; e++){
+        const va = v[e], vb = v[(e+1)%4];
+        if (!isFinite(va) || !isFinite(vb)) continue;
+        if ((va < 0 && vb >= 0) || (va >= 0 && vb < 0)){
+          const tt = va/(va-vb);
+          const gi = Pn[e][0] + tt*(Pn[(e+1)%4][0]-Pn[e][0]);
+          const gj = Pn[e][1] + tt*(Pn[(e+1)%4][1]-Pn[e][1]);
+          pts.push([A.x(lo1 + s1*gi/M), A.y(lo2 + s2*gj/M)]);
+        }
+      }
+      if (pts.length >= 2){
+        ctx.moveTo(pts[0][0], pts[0][1]); ctx.lineTo(pts[1][0], pts[1][1]);
+        if (pts.length === 4){ ctx.moveTo(pts[2][0], pts[2][1]); ctx.lineTo(pts[3][0], pts[3][1]); }
+      }
+    }
+    ctx.stroke();
+  }
+}
+function trajOnMap(ctx, A, X1, X2, up, ntot){
+  const stp = decim(up, 3000);
+  let prev = null;
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= up; i += stp){
+    const px = A.x(X1[i]), py = A.y(X2[i]);
+    if (prev){ ctx.strokeStyle = alpha(PAL.traj1, 0.30); ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(px, py); ctx.stroke(); }
+    prev = [px, py];
+  }
+  for (let i = 0; i <= up; i += stp){
+    ctx.fillStyle = trajCol(ntot ? i/ntot : 0);
+    ctx.beginPath(); ctx.arc(A.x(X1[i]), A.y(X2[i]), 2.3, 0, 7); ctx.fill();
+  }
+  ctx.fillStyle = PAL.now;
+  ctx.beginPath(); ctx.arc(A.x(X1[up]), A.y(X2[up]), 5.5, 0, 7); ctx.fill();
+  ctx.strokeStyle = PAL.surface; ctx.lineWidth = 2; ctx.stroke();
+}
+function mapAxisLabels(ctx, A, xl, yl){
+  ctx.fillStyle = PAL.muted;
+  ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+  ctx.fillText(xl, A.l + A.w, A.t + A.h - 4);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText(yl, A.l + 4, A.t + 2);
+}
+
 /* ---------- panel 7 landscapes: n function curves + the loss curve ---------- */
 function xRange7(){
   const [qlo, qhi] = fullRange(R7.xs, 1, 99, 3);
@@ -4118,7 +4250,7 @@ function L8full(w1, w2, c, yv){
   for (let k = 0; k < c.length; k++){ const r = yv[k] - (E*w1*c[k] + P8.mu*w2); L += r*r; }
   return Math.min(L/c.length, 1e300);
 }
-function drawMap8(cv){
+function drawMap8(cv, kind){
   const { ctx, w, h } = setup(cv);
   if (w < 10 || h < 10) return;
   const A = area(w, h);
@@ -4144,9 +4276,18 @@ function drawMap8(cv){
   ctx.restore();
   axes(ctx, A, ticks(lo1,hi1,7), ticks(lo2,hi2,6), fmt, fmt);
   ctx.save(); ctx.beginPath(); ctx.rect(A.l-1, A.t-1, A.w+2, A.h+2); ctx.clip();
+  if (kind === 'L'){
+    const M2 = 64, G = [];
+    for (let i = 0; i <= M2; i++){
+      G.push([]);
+      const x1 = lo1 + s1*i/M2;
+      for (let j = 0; j <= M2; j++) G[i].push(Math.log10(L8full(x1, lo2 + s2*j/M2, c, yv) + 1e-12));
+    }
+    contourGrid(ctx, A, G, M2, lo1, s1, lo2, s2, false);
+  }
   // per-sample zero-residual curves: w1 = (y_i − μ w2)/(a e^{b w2} c_i)
   const NP = 160;
-  for (let k = 0; k < nS; k++){
+  for (let k = 0; kind === 'f' && k < nS; k++){
     ctx.strokeStyle = alpha(mix(PAL.surflo, PAL.surfhi, nS > 1 ? k/(nS-1) : 0.5), 0.9);
     ctx.lineWidth = 1.4; ctx.beginPath();
     let started = false;
@@ -4184,7 +4325,9 @@ function drawMap8(cv){
   ctx.textAlign = 'left'; ctx.textBaseline = 'top';
   ctx.fillText('w₂', A.l + 4, A.t + 2);
 }
+let view6 = '3d', view8 = '3d';
 const cam8 = { al: -0.95, ph: 0.50 };
+const cacheF8 = { cv: document.createElement('canvas'), key: '' };
 const cacheL8 = { cv: document.createElement('canvas'), key: '' };
 let surf8 = null;
 function buildSurf8(){
@@ -4196,11 +4339,19 @@ function buildSurf8(){
   const w1r = h1-l1, w2r = h2-l2;
   if (w1r < 0.3*w2r){ const cc = 0.5*(l1+h1), half = 0.15*w2r; l1 = cc-half; h1 = cc+half; }
   if (w2r < 0.3*w1r){ const cc = 0.5*(l2+h2), half = 0.15*w1r; l2 = cc-half; h2 = cc+half; }
-  const LM = [], UN = [], thr = 2/P8.lr;
+  const LM = [], F = [], UN = [], thr = 2/P8.lr;
+  let cbar = 0;
+  for (let k = 0; k < R8.c.length; k++) cbar += R8.c[k];
+  cbar /= R8.c.length;
   for (let i = 0; i <= GN; i++){
-    LM.push([]);
+    LM.push([]); F.push([]);
     const x1 = l1 + (h1-l1)*i/GN;
-    for (let j = 0; j <= GN; j++) LM[i].push(L8full(x1, l2 + (h2-l2)*j/GN, R8.c, R8.yv));
+    for (let j = 0; j <= GN; j++){
+      const x2 = l2 + (h2-l2)*j/GN;
+      LM[i].push(L8full(x1, x2, R8.c, R8.yv));
+      const E = P8.a*Math.exp(Math.min(P8.b*x2, 60));
+      F[i].push(Math.max(-1e100, Math.min(1e100, E*x1*cbar + P8.mu*x2)));   // mean output f̄
+    }
   }
   for (let i = 0; i < GN; i++){
     UN.push([]);
@@ -4209,7 +4360,7 @@ function buildSurf8(){
       UN[i].push(isFinite(lam) && lam > thr);
     }
   }
-  surf8 = { l1, h1, l2, h2, LM, UN };
+  surf8 = { l1, h1, l2, h2, LM, F, UN, cbar };
 }
 function proj8(u, v, z, s, cx, cyv){
   const ca = Math.cos(cam8.al), sa = Math.sin(cam8.al);
@@ -4217,15 +4368,16 @@ function proj8(u, v, z, s, cx, cyv){
   const wv = u*ca + v*sa, tv = -u*sa + v*ca;
   return [cx + s*tv, cyv - s*(z*cp - wv*sp), wv*cp + z*sp];
 }
-function drawSurf8(cv){
+function drawSurf8(cv, kind){
   if (!surf8) return;
-  const logz = $('p8logz').checked;
+  const cache = kind === 'f' ? cacheF8 : cacheL8;
+  const logz = kind === 'L' && $('p8logz').checked;
   const dpr = window.devicePixelRatio || 1;
   const w = cv.clientWidth, h = cv.clientHeight;
   if (w < 10 || h < 10) return;
-  const key = [w, h, dpr, cam8.al.toFixed(3), cam8.ph.toFixed(3), logz, PAL.ink,
+  const key = [kind, w, h, dpr, cam8.al.toFixed(3), cam8.ph.toFixed(3), logz, PAL.ink,
     surf8.l1, surf8.h1, surf8.l2, surf8.h2, P8.n, P8.sig, P8.tau, P8.a, P8.b, P8.mu, P8.y2, P8.lr, P8.opt].join('|');
-  const G = surf8.LM;
+  const G = kind === 'f' ? surf8.F : surf8.LM;
   const zf = logz ? (v => Math.log10(1 + Math.max(0, v))) : (v => v);
   let zlo = Infinity, zhi = -Infinity;
   for (let i = 0; i <= GN; i++) for (let j = 0; j <= GN; j++){
@@ -4239,10 +4391,10 @@ function drawSurf8(cv){
   const s = Math.min(w, h)/3.05, cx = w/2, cyv = h*0.56;
   const P3d = (x1, x2, zv) => proj8(NX(x1), NY(x2), nz(zv), s, cx, cyv);
   const floorz = logz ? Math.pow(10, zlo) - 1 : zlo;
-  if (cacheL8.key !== key){
-    cacheL8.key = key;
-    cacheL8.cv.width = Math.round(w*dpr); cacheL8.cv.height = Math.round(h*dpr);
-    const ctx = cacheL8.cv.getContext('2d');
+  if (cache.key !== key){
+    cache.key = key;
+    cache.cv.width = Math.round(w*dpr); cache.cv.height = Math.round(h*dpr);
+    const ctx = cache.cv.getContext('2d');
     ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.clearRect(0,0,w,h);
     ctx.strokeStyle = PAL.axis; ctx.lineWidth = 1;
@@ -4274,30 +4426,55 @@ function drawSurf8(cv){
     ctx.textAlign = 'left';
     ctx.fillText(`w₁∈[${fmt(surf8.l1)}, ${fmt(surf8.h1)}]  w₂∈[${fmt(surf8.l2)}, ${fmt(surf8.h2)}]`, 8, h - 8);
     ctx.textAlign = 'right';
-    ctx.fillText((logz ? 'log₁₀(1+L)' : 'L') + `∈[${fmt(zlo)}, ${fmt(zhi)}]`, w - 8, h - 8);
+    ctx.fillText((kind === 'f' ? 'f̄' : (logz ? 'log₁₀(1+L)' : 'L')) + `∈[${fmt(zlo)}, ${fmt(zhi)}]`, w - 8, h - 8);
+    if (kind === 'f'){
+      // per-sample zero-residual curves drawn on the mean-output surface
+      const nS = R8.c.length, NP = 90;
+      for (let k = 0; k < nS; k++){
+        ctx.strokeStyle = alpha(mix(PAL.surflo, PAL.surfhi, nS > 1 ? k/(nS-1) : 0.5), 0.95);
+        ctx.lineWidth = 1.6; ctx.beginPath();
+        let started = false;
+        for (let j = 0; j <= NP; j++){
+          const x2 = surf8.l2 + (surf8.h2-surf8.l2)*j/NP;
+          const E = P8.a*Math.exp(Math.min(P8.b*x2, 60));
+          if (!isFinite(E) || Math.abs(E*R8.c[k]) < 1e-300){ started = false; continue; }
+          const x1 = (R8.yv[k] - P8.mu*x2)/(E*R8.c[k]);
+          if (!isFinite(x1) || x1 < surf8.l1 || x1 > surf8.h1){ started = false; continue; }
+          const p = P3d(x1, x2, E*x1*surf8.cbar + P8.mu*x2);
+          started ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
+          started = true;
+        }
+        ctx.stroke();
+      }
+    }
   }
   const { ctx } = setup(cv);
-  ctx.drawImage(cacheL8.cv, 0, 0, w, h);
+  ctx.drawImage(cache.cv, 0, 0, w, h);
   const up = Math.min(Math.round(t8), R8.n);
   const st = decim(up, 2500);
   const inD = i => R8.x1[i] >= surf8.l1 && R8.x1[i] <= surf8.h1 && R8.x2[i] >= surf8.l2 && R8.x2[i] <= surf8.h2;
   const zcl = v => clamp(zf(v), zlo, zhi);
+  const zof = i => {
+    if (kind !== 'f') return R8.L[i];
+    const E = P8.a*Math.exp(Math.min(P8.b*R8.x2[i], 60));
+    return Math.max(-1e100, Math.min(1e100, E*R8.x1[i]*surf8.cbar + P8.mu*R8.x2[i]));
+  };
   ctx.lineWidth = 1.5; ctx.lineCap = 'round';
   let prev = null;
   for (let i = 0; i <= up; i += st){
     if (!inD(i)){ prev = null; continue; }
-    const p = proj8(NX(R8.x1[i]), NY(R8.x2[i]), (zcl(R8.L[i]) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
+    const p = proj8(NX(R8.x1[i]), NY(R8.x2[i]), (zcl(zof(i)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
     if (prev){ ctx.strokeStyle = alpha(PAL.traj1, 0.35); ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(p[0], p[1]); ctx.stroke(); }
     prev = p;
   }
   for (let i = 0; i <= up; i += st){
     if (!inD(i)) continue;
-    const p = proj8(NX(R8.x1[i]), NY(R8.x2[i]), (zcl(R8.L[i]) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
+    const p = proj8(NX(R8.x1[i]), NY(R8.x2[i]), (zcl(zof(i)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
     ctx.fillStyle = trajCol(R8.n ? i/R8.n : 0);
     ctx.beginPath(); ctx.arc(p[0], p[1], 2.3, 0, 7); ctx.fill();
   }
   if (inD(up)){
-    const p = proj8(NX(R8.x1[up]), NY(R8.x2[up]), (zcl(R8.L[up]) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
+    const p = proj8(NX(R8.x1[up]), NY(R8.x2[up]), (zcl(zof(up)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
     ctx.fillStyle = PAL.now; ctx.beginPath(); ctx.arc(p[0], p[1], 5.5, 0, 7); ctx.fill();
     ctx.strokeStyle = PAL.surface; ctx.lineWidth = 2; ctx.stroke();
   }
@@ -4334,8 +4511,9 @@ function drawAll7(){
 function drawAll8(){
   if (!R8) return;
   readPal();
-  drawMap8($('c8f'));
-  drawSurf8($('c8L'));
+  const is3d8 = view8 === '3d';
+  if (is3d8){ drawSurf8($('c8f'), 'f'); drawSurf8($('c8L'), 'L'); }
+  else { drawMap8($('c8f'), 'f'); drawMap8($('c8L'), 'L'); }
   drawLogStrip($('c8s1'), R8, t8, R8.L, 0, PAL.accent);
   drawSharpStrip($('c8s2'), R8, t8, P8.lr, true);
   drawLogStrip($('c8s3'), R8, t8, R8.rn, 0, PAL.accent);
@@ -4479,7 +4657,9 @@ $('p7csv').addEventListener('click', () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 });
 $('p8logz').addEventListener('change', () => { cacheL8.key = ''; drawAll8(); });
-bindRotate($('c8L'), cam8, drawAll8, () => true);
+$('p8view').addEventListener('change', () => { view8 = $('p8view').value === 'map' ? 'map' : '3d'; drawAll8(); });
+bindRotate($('c8f'), cam8, drawAll8, () => view8 === '3d');
+bindRotate($('c8L'), cam8, drawAll8, () => view8 === '3d');
 $('p8csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R8.n; i++)
@@ -4571,7 +4751,7 @@ function redrawVisible(){
   if (!$('panel7').hidden) drawAll7();
   if (!$('panel8').hidden) drawAll8();
 }
-function clearSurfCaches(){ cacheF3.key = ''; cacheL3.key = ''; cacheF6.key = ''; cacheL6.key = ''; cacheL8.key = ''; }
+function clearSurfCaches(){ cacheF3.key = ''; cacheL3.key = ''; cacheF6.key = ''; cacheL6.key = ''; cacheF8.key = ''; cacheL8.key = ''; }
 const ro = new ResizeObserver(() => { clearSurfCaches(); redrawVisible(); });
 document.querySelectorAll('canvas.plot').forEach(c => ro.observe(c));
 
