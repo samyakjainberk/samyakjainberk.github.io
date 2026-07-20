@@ -1458,8 +1458,10 @@ function drawLand(cv, kind, XR){
     }
   }
   // hop arcs (the sketch's blue arcs), colored early -> late
-  const st = decim(up, 2000);
-  const arcs = st === 1 && up <= 800;
+  // stride 1 for the connecting geometry: with a period-2 oscillation any stride > 1
+  // aliases onto a single arm and the other arm's iterates would draw nothing
+  const st = 1, stm = decim(up, 2000);
+  const arcs = up <= 800;
   const arrows = up <= 90;
   for (let i = 0; i + st <= up; i += st){
     const x1 = A.x(R.xs[i]), y1 = clamp(A.y(V(i)), A.t-40, A.t+A.h+40);
@@ -1486,8 +1488,8 @@ function drawLand(cv, kind, XR){
       ctx.globalAlpha = 1;
     }
   }
-  // landing dots
-  for (let i = 0; i <= up; i += st){
+  // landing dots (decimated for legibility; the line above visits every iterate)
+  for (let i = 0; i <= up; i += stm){
     ctx.fillStyle = trajCol(R.n ? i/R.n : 0);
     ctx.beginPath();
     ctx.arc(A.x(R.xs[i]), clamp(A.y(V(i)), A.t-40, A.t+A.h+40), 2.3, 0, 7);
@@ -2156,15 +2158,15 @@ function drawMap3(cv, kind){
   // trajectory
   const stp = decim(up, 3000);
   ctx.lineWidth = 1;
-  let prev = null;
-  for (let i = 0; i <= up; i += stp){
+  ctx.strokeStyle = alpha(PAL.traj1, 0.30);
+  ctx.beginPath();
+  // stride 1 for the connecting geometry: with a period-2 oscillation any stride > 1
+  // aliases onto a single arm and the other arm's iterates would draw nothing
+  for (let i = 0; i <= up; i++){
     const px = A.x(R3.x1[i]), py = A.y(R3.x2[i]);
-    if (prev){
-      ctx.strokeStyle = alpha(PAL.traj1, 0.30);
-      ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(px, py); ctx.stroke();
-    }
-    prev = [px, py];
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
   }
+  ctx.stroke();
   for (let i = 0; i <= up; i += stp){
     ctx.fillStyle = trajCol(R3.n ? i/R3.n : 0);
     ctx.beginPath(); ctx.arc(A.x(R3.x1[i]), A.y(R3.x2[i]), 2.3, 0, 7); ctx.fill();
@@ -2312,16 +2314,18 @@ function drawSurf3(cv, kind){
   const inD = i => R3.x1[i] >= surf3.l1 && R3.x1[i] <= surf3.h1 && R3.x2[i] >= surf3.l2 && R3.x2[i] <= surf3.h2;
   const zcl = v => clamp(zf(v), zlo, zhi);
   ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+  ctx.strokeStyle = alpha(PAL.traj1, 0.35);
+  ctx.beginPath();
   let prev = null;
-  for (let i = 0; i <= up; i += st){
+  // stride 1 for the connecting geometry: with a period-2 oscillation any stride > 1
+  // aliases onto a single arm and the other arm's iterates would draw nothing
+  for (let i = 0; i <= up; i++){
     if (!inD(i)){ prev = null; continue; }
     const p = proj3(NX(R3.x1[i]), NY(R3.x2[i]), (zcl(zof(i)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
-    if (prev){
-      ctx.strokeStyle = alpha(PAL.traj1, 0.35);
-      ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(p[0], p[1]); ctx.stroke();
-    }
+    prev ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
     prev = p;
   }
+  ctx.stroke();
   for (let i = 0; i <= up; i += st){
     if (!inD(i)) continue;
     const p = proj3(NX(R3.x1[i]), NY(R3.x2[i]), (zcl(zof(i)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
@@ -2869,8 +2873,10 @@ function drawLand5(cv, kind, XR){
     }
   }
   // hop arcs, colored early -> late
-  const st = decim(up, 2000);
-  const arcs = st === 1 && up <= 800;
+  // stride 1 for the connecting geometry: with a period-2 oscillation any stride > 1
+  // aliases onto a single arm and the other arm's iterates would draw nothing
+  const st = 1, stm = decim(up, 2000);
+  const arcs = up <= 800;
   const arrows = up <= 90;
   for (let i = 0; i + st <= up; i += st){
     const x1 = A.x(R5.xs[i]), y1 = clamp(A.y(V(i)), A.t-40, A.t+A.h+40);
@@ -2897,8 +2903,8 @@ function drawLand5(cv, kind, XR){
       ctx.globalAlpha = 1;
     }
   }
-  // landing dots
-  for (let i = 0; i <= up; i += st){
+  // landing dots (decimated for legibility; the line above visits every iterate)
+  for (let i = 0; i <= up; i += stm){
     ctx.fillStyle = trajCol(R5.n ? i/R5.n : 0);
     ctx.beginPath();
     ctx.arc(A.x(R5.xs[i]), clamp(A.y(V(i)), A.t-40, A.t+A.h+40), 2.3, 0, 7);
@@ -3274,16 +3280,18 @@ function drawSurf6(cv, kind){
   const inD = i => R6.x1[i] >= surf6.l1 && R6.x1[i] <= surf6.h1 && R6.x2[i] >= surf6.l2 && R6.x2[i] <= surf6.h2;
   const zcl = v => clamp(zf(v), zlo, zhi);
   ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+  ctx.strokeStyle = alpha(PAL.traj1, 0.35);
+  ctx.beginPath();
   let prev = null;
-  for (let i = 0; i <= up; i += st){
+  // stride 1 for the connecting geometry: with a period-2 oscillation any stride > 1
+  // aliases onto a single arm and the other arm's iterates would draw nothing
+  for (let i = 0; i <= up; i++){
     if (!inD(i)){ prev = null; continue; }
     const p = proj6(NX(R6.x1[i]), NY(R6.x2[i]), (zcl(zof(i)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
-    if (prev){
-      ctx.strokeStyle = alpha(PAL.traj1, 0.35);
-      ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(p[0], p[1]); ctx.stroke();
-    }
+    prev ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
     prev = p;
   }
+  ctx.stroke();
   for (let i = 0; i <= up; i += st){
     if (!inD(i)) continue;
     const p = proj6(NX(R6.x1[i]), NY(R6.x2[i]), (zcl(zof(i)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
@@ -3997,13 +4005,16 @@ function contourGrid(ctx, A, G, M, lo1, s1, lo2, s2, linear){
 }
 function trajOnMap(ctx, A, X1, X2, up, ntot){
   const stp = decim(up, 3000);
-  let prev = null;
   ctx.lineWidth = 1;
-  for (let i = 0; i <= up; i += stp){
+  ctx.strokeStyle = alpha(PAL.traj1, 0.30);
+  ctx.beginPath();
+  // stride 1 for the connecting geometry: with a period-2 oscillation any stride > 1
+  // aliases onto a single arm and the other arm's iterates would draw nothing
+  for (let i = 0; i <= up; i++){
     const px = A.x(X1[i]), py = A.y(X2[i]);
-    if (prev){ ctx.strokeStyle = alpha(PAL.traj1, 0.30); ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(px, py); ctx.stroke(); }
-    prev = [px, py];
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
   }
+  ctx.stroke();
   for (let i = 0; i <= up; i += stp){
     ctx.fillStyle = trajCol(ntot ? i/ntot : 0);
     ctx.beginPath(); ctx.arc(A.x(X1[i]), A.y(X2[i]), 2.3, 0, 7); ctx.fill();
@@ -4121,7 +4132,7 @@ function drawLand7(cv, kind, XR){
     }
     ctx.stroke();
     // hop arcs along the trajectory
-    const st = decim(up, 2000), arcs = st === 1 && up <= 800;
+    const st = 1, stm = decim(up, 2000), arcs = up <= 800;   // stride 1: never alias a period-2 ride
     for (let i = 0; i + st <= up; i += st){
       const x1 = A.x(R7.xs[i]), y1 = clamp(A.y(R7.L[i]), A.t-50, A.t+A.h+50);
       const x2 = A.x(R7.xs[i+st]), y2 = clamp(A.y(R7.L[i+st]), A.t-50, A.t+A.h+50);
@@ -4136,7 +4147,7 @@ function drawLand7(cv, kind, XR){
         ctx.globalAlpha = 1;
       }
     }
-    for (let i = 0; i <= up; i += st){
+    for (let i = 0; i <= up; i += stm){
       ctx.fillStyle = trajCol(R7.n ? i/R7.n : 0);
       ctx.beginPath(); ctx.arc(A.x(R7.xs[i]), clamp(A.y(R7.L[i]), A.t-50, A.t+A.h+50), 2.3, 0, 7); ctx.fill();
     }
@@ -4211,13 +4222,16 @@ function drawMap8(cv, kind){
   }
   // trajectory
   const stp = decim(up, 3000);
-  let prev = null;
   ctx.lineWidth = 1;
-  for (let i = 0; i <= up; i += stp){
+  ctx.strokeStyle = alpha(PAL.traj1, 0.30);
+  ctx.beginPath();
+  // stride 1 for the connecting geometry: with a period-2 oscillation any stride > 1
+  // aliases onto a single arm and the other arm's iterates would draw nothing
+  for (let i = 0; i <= up; i++){
     const px = A.x(R8.x1[i]), py = A.y(R8.x2[i]);
-    if (prev){ ctx.strokeStyle = alpha(PAL.traj1, 0.30); ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(px, py); ctx.stroke(); }
-    prev = [px, py];
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
   }
+  ctx.stroke();
   for (let i = 0; i <= up; i += stp){
     ctx.fillStyle = trajCol(R8.n ? i/R8.n : 0);
     ctx.beginPath(); ctx.arc(A.x(R8.x1[i]), A.y(R8.x2[i]), 2.2, 0, 7); ctx.fill();
@@ -4366,13 +4380,18 @@ function drawSurf8(cv, kind){
     return Math.max(-1e100, Math.min(1e100, E*R8.x1[i]*surf8.cbar + P8.mu*R8.x2[i]));
   };
   ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+  ctx.strokeStyle = alpha(PAL.traj1, 0.35);
+  ctx.beginPath();
   let prev = null;
-  for (let i = 0; i <= up; i += st){
+  // stride 1 for the connecting geometry: with a period-2 oscillation any stride > 1
+  // aliases onto a single arm and the other arm's iterates would draw nothing
+  for (let i = 0; i <= up; i++){
     if (!inD(i)){ prev = null; continue; }
     const p = proj8(NX(R8.x1[i]), NY(R8.x2[i]), (zcl(zof(i)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
-    if (prev){ ctx.strokeStyle = alpha(PAL.traj1, 0.35); ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(p[0], p[1]); ctx.stroke(); }
+    prev ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
     prev = p;
   }
+  ctx.stroke();
   for (let i = 0; i <= up; i += st){
     if (!inD(i)) continue;
     const p = proj8(NX(R8.x1[i]), NY(R8.x2[i]), (zcl(zof(i)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
