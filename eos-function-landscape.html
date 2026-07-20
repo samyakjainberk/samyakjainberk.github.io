@@ -105,7 +105,7 @@
   #cs1,#cs2,#cs3,#cs4,#cs5,#cs6,#cs7,#cs8,#c3s1,#c3s2,#c3s3,#c3s4,#c3s5,#c3s6,#c3s7,#c3s8,#c5s1,#c5s2,#c5s3,#c5s4,#c5s5,#c5s6,#c5s7,#c5s8,#c6s1,#c6s2,#c6s3,#c6s4,#c6s5,#c6s6,#c6s7,#c6s8,#cs9,#c3s9,#c5s9,#c6s9,#cs10,#c3s10,#c5s10,#c6s10,#cs11,#c3s11,#c5s11,#c6s11,#cs12,#c3s12,#c5s12,#c6s12,#cs13,#c3s13,#c5s13,#c6s13,#cs14,#c3s14,#c5s14,#c6s14,#c3s15,#c6s15,#cs16,#c3s16,#c5s16,#c6s16{height:190px}
   #c7f,#c7L{height:330px}
   #c8f,#c8L{height:380px}
-  #c7s1,#c7s2,#c7s3,#c7s4,#c7s5,#c7s6,#c7s7,#c7s8,#c7s9,#c7s10,#c7s11,#c8s12,#c8s13,#c8s1,#c8s2,#c8s3,#c8s4,#c8s5,#c8s6,#c8s7,#c8s8,#c8s9,#c8s10,#c8s11{height:180px}
+  #c7s1,#c7s2,#c7s3,#c7s4,#c7s5,#c7s6,#c7s7,#c7s8,#c7s9,#c3s17,#c6s17,#c8s14,#c7s10,#c7s11,#c8s12,#c8s13,#c8s1,#c8s2,#c8s3,#c8s4,#c8s5,#c8s6,#c8s7,#c8s8,#c8s9,#c8s10,#c8s11{height:180px}
   #c3f,#c3L{height:380px}
   #c5f,#c5L{height:340px}
   #c6f,#c6L{height:380px}
@@ -476,6 +476,16 @@
       </div>
     </div>
 
+    <div class="card">
+      <h3>Self-stabilization cycles — where each catapult fires</h3>
+      <p class="cap">each tread is one cycle, read at each cycle's turning point (a local maximum of the oscillation envelope) · <b>red</b>: the oscillation amplitude there · <b>orange</b>: the instability excess η·λ/2 − 1 at the same step · ticks on the axis mark the cycles · the amplitude shrinks cycle after cycle because each catapult lowers w₂, which lowers E and hence λ, shrinking the excess that drives the growth · hover for the exact (t, w₁, w₂)</p>
+      <canvas class="plot" id="c3s17" role="img" aria-label="per-cycle oscillation amplitude and instability excess"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--crit)"></i>amplitude at kick-in</span>
+        <span><i class="sw" style="background:var(--sharp)"></i>excess η·λ/2 − 1</span>
+      </div>
+    </div>
+
 
 
 
@@ -801,6 +811,16 @@
       </div>
     </div>
 
+    <div class="card">
+      <h3>Self-stabilization cycles — where each catapult fires</h3>
+      <p class="cap">each tread is one cycle, read at each cycle's turning point (a local maximum of the oscillation envelope) · <b>red</b>: the oscillation amplitude there · <b>orange</b>: the instability excess η·λ/2 − 1 at the same step · ticks on the axis mark the cycles · the amplitude shrinks cycle after cycle because each catapult lowers w₂, which lowers E and hence λ, shrinking the excess that drives the growth · hover for the exact (t, w₁, w₂)</p>
+      <canvas class="plot" id="c6s17" role="img" aria-label="per-cycle oscillation amplitude and instability excess"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--crit)"></i>amplitude at kick-in</span>
+        <span><i class="sw" style="background:var(--sharp)"></i>excess η·λ/2 − 1</span>
+      </div>
+    </div>
+
 
 
 
@@ -1087,6 +1107,16 @@
       <div class="legend"><span><i class="sw" style="background:var(--crit)"></i>residual r</span>
         <span><i class="sw" style="background:var(--accent)"></i>Jacobian J</span>
         <span><i class="sw" style="background:var(--zero)"></i>∇S</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Self-stabilization cycles — where each catapult fires</h3>
+      <p class="cap">each tread is one cycle, read at each cycle's turning point (a local maximum of the oscillation envelope) · <b>red</b>: the oscillation amplitude there · <b>orange</b>: the instability excess η·λ/2 − 1 at the same step · ticks on the axis mark the cycles · the amplitude shrinks cycle after cycle because each catapult lowers w₂, which lowers E and hence λ, shrinking the excess that drives the growth · hover for the exact (t, w₁, w₂)</p>
+      <canvas class="plot" id="c8s14" role="img" aria-label="per-cycle oscillation amplitude and instability excess"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--crit)"></i>amplitude at kick-in</span>
+        <span><i class="sw" style="background:var(--sharp)"></i>excess η·λ/2 − 1</span>
+      </div>
     </div>
 
   </div>
@@ -2026,7 +2056,8 @@ function sim3(){
   const Sm = new Float64Array(Math.max(0, m-1));
   for (let i = 0; i+1 < m; i++) Sm[i] = clip3(lam3(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1])));
   return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), f, r2, L, rn, S, Sm,
-           Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, RqL, tcJ, NK: [NK1, NK2], tNK,
+           Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, RqL, tcJ,
+           KC: kickCycles(X1.subarray(0,m), X2.subarray(0,m), S, P3.lr, m), NK: [NK1, NK2], tNK,
            DM: [dirMemory([cR1, cR2], m), dirMemory([cJ1, cJ2, cJ3, cJ4], m), dirMemory([cS1, cS2], m)],
            EV: [EV1, EV2], EVF: [EF1, EF2], CK: lagCosArrays(uS1, uS2, m),
            RK: lagCosArrays(rr1, rr2, m),
@@ -2070,7 +2101,7 @@ function drawMap3(cv, kind){
   }
   // unstable tint (clipped to plot area)
   ctx.save();
-  ctx.beginPath(); ctx.rect(A.l, A.t, A.w, A.h); ctx.clip();
+  ctx.beginPath(); ctx.rect(A.l, A.t, A.w, A.h); ctx.clip(); applyMapRot(ctx, A, mapRot.a3);
   ctx.fillStyle = alpha(PAL.unst, 0.10);
   const cw = A.w/M + 0.5, chh = A.h/M + 0.5;
   for (let i = 0; i < M; i++) for (let j = 0; j < M; j++){
@@ -2080,7 +2111,7 @@ function drawMap3(cv, kind){
   ctx.restore();
   axes(ctx, A, ticks(lo1,hi1,7), ticks(lo2,hi2,6), fmt, fmt);
   ctx.save();
-  ctx.beginPath(); ctx.rect(A.l-1, A.t-1, A.w+2, A.h+2); ctx.clip();
+  ctx.beginPath(); ctx.rect(A.l-1, A.t-1, A.w+2, A.h+2); ctx.clip(); applyMapRot(ctx, A, mapRot.a3);
   // contours
   let gmin = Infinity, gmax = -Infinity;
   for (let i = 0; i <= M; i++) for (let j = 0; j <= M; j++){
@@ -2180,6 +2211,7 @@ function drawMap3(cv, kind){
   ctx.fillText('x₁', A.l + A.w, A.t + A.h - 4);
   ctx.textAlign = 'left'; ctx.textBaseline = 'top';
   ctx.fillText('x₂', A.l + 4, A.t + 2);
+  rotBadge(ctx, A, mapRot.a3);
 }
 /* ----- panel-3 3-D surface view (same engine as panel 2, own camera/caches) ----- */
 let view3 = '3d';
@@ -2382,6 +2414,7 @@ function drawAll3(){
   drawSymlogStrip($('c3s8'), R3, t3, R3.Ruv, PAL.nt[2]);
   drawCosStrip($('c3s10'), R3, t3, R3.RK);
   drawWhoTurnsStrip($('c3s16'), R3, t3, R3.tcJ);
+  drawCycleStrip($('c3s17'), R3, t3);
   const up = Math.min(Math.round(t3), R3.n);
   const ratio = R3.S[up]*P3.lr/2;
   let cls = PAL.good, txt = 'stable';
@@ -2487,6 +2520,8 @@ $('p3view').addEventListener('change', () => {
 });
 $('p3logz').addEventListener('change', () => { cacheL3.key = ''; drawAll3(); });
 bindRotate($('c3f'), cam3, drawAll3, () => view3 === '3d');
+bindMapRot($('c3f'), 'a3', drawAll3, () => view3 === 'map');
+bindMapRot($('c3L'), 'a3', drawAll3, () => view3 === 'map');
 bindRotate($('c3L'), cam3, drawAll3, () => view3 === '3d');
 const apply3 = i => { t3 = i; $('p3scrub').value = i; drawAll3(); };
 bindStrip($('c3s1'), i => `t=${i}\nλmax=${fmt(R3.S[i])}\n2/η=${fmt(2/P3.lr)}`, apply3);
@@ -2499,6 +2534,7 @@ bindStrip($('c3s7'), i => `t=${i}\nfrozen = ${fmt(R3.Rq[i])}\nlive = ${fmt(R3.Rq
 bindStrip($('c3s8'), i => `t=${i}\nr·(Ĵu)=${fmt(R3.Ruv[i])}`, apply3);
 bindStrip($('c3s10'), i => `t=${i}\ncos(r): ${cosTip('c3s10', KLAGS.map((k, s) => ['l' + k, R3.RK[s]]), i)}`, apply3);
 bindStrip($('c3s16'), i => `t=${i}\nresidual ${fmt(R3.DM[0][i])}\nJacobian ${fmt(R3.DM[1][i])}\n∇S ${fmt(R3.DM[2][i])}`, apply3);
+bindStrip($('c3s17'), i => `t=${i}` + (R3.KC.tev[i] ? `\ncycle fired at t=${R3.KC.tev[i]}\n  w₁=${fmt(R3.KC.osc[i])}  w₂=${fmt(R3.KC.w2[i])}\n  amplitude=${fmt(R3.KC.amp[i])}  excess=${fmt(R3.KC.exc[i])}` : '\nno cycle yet'), apply3);
 $('p3csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R3.n; i++) rows.push([i, R3.x1[i], R3.x2[i], R3.f[i], R3.r2[i], R3.L[i], R3.S[i], R3.Xt[i], R3.GdS[i], R3.Ru[i], R3.Rq[i], R3.RqL[i], R3.Ruv[i], R3.CK[0][i], R3.CK[1][i], R3.CK[2][i], R3.CK[3][i], R3.RK[0][i], R3.RK[1][i], R3.RK[2][i], R3.RK[3][i], R3.JS1[i], R3.T3n[i], R3.JQn[i], R3.EV[0][i], R3.EV[1][i], R3.DM[0][i], R3.DM[1][i], R3.DM[2][i], R3.EVF[0][i], R3.EVF[1][i], R3.NK[0][i], R3.NK[1][i]].join(','));
@@ -2547,6 +2583,30 @@ function drawSymlogStrip(cv, RR, t, arr, color){
 
 /* ---------- lag-cosine of the J∇S direction (shared by all four panels) ---------- */
 const KLAGS = [1, 2, 5, 10];
+function kickCycles(osc, w2a, lam, lr, m){
+  // A "kick-in" is the step where a growing oscillation is caught and collapsed: |osc| is at a
+  // local maximum and the next step drops it by ≥ 40%. Values are held piecewise-constant
+  // between events so they render as a staircase, one tread per self-stabilization cycle.
+  const amp = new Float64Array(m), exc = new Float64Array(m), w2v = new Float64Array(m),
+        oscv = new Float64Array(m), tev = new Float64Array(m), events = [];
+  // one event per oscillation cycle: a local maximum of the 2-step envelope
+  // max(|osc_i|, |osc_{i+1}|), which is the turning point of that cycle
+  const env = new Float64Array(Math.max(0, m-1));
+  for (let i = 0; i + 1 < m; i++) env[i] = Math.max(Math.abs(osc[i]), Math.abs(osc[i+1]));
+  for (let i = 2; i + 2 < env.length; i++){
+    if (env[i] > env[i-1] && env[i] >= env[i+1] && env[i] > 1e-12)
+      events.push({ t: i, amp: env[i], w1: osc[i], w2: w2a[i], lam: lam[i], exc: lam[i]*lr/2 - 1 });
+  }
+  let k = -1;
+  for (let i = 0; i < m; i++){
+    while (k + 1 < events.length && events[k+1].t <= i) k++;
+    if (k >= 0){
+      amp[i] = events[k].amp; exc[i] = events[k].exc;
+      w2v[i] = events[k].w2; oscv[i] = events[k].w1; tev[i] = events[k].t;
+    }
+  }
+  return { amp, exc, w2: w2v, osc: oscv, tev, events };
+}
 function dirMemory(comps, m){
   // cos( X(t), X(t+1) ) for an object whose components are the given arrays
   // (2 comps = a vector, 4 comps = a 2x2 matrix under the Frobenius inner product)
@@ -2618,6 +2678,39 @@ function drawCosStrip(cv, RR, t, KA, extra){
   cv._map = { A, n: F.n };
 }
 
+function drawCycleStrip(cv, RR, t){
+  const F = stripFrame(cv, t, RR.n), ctx = F.ctx, A = F.A, K = RR.KC;
+  let mag = 1;
+  for (const arr of [K.amp, K.exc])
+    for (let i = 0; i < arr.length; i++) mag = Math.max(mag, Math.abs(slg4(arr[i])));
+  mag = Math.ceil(mag) + 0.4;
+  A.y = v => A.t + (mag - clamp(v, -mag, mag))/(2*mag)*A.h;
+  const step = Math.max(1, Math.ceil(mag/3));
+  ctx.strokeStyle = PAL.grid; ctx.lineWidth = 1; ctx.fillStyle = PAL.muted;
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (let s = -Math.floor(mag); s <= Math.floor(mag); s += step){
+    const py = A.y(s);
+    ctx.beginPath(); ctx.moveTo(A.l, py); ctx.lineTo(A.l+A.w, py); ctx.stroke();
+    ctx.fillText(p10lab(s), A.l-6, py);
+  }
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (const v of ticks(0, F.n, 6)) ctx.fillText(fmt(v), A.x(v), A.t+A.h+5);
+  ctx.strokeStyle = PAL.axis;
+  ctx.beginPath(); ctx.moveTo(A.l, A.t+A.h); ctx.lineTo(A.l+A.w, A.t+A.h); ctx.stroke();
+  ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(A.l, A.y(0)); ctx.lineTo(A.l+A.w, A.y(0)); ctx.stroke();
+  lineSeries(ctx, A, Array.from(K.amp, slg4), K.amp.length, F.st, 0, PAL.crit, F.up+1);
+  lineSeries(ctx, A, Array.from(K.exc, slg4), K.exc.length, F.st, 0, PAL.sharp, F.up+1);
+  // one tick per detected cycle
+  ctx.strokeStyle = alpha(PAL.muted, 0.65); ctx.lineWidth = 1;
+  for (const e of K.events){
+    if (e.t > F.up) break;
+    const px = A.x(e.t);
+    ctx.beginPath(); ctx.moveTo(px, A.t+A.h); ctx.lineTo(px, A.t+A.h-6); ctx.stroke();
+  }
+  cursorLine(ctx, A, A.x(F.up));
+  cv._map = { A, n: F.n };
+}
 function drawWhoTurnsStrip(cv, RR, t, tc){
   const F = stripFrame(cv, t, RR.n), ctx = F.ctx, A = F.A;
   const lo = -1.15, hi = 1.15;
@@ -3125,7 +3218,8 @@ function sim6(){
     Sm[i] = clip(symEig2(c11*Qi.q11 + c12*Qi.q12, c11*Qi.q12 + c12*Qi.q22,
                          c21*Qi.q12 + c22*Qi.q22).lam);
   }
-  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, RqL, tcJ, NK: [NK1, NK2], tNK,
+  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), L, rn, S, Sm, Xt, GdS, Ru, Rq, Ruv, JS1, T3n, JQn, RqL, tcJ,
+           KC: kickCycles(X1.subarray(0,m), X2.subarray(0,m), S, P6.lr, m), NK: [NK1, NK2], tNK,
            DM: [dirMemory([cR1, cR2], m), dirMemory([cJ1, cJ2, cJ3, cJ4], m), dirMemory([cS1, cS2], m)],
            EV: [EV1, EV2], EVF: [EF1, EF2],
            CK: lagCosArrays(uS1, uS2, m),
@@ -3355,6 +3449,7 @@ function drawAll6(){
   if (is3d6 && surf6){ drawSurf6($('c6f'), 'f'); drawSurf6($('c6L'), 'L'); }
   else if (!is3d6){ drawMap6($('c6f'), 'f'); drawMap6($('c6L'), 'L'); }
   drawAdaptive('c6', R6, t6, P6.lr);
+  drawCycleStrip($('c6s17'), R6, t6);
   const st6 = statusAdaptive(R6, t6, P6.lr);
   $('p6read').innerHTML =
     chip('t', st6.up) + chip('w₁', fmt(R6.x1[st6.up])) + chip('w₂', fmt(R6.x2[st6.up])) +
@@ -3489,6 +3584,7 @@ bindStrip($('c6s7'), i => `t=${i}\nfrozen = ${fmt(R6.Rq[i])}\nlive = ${fmt(R6.Rq
 bindStrip($('c6s8'), i => `t=${i}\nr·(JPu)=${fmt(R6.Ruv[i])}`, apply6);
 bindStrip($('c6s10'), i => `t=${i}\ncos(r): ${cosTip('c6s10', KLAGS.map((k, s) => ['l' + k, R6.RK[s]]), i)}`, apply6);
 bindStrip($('c6s16'), i => `t=${i}\nresidual ${fmt(R6.DM[0][i])}\nJacobian ${fmt(R6.DM[1][i])}\n∇S ${fmt(R6.DM[2][i])}`, apply6);
+bindStrip($('c6s17'), i => `t=${i}` + (R6.KC.tev[i] ? `\ncycle fired at t=${R6.KC.tev[i]}\n  w₁=${fmt(R6.KC.osc[i])}  w₂=${fmt(R6.KC.w2[i])}\n  amplitude=${fmt(R6.KC.amp[i])}  excess=${fmt(R6.KC.exc[i])}` : '\nno cycle yet'), apply6);
 $('p5csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R5.n; i++)
@@ -3510,6 +3606,8 @@ $('p6csv').addEventListener('click', () => {
 $('p6logz').addEventListener('change', () => { cacheL6.key = ''; drawAll6(); });
 $('p6view').addEventListener('change', () => { view6 = $('p6view').value === 'map' ? 'map' : '3d'; drawAll6(); });
 bindRotate($('c6f'), cam6, drawAll6, () => view6 === '3d');
+bindMapRot($('c6f'), 'a6', drawAll6, () => view6 === 'map');
+bindMapRot($('c6L'), 'a6', drawAll6, () => view6 === 'map');
 bindRotate($('c6L'), cam6, drawAll6, () => view6 === '3d');
 
 
@@ -3887,7 +3985,22 @@ function sim8(){
     for (let k = 0; k < nS; k++){ Rc[k][i] = s.r[k]; Jc[2*k][i] = s.J1[k]; Jc[2*k+1][i] = s.J2[k]; }
     if (i+1 < m) Sm[i] = clip(lamP8(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1]), c, yv));
   }
+  // panel 8's oscillation is centred on w₁* = mean(r)·mean(c)/(E·mean(c²)) ≠ 0, so the cycle
+  // detector must look at the deviation from that centre rather than at w₁ itself
+  const dev8 = new Float64Array(m);
+  {
+    let sc = 0, sc2 = 0;
+    for (let k = 0; k < nS; k++){ sc += c[k]; sc2 += c[k]*c[k]; }
+    const cbar = sc/nS, c2bar = sc2/nS;
+    for (let i = 0; i < m; i++){
+      const s = st8(X1[i], X2[i], c, yv);
+      const den = s.E*c2bar;
+      const wstar = Math.abs(den) > 1e-300 ? (s.sumR*cbar)/den : 0;
+      dev8[i] = X1[i] - (isFinite(wstar) ? wstar : 0);
+    }
+  }
   return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), c, yv, L, rn, S, Sm, Xt, GdS,
+           KC: kickCycles(dev8, X2.subarray(0,m), S, P8.lr, m),
            Rpar, Rperp, Ru1, Ru2, AngO, AngN, Dfit, Dosc, Rosc, RqF, RqL, Ruv, tcJ,
            RK: lagCosArrays2(Rc, m),
            DM: [dirMemory(Rc, m), dirMemory(Jc, m), dirMemory([cS1, cS2], m)],
@@ -3935,7 +4048,7 @@ function drawMap6(cv, kind){
       G[i].push(kind === 'f' ? f6(x1, x2) : Math.log10(L6full(x1, x2) + 1e-12));
     }
   }
-  ctx.save(); ctx.beginPath(); ctx.rect(A.l, A.t, A.w, A.h); ctx.clip();
+  ctx.save(); ctx.beginPath(); ctx.rect(A.l, A.t, A.w, A.h); ctx.clip(); applyMapRot(ctx, A, mapRot.a6);
   ctx.fillStyle = alpha(PAL.unst, 0.10);
   const cw = A.w/M + 0.5, chh = A.h/M + 0.5;
   for (let i = 0; i < M; i++) for (let j = 0; j < M; j++){
@@ -3944,7 +4057,7 @@ function drawMap6(cv, kind){
   }
   ctx.restore();
   axes(ctx, A, ticks(lo1,hi1,7), ticks(lo2,hi2,6), fmt, fmt);
-  ctx.save(); ctx.beginPath(); ctx.rect(A.l-1, A.t-1, A.w+2, A.h+2); ctx.clip();
+  ctx.save(); ctx.beginPath(); ctx.rect(A.l-1, A.t-1, A.w+2, A.h+2); ctx.clip(); applyMapRot(ctx, A, mapRot.a6);
   contourGrid(ctx, A, G, M, lo1, s1, lo2, s2, kind === 'f');
   ctx.strokeStyle = PAL.zero; ctx.lineWidth = 2.2;
   ctx.beginPath(); ctx.moveTo(A.x(0), A.t); ctx.lineTo(A.x(0), A.t+A.h); ctx.stroke();
@@ -3962,6 +4075,7 @@ function drawMap6(cv, kind){
   trajOnMap(ctx, A, R6.x1, R6.x2, up, R6.n);
   ctx.restore();
   mapAxisLabels(ctx, A, 'w₁', 'w₂');
+  rotBadge(ctx, A, mapRot.a6);
 }
 /* shared helpers for the top-down maps */
 function contourGrid(ctx, A, G, M, lo1, s1, lo2, s2, linear){
@@ -4183,7 +4297,7 @@ function drawMap8(cv, kind){
   A.y = x => A.t + (hi2-x)/s2*A.h;
   // unstable tint for the selected optimizer
   const thr = 2/P8.lr, M = 46;
-  ctx.save(); ctx.beginPath(); ctx.rect(A.l, A.t, A.w, A.h); ctx.clip();
+  ctx.save(); ctx.beginPath(); ctx.rect(A.l, A.t, A.w, A.h); ctx.clip(); applyMapRot(ctx, A, mapRot.a8);
   ctx.fillStyle = alpha(PAL.unst, 0.10);
   const cw = A.w/M + 0.5, chh = A.h/M + 0.5;
   for (let i = 0; i < M; i++) for (let j = 0; j < M; j++){
@@ -4192,7 +4306,7 @@ function drawMap8(cv, kind){
   }
   ctx.restore();
   axes(ctx, A, ticks(lo1,hi1,7), ticks(lo2,hi2,6), fmt, fmt);
-  ctx.save(); ctx.beginPath(); ctx.rect(A.l-1, A.t-1, A.w+2, A.h+2); ctx.clip();
+  ctx.save(); ctx.beginPath(); ctx.rect(A.l-1, A.t-1, A.w+2, A.h+2); ctx.clip(); applyMapRot(ctx, A, mapRot.a8);
   if (kind === 'L'){
     const M2 = 64, G = [];
     for (let i = 0; i <= M2; i++){
@@ -4244,8 +4358,31 @@ function drawMap8(cv, kind){
   ctx.fillText('w₁', A.l + A.w, A.t + A.h - 4);
   ctx.textAlign = 'left'; ctx.textBaseline = 'top';
   ctx.fillText('w₂', A.l + 4, A.t + 2);
+  rotBadge(ctx, A, mapRot.a8);
 }
 let view6 = '3d', view8 = '3d';
+const mapRot = { a3: 0, a6: 0, a8: 0 };
+function bindMapRot(cv, key, redraw, active){
+  let last = null;
+  cv.addEventListener('pointerdown', ev => { if (!active()) return; last = ev.clientX; cv.setPointerCapture(ev.pointerId); });
+  cv.addEventListener('pointermove', ev => {
+    if (last === null || !active()) return;
+    mapRot[key] += (ev.clientX - last)*0.008; last = ev.clientX; redraw();
+  });
+  const end = () => { last = null; };
+  cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+}
+function applyMapRot(ctx, A, ang){
+  if (!ang) return;
+  const cx = A.l + A.w/2, cy = A.t + A.h/2;
+  ctx.translate(cx, cy); ctx.rotate(ang); ctx.translate(-cx, -cy);
+}
+function rotBadge(ctx, A, ang){
+  if (!ang) return;
+  ctx.fillStyle = PAL.muted; ctx.font = '10.5px ui-monospace,Menlo,Consolas,monospace';
+  ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+  ctx.fillText('rotated ' + fmt(ang*180/Math.PI) + '° · drag to spin', A.l + A.w - 4, A.t + 3);
+}
 const cam8 = { al: -0.95, ph: 0.50 };
 const cacheF8 = { cv: document.createElement('canvas'), key: '' };
 const cacheL8 = { cv: document.createElement('canvas'), key: '' };
@@ -4452,6 +4589,7 @@ function drawAll8(){
   drawSymlogStrip($('c8s13'), R8, t8, R8.Ruv, PAL.nt[2]);
   drawCosStrip($('c8s10'), R8, t8, R8.RK);
   drawWhoTurnsStrip($('c8s11'), R8, t8, R8.tcJ);
+  drawCycleStrip($('c8s14'), R8, t8);
   const up = Math.min(Math.round(t8), R8.n), ratio = R8.S[up]*P8.lr/2;
   let cls = PAL.good, txt = 'stable';
   if (R8.div){ cls = PAL.crit; txt = 'diverged'; }
@@ -4593,6 +4731,7 @@ bindStrip($('c8s12'), i => `t=${i}\nfrozen=${fmt(R8.RqF[i])}\nlive=${fmt(R8.RqL[
 bindStrip($('c8s13'), i => `t=${i}\nr·(Ĵu)=${fmt(R8.Ruv[i])}`, apply8);
 bindStrip($('c8s10'), i => `t=${i}\ncos(r): ${cosTip('c8s10', KLAGS.map((k,s)=>['l'+k, R8.RK[s]]), i)}`, apply8);
 bindStrip($('c8s11'), i => `t=${i}\nresidual ${fmt(R8.DM[0][i])}\nJacobian ${fmt(R8.DM[1][i])}\n∇S ${fmt(R8.DM[2][i])}`, apply8);
+bindStrip($('c8s14'), i => `t=${i}` + (R8.KC.tev[i] ? `\ncycle fired at t=${R8.KC.tev[i]}\n  w₁=${fmt(R8.KC.osc[i])}  w₂=${fmt(R8.KC.w2[i])}\n  amplitude=${fmt(R8.KC.amp[i])}  excess=${fmt(R8.KC.exc[i])}` : '\nno cycle yet'), apply8);
 $('p7csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R7.n; i++)
@@ -4606,6 +4745,8 @@ $('p7csv').addEventListener('click', () => {
 $('p8logz').addEventListener('change', () => { cacheL8.key = ''; drawAll8(); });
 $('p8view').addEventListener('change', () => { view8 = $('p8view').value === 'map' ? 'map' : '3d'; drawAll8(); });
 bindRotate($('c8f'), cam8, drawAll8, () => view8 === '3d');
+bindMapRot($('c8f'), 'a8', drawAll8, () => view8 === 'map');
+bindMapRot($('c8L'), 'a8', drawAll8, () => view8 === 'map');
 bindRotate($('c8L'), cam8, drawAll8, () => view8 === '3d');
 $('p8csv').addEventListener('click', () => {
   const rows = [];
