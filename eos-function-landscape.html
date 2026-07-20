@@ -105,7 +105,7 @@
   #cs1,#cs2,#cs3,#cs4,#cs5,#cs6,#cs7,#cs8,#c3s1,#c3s2,#c3s3,#c3s4,#c3s5,#c3s6,#c3s7,#c3s8,#c5s1,#c5s2,#c5s3,#c5s4,#c5s5,#c5s6,#c5s7,#c5s8,#c6s1,#c6s2,#c6s3,#c6s4,#c6s5,#c6s6,#c6s7,#c6s8,#cs9,#c3s9,#c5s9,#c6s9,#cs10,#c3s10,#c5s10,#c6s10,#cs11,#c3s11,#c5s11,#c6s11,#cs12,#c3s12,#c5s12,#c6s12,#cs13,#c3s13,#c5s13,#c6s13,#cs14,#c3s14,#c5s14,#c6s14,#c3s15,#c6s15,#cs16,#c3s16,#c5s16,#c6s16{height:190px}
   #c7f,#c7L{height:330px}
   #c8f,#c8L{height:380px}
-  #c7s1,#c7s2,#c7s3,#c7s4,#c7s5,#c7s6,#c7s7,#c7s8,#c7s9,#c8s1,#c8s2,#c8s3,#c8s4,#c8s5,#c8s6,#c8s7,#c8s8,#c8s9,#c8s10,#c8s11{height:180px}
+  #c7s1,#c7s2,#c7s3,#c7s4,#c7s5,#c7s6,#c7s7,#c7s8,#c7s9,#c7s10,#c7s11,#c8s12,#c8s13,#c8s1,#c8s2,#c8s3,#c8s4,#c8s5,#c8s6,#c8s7,#c8s8,#c8s9,#c8s10,#c8s11{height:180px}
   #c3f,#c3L{height:380px}
   #c5f,#c5L{height:340px}
   #c6f,#c6L{height:380px}
@@ -900,15 +900,7 @@
         <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span></div>
     </div>
 
-    <div class="card">
-      <h3>Residual split — fittable vs unfittable</h3>
-      <p class="cap">‖r∥‖ = |r·û₁| lives in range(J) (rank 1 here, so a single direction); ‖r⊥‖ is everything else and is untouchable · <b>this split needs n &gt; 1 to exist at all</b></p>
-      <canvas class="plot" id="c7s4" role="img" aria-label="Residual split — fittable vs unfittable"></canvas>
-      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>‖r∥‖ — inside range(J), fittable</span>
-        <span><i class="sw" style="background:var(--crit)"></i>‖r⊥‖ — orthogonal, unfittable</span></div>
-    </div>
-
-    <div class="card">
+        <div class="card">
       <h3>x_t — preconditioned gradient</h3>
       <p class="cap">P·g · signed, symlog</p>
       <canvas class="plot" id="c7s5" role="img" aria-label="x_t — preconditioned gradient"></canvas>
@@ -924,6 +916,20 @@
       <h3>Residual on the NTK direction</h3>
       <p class="cap">r·û₁ with û₁ = J/‖J‖ — the one direction the optimizer can act on · symlog</p>
       <canvas class="plot" id="c7s7" role="img" aria-label="Residual on the NTK direction"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Residual projection on J∇̂S</h3>
+      <p class="cap">r·(J∇S)/‖J∇S‖ · frozen at the first λ(PH) &gt; 2/η crossing and live at the iterate · with one parameter J∇S is parallel to J, so this is ±(r·û₁) — the same degeneracy the 1-D tab shows · symlog</p>
+      <canvas class="plot" id="c7s10" role="img" aria-label="Residual projection on J∇̂S"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>frozen J*, ∇S* (DNL frame)</span>
+        <span><i class="sw" style="background:var(--sharp)"></i>live J, ∇S at the iterate</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Residual projection on a random direction Ju</h3>
+      <p class="cap">r·(Ju)/‖Ju‖ for a fixed random parameter direction u · the generic baseline · again ±(r·û₁) at one parameter · symlog</p>
+      <canvas class="plot" id="c7s11" role="img" aria-label="Residual projection on a random direction Ju"></canvas>
     </div>
 
         <div class="card">
@@ -1037,15 +1043,7 @@
         <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span></div>
     </div>
 
-    <div class="card">
-      <h3>Residual split — fittable vs unfittable</h3>
-      <p class="cap">‖r∥‖ inside range(J) (2-dimensional here) vs ‖r⊥‖ orthogonal to it</p>
-      <canvas class="plot" id="c8s4" role="img" aria-label="Residual split — fittable vs unfittable"></canvas>
-      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>‖r∥‖ — inside range(J), fittable</span>
-        <span><i class="sw" style="background:var(--crit)"></i>‖r⊥‖ — orthogonal, unfittable</span></div>
-    </div>
-
-    <div class="card">
+        <div class="card">
       <h3>x_t — preconditioned gradient on the top eigenvector</h3>
       <p class="cap">(Pg)·v̂₁ · signed, symlog · <b>read the oscillation here, not off w₁:</b> with spread cᵢ the model can fit part of the target using w₁, so the w₁-equilibrium sits at w₁* = (y₂−μw₂)·mean(c)/(E·mean(c²)) ≠ 0 and the period-2 oscillation happens <i>around that shifted centre</i> — w₁ itself never changes sign</p>
       <canvas class="plot" id="c8s5" role="img" aria-label="x_t — preconditioned gradient on the top eigenvector"></canvas>
@@ -1058,27 +1056,27 @@
     </div>
 
     <div class="card">
-      <h3>Residual on the top-2 NTK directions</h3>
-      <p class="cap">r·û₁ and r·û₂, ûₖ = J vₖ/‖J vₖ‖ from the 2×2 Gram · symlog</p>
+      <h3>Residual projection on the oscillating NTK direction</h3>
+      <p class="cap">r·û with û = normalize(J·v̂₁), v̂₁ the top eigenvector of the (preconditioned) Hessian — the function-space image of the direction the iterate oscillates along · symlog</p>
       <canvas class="plot" id="c8s7" role="img" aria-label="Residual on the top-2 NTK directions"></canvas>
-      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>r·û₁</span>\n        <span><i class="sw" style="background:var(--accent)"></i>r·û₂</span></div>
+      
     </div>
 
     <div class="card">
-      <h3>Oscillation direction vs fitting direction</h3>
-      <p class="cap">cos between the function-space oscillation direction (J·v̂₁) and the uniform fitting direction, and the same for the top NTK direction · <b>+1 means they are the same direction — the single-datapoint degeneracy</b> · set σ = 0 to see it collapse</p>
-      <canvas class="plot" id="c8s8" role="img" aria-label="Oscillation direction vs fitting direction"></canvas>
-      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>cos(J v̂₁, fitting)</span>\n        <span><i class="sw" style="background:var(--accent)"></i>cos(NTK û₁, fitting)</span></div>
+      <h3>Residual projection on J∇̂S</h3>
+      <p class="cap">r·(J∇S)/‖J∇S‖ · frozen at the first λ(PH) &gt; 2/η crossing and live at the iterate · with n samples this is a genuine function-space direction, distinct from the oscillating one · symlog</p>
+      <canvas class="plot" id="c8s12" role="img" aria-label="Residual projection on J∇̂S"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>frozen J*, ∇S* (DNL frame)</span>
+        <span><i class="sw" style="background:var(--sharp)"></i>live J, ∇S at the iterate</span></div>
     </div>
 
     <div class="card">
-      <h3>What moves w₂ — fitting pull vs oscillation coupling</h3>
-      <p class="cap">the two contributions to Δw₂ per step: +2ημΣrᵢ (fitting, advances) and 2ηE·b·w₁·Σrᵢcᵢ (oscillation coupling, retreats once the amplitude grows) · their crossover IS the pushback · symlog</p>
-      <canvas class="plot" id="c8s9" role="img" aria-label="What moves w₂ — fitting pull vs oscillation coupling"></canvas>
-      <div class="legend"><span><i class="sw" style="background:var(--zero)"></i>fitting pull</span>\n        <span><i class="sw" style="background:var(--crit)"></i>oscillation coupling</span></div>
+      <h3>Residual projection on a random direction Ju</h3>
+      <p class="cap">r·(Ju)/‖Ju‖ for a fixed random parameter direction u · the generic baseline · symlog</p>
+      <canvas class="plot" id="c8s13" role="img" aria-label="Residual projection on a random direction Ju"></canvas>
     </div>
 
-        <div class="card">
+                <div class="card">
       <h3>Who actually turns?</h3>
       <p class="cap">cos(X(t), X(t+1)) for the residual, the Jacobian and ∇S · dashed line: λ first crosses 2/η</p>
       <canvas class="plot" id="c8s11" role="img" aria-label="Who actually turns?"></canvas>
@@ -3512,6 +3510,7 @@ function sampleCoef(n, sig){
   for (let i = 0; i < n; i++) c[i] = 1 + sig*(n > 1 ? -1 + 2*i/(n-1) : 0);
   return c;
 }
+function sum8(a, b){ let s = 0; for (let k = 0; k < a.length; k++) s += a[k]*b[k]; return s; }
 function sampleTarget(n, y0, tau){
   // targets carry a z² component. The Jacobian rows span {1, c} = {1, z}, so a purely
   // linear-in-z target would be exactly reachable and the ⊥ residual would vanish
@@ -3595,7 +3594,20 @@ function sim7(){
   const m = n+1, clip = v => Math.max(-1e150, Math.min(1e150, v));
   const L = new Float64Array(m), rn = new Float64Array(m), S = new Float64Array(m), Sm = new Float64Array(Math.max(0,m-1)),
         Xt = new Float64Array(m), GdS = new Float64Array(m), Rpar = new Float64Array(m), Rperp = new Float64Array(m),
-        Ru1 = new Float64Array(m), cJ = new Float64Array(m), cS = new Float64Array(m);
+        Ru1 = new Float64Array(m), cJ = new Float64Array(m), cS = new Float64Array(m),
+        RqF = new Float64Array(m), RqL = new Float64Array(m), Ruv = new Float64Array(m);
+  // J and ∇S frozen at the first λ(PH) > 2/η crossing (same convention as the 1-D tab)
+  let tcJ = Infinity, fpc = null, Spc = 0;
+  for (let i = 0; i < m; i++){
+    const lp = lamP7(ws[i], c);
+    if (isFinite(lp) && lp > 2/P7.lr){
+      tcJ = i;
+      fpc = Float64Array.from(st7(ws[i], c).fp);
+      const hh = 1e-5*(1 + Math.abs(ws[i]));
+      Spc = (lamP7(ws[i]+hh, c) - lamP7(ws[i]-hh, c))/(2*hh);
+      break;
+    }
+  }
   const Rc = [], Jc = [];
   for (let i = 0; i < nS; i++){ Rc.push(new Float64Array(m)); Jc.push(new Float64Array(m)); }
   for (let i = 0; i < m; i++){
@@ -3621,13 +3633,21 @@ function sim7(){
     Ru1[i] = clip(proj*rt);
     Rpar[i] = clip(Math.abs(proj)*rt);
     Rperp[i] = clip(Math.sqrt(Math.max(0, perp2))*rt);
+    // residual on J∇S (frozen and live) and on J·u for a fixed random parameter direction
+    const sgS = Sp > 0 ? 1 : Sp < 0 ? -1 : 0;
+    RqL[i] = clip(proj*sgS);
+    if (i >= tcJ && fpc){
+      let jn2 = 0, rd2 = 0;
+      for (let k = 0; k < nS; k++){ jn2 += fpc[k]*fpc[k]; rd2 += s.r[k]*fpc[k]; }
+      const jl2 = Math.sqrt(jn2), sgc = Spc > 0 ? 1 : Spc < 0 ? -1 : 0;
+      RqF[i] = jl2 > 1e-300 ? clip((rd2/jl2)*sgc*rt) : 0;
+    } else RqF[i] = RqL[i];
+    Ruv[i] = clip(proj*(UPHI5 > 0 ? 1 : -1));
     for (let k = 0; k < nS; k++){ Rc[k][i] = s.r[k]; Jc[k][i] = s.fp[k]; }
     cJ[i] = jl; cS[i] = Sp;
     if (i+1 < m) Sm[i] = clip(pre7(s)*st7(0.5*(ws[i]+ws[i+1]), c).S);
   }
-  let tcJ = Infinity;
-  for (let i = 0; i < m; i++){ if (isFinite(S[i]) && S[i] > 2/P7.lr){ tcJ = i; break; } }
-  return { xs: ws.subarray(0,m), c, L, rn, S, Sm, Xt, GdS, Rpar, Rperp, Ru1, tcJ,
+  return { xs: ws.subarray(0,m), c, L, rn, S, Sm, Xt, GdS, Rpar, Rperp, Ru1, RqF, RqL, Ruv, tcJ,
            RK: lagCosArrays2(Rc, m),
            DM: [dirMemory(Rc, m), dirMemory(Jc, m), dirMemory([cS], m)],
            n, div, conv: !div && L[m-1] < 1e-10 };
@@ -3698,7 +3718,22 @@ function sim8(){
   const L = new Float64Array(m), rn = new Float64Array(m), S = new Float64Array(m), Sm = new Float64Array(Math.max(0,m-1)),
         Xt = new Float64Array(m), GdS = new Float64Array(m), Rpar = new Float64Array(m), Rperp = new Float64Array(m),
         Ru1 = new Float64Array(m), Ru2 = new Float64Array(m), AngO = new Float64Array(m), AngN = new Float64Array(m),
-        Dfit = new Float64Array(m), Dosc = new Float64Array(m), cS1 = new Float64Array(m), cS2 = new Float64Array(m);
+        Dfit = new Float64Array(m), Dosc = new Float64Array(m), cS1 = new Float64Array(m), cS2 = new Float64Array(m),
+        Rosc = new Float64Array(m), RqF = new Float64Array(m), RqL = new Float64Array(m), Ruv = new Float64Array(m);
+  // J and ∇S frozen at the first λ(PH) > 2/η crossing (same convention as the θ-lab)
+  let tcJ = Infinity, J1c = null, J2c = null, gc1 = 0, gc2 = 0;
+  for (let i = 0; i < m; i++){
+    const lp = lamP8(X1[i], X2[i], c, yv);
+    if (isFinite(lp) && lp > 2/P8.lr){
+      tcJ = i;
+      const sc = st8(X1[i], X2[i], c, yv);
+      J1c = Float64Array.from(sc.J1); J2c = Float64Array.from(sc.J2);
+      const hh = 1e-5*(1 + Math.abs(X1[i]) + Math.abs(X2[i]));
+      gc1 = (lamP8(X1[i]+hh, X2[i], c, yv) - lamP8(X1[i]-hh, X2[i], c, yv))/(2*hh);
+      gc2 = (lamP8(X1[i], X2[i]+hh, c, yv) - lamP8(X1[i], X2[i]-hh, c, yv))/(2*hh);
+      break;
+    }
+  }
   const Rc = [], Jc = [];
   for (let i = 0; i < nS; i++){ Rc.push(new Float64Array(m)); Jc.push(new Float64Array(m)); Jc.push(new Float64Array(m)); }
   let pv1 = null, pv2 = 0;
@@ -3753,15 +3788,34 @@ function sim8(){
     let sA = 0;
     for (let k = 0; k < nS; k++) if (nA > 1e-300) sA += uA[k]/nA;
     AngN[i] = clip(sA/Math.sqrt(nS));                         // cos(top NTK dir, fitting dir)
+    // residual on the oscillating NTK direction Ĵv₁, on J∇S (frozen + live), and on J·u
+    Rosc[i] = nO > 1e-300 ? clip(sum8(s.r, uOsc)/nO*rt) : 0;
+    {
+      const jl1 = new Float64Array(nS);
+      let nl = 0;
+      for (let k = 0; k < nS; k++){ jl1[k] = s.J1[k]*gS1 + s.J2[k]*gS2; nl += jl1[k]*jl1[k]; }
+      nl = Math.sqrt(nl);
+      RqL[i] = nl > 1e-300 ? clip(sum8(s.r, jl1)/nl*rt) : 0;
+      if (i >= tcJ && J1c){
+        const jf = new Float64Array(nS);
+        let nf = 0;
+        for (let k = 0; k < nS; k++){ jf[k] = J1c[k]*gc1 + J2c[k]*gc2; nf += jf[k]*jf[k]; }
+        nf = Math.sqrt(nf);
+        RqF[i] = nf > 1e-300 ? clip(sum8(s.r, jf)/nf*rt) : 0;
+      } else RqF[i] = RqL[i];
+      const ju = new Float64Array(nS);
+      let nu2 = 0;
+      for (let k = 0; k < nS; k++){ ju[k] = s.J1[k]*UPHI6a + s.J2[k]*UPHI6b; nu2 += ju[k]*ju[k]; }
+      nu2 = Math.sqrt(nu2);
+      Ruv[i] = nu2 > 1e-300 ? clip(sum8(s.r, ju)/nu2*rt) : 0;
+    }
     Dfit[i] = clip(2*P8.lr*P8.mu*s.sumR);                     // w₂ advance from the fitting pull
     Dosc[i] = clip(2*P8.lr*s.E*P8.b*X1[i]*s.sumRc);           // w₂ change from the oscillation coupling
     for (let k = 0; k < nS; k++){ Rc[k][i] = s.r[k]; Jc[2*k][i] = s.J1[k]; Jc[2*k+1][i] = s.J2[k]; }
     if (i+1 < m) Sm[i] = clip(lamP8(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1]), c, yv));
   }
-  let tcJ = Infinity;
-  for (let i = 0; i < m; i++){ if (isFinite(S[i]) && S[i] > 2/P8.lr){ tcJ = i; break; } }
   return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), c, yv, L, rn, S, Sm, Xt, GdS,
-           Rpar, Rperp, Ru1, Ru2, AngO, AngN, Dfit, Dosc, tcJ,
+           Rpar, Rperp, Ru1, Ru2, AngO, AngN, Dfit, Dosc, Rosc, RqF, RqL, Ruv, tcJ,
            RK: lagCosArrays2(Rc, m),
            DM: [dirMemory(Rc, m), dirMemory(Jc, m), dirMemory([cS1, cS2], m)],
            n, div, conv: !div && L[m-1] < 1e-10 };
@@ -4277,10 +4331,11 @@ function drawAll7(){
   drawLogStrip($('c7s1'), R7, t7, R7.L, 0, PAL.accent);
   drawSharpStrip($('c7s2'), R7, t7, P7.lr, true);
   drawLogStrip($('c7s3'), R7, t7, R7.rn, 0, PAL.accent);
-  drawLogMulti($('c7s4'), R7, t7, [R7.Rpar, R7.Rperp], [PAL.sharp, PAL.crit]);
   drawSymlogStrip($('c7s5'), R7, t7, R7.Xt, PAL.sharp);
   drawSymlogStrip($('c7s6'), R7, t7, R7.GdS, PAL.now);
-  drawSymlogStrip($('c7s7'), R7, t7, R7.Ru1, PAL.accent);
+  drawSymlogStrip($('c7s7'), R7, t7, R7.Ru1, PAL.sharpmid);
+  drawSymlogMulti($('c7s10'), R7, t7, [R7.RqF, R7.RqL], [PAL.accent, PAL.sharp]);
+  drawSymlogStrip($('c7s11'), R7, t7, R7.Ruv, PAL.nt[2]);
   drawCosStrip($('c7s8'), R7, t7, R7.RK);
   drawWhoTurnsStrip($('c7s9'), R7, t7, R7.tcJ);
   const up = Math.min(Math.round(t7), R7.n), ratio = R7.S[up]*P7.lr/2;
@@ -4304,12 +4359,11 @@ function drawAll8(){
   drawLogStrip($('c8s1'), R8, t8, R8.L, 0, PAL.accent);
   drawSharpStrip($('c8s2'), R8, t8, P8.lr, true);
   drawLogStrip($('c8s3'), R8, t8, R8.rn, 0, PAL.accent);
-  drawLogMulti($('c8s4'), R8, t8, [R8.Rpar, R8.Rperp], [PAL.sharp, PAL.crit]);
   drawSymlogStrip($('c8s5'), R8, t8, R8.Xt, PAL.sharp);
   drawSymlogStrip($('c8s6'), R8, t8, R8.GdS, PAL.now);
-  drawSymlogMulti($('c8s7'), R8, t8, [R8.Ru1, R8.Ru2], [PAL.sharp, PAL.accent]);
-  drawEvecStrip($('c8s8'), R8, t8, [R8.AngO, R8.AngN]);
-  drawSymlogMulti($('c8s9'), R8, t8, [R8.Dfit, R8.Dosc], [PAL.zero, PAL.crit]);
+  drawSymlogStrip($('c8s7'), R8, t8, R8.Rosc, PAL.sharpmid);
+  drawSymlogMulti($('c8s12'), R8, t8, [R8.RqF, R8.RqL], [PAL.accent, PAL.sharp]);
+  drawSymlogStrip($('c8s13'), R8, t8, R8.Ruv, PAL.nt[2]);
   drawCosStrip($('c8s10'), R8, t8, R8.RK);
   drawWhoTurnsStrip($('c8s11'), R8, t8, R8.tcJ);
   const up = Math.min(Math.round(t8), R8.n), ratio = R8.S[up]*P8.lr/2;
@@ -4416,29 +4470,29 @@ const apply8 = i => { t8 = i; $('p8scrub').value = i; drawAll8(); };
 bindStrip($('c7s1'), i => `t=${i}\nL=${fmt(R7.L[i])}`, apply7);
 bindStrip($('c7s2'), i => `t=${i}\nλ(PH)=${fmt(R7.S[i])}\n2/η=${fmt(2/P7.lr)}`, apply7);
 bindStrip($('c7s3'), i => `t=${i}\n‖r‖=${fmt(R7.rn[i])}`, apply7);
-bindStrip($('c7s4'), i => `t=${i}\n‖r∥‖=${fmt(R7.Rpar[i])}\n‖r⊥‖=${fmt(R7.Rperp[i])}`, apply7);
 bindStrip($('c7s5'), i => `t=${i}\nx_t=${fmt(R7.Xt[i])}`, apply7);
 bindStrip($('c7s6'), i => `t=${i}\n(Pg)·∇̂S=${fmt(R7.GdS[i])}`, apply7);
 bindStrip($('c7s7'), i => `t=${i}\nr·û₁=${fmt(R7.Ru1[i])}`, apply7);
+bindStrip($('c7s10'), i => `t=${i}\nfrozen=${fmt(R7.RqF[i])}\nlive=${fmt(R7.RqL[i])}`, apply7);
+bindStrip($('c7s11'), i => `t=${i}\nr·(Ĵu)=${fmt(R7.Ruv[i])}`, apply7);
 bindStrip($('c7s8'), i => `t=${i}\ncos(r): ${cosTip('c7s8', KLAGS.map((k,s)=>['l'+k, R7.RK[s]]), i)}`, apply7);
 bindStrip($('c7s9'), i => `t=${i}\nresidual ${fmt(R7.DM[0][i])}\nJacobian ${fmt(R7.DM[1][i])}\n∇S ${fmt(R7.DM[2][i])}`, apply7);
 bindStrip($('c8s1'), i => `t=${i}\nL=${fmt(R8.L[i])}`, apply8);
 bindStrip($('c8s2'), i => `t=${i}\nλ(PH)=${fmt(R8.S[i])}\n2/η=${fmt(2/P8.lr)}`, apply8);
 bindStrip($('c8s3'), i => `t=${i}\n‖r‖=${fmt(R8.rn[i])}`, apply8);
-bindStrip($('c8s4'), i => `t=${i}\n‖r∥‖=${fmt(R8.Rpar[i])}\n‖r⊥‖=${fmt(R8.Rperp[i])}`, apply8);
 bindStrip($('c8s5'), i => `t=${i}\nx_t=${fmt(R8.Xt[i])}`, apply8);
 bindStrip($('c8s6'), i => `t=${i}\n(Pg)·∇̂S=${fmt(R8.GdS[i])}`, apply8);
-bindStrip($('c8s7'), i => `t=${i}\nr·û₁=${fmt(R8.Ru1[i])}\nr·û₂=${fmt(R8.Ru2[i])}`, apply8);
-bindStrip($('c8s8'), i => `t=${i}\ncos(osc,fit)=${fmt(R8.AngO[i])}\ncos(NTK₁,fit)=${fmt(R8.AngN[i])}`, apply8);
-bindStrip($('c8s9'), i => `t=${i}\nfitting pull=${fmt(R8.Dfit[i])}\noscillation=${fmt(R8.Dosc[i])}`, apply8);
+bindStrip($('c8s7'), i => `t=${i}\nr·û=${fmt(R8.Rosc[i])}`, apply8);
+bindStrip($('c8s12'), i => `t=${i}\nfrozen=${fmt(R8.RqF[i])}\nlive=${fmt(R8.RqL[i])}`, apply8);
+bindStrip($('c8s13'), i => `t=${i}\nr·(Ĵu)=${fmt(R8.Ruv[i])}`, apply8);
 bindStrip($('c8s10'), i => `t=${i}\ncos(r): ${cosTip('c8s10', KLAGS.map((k,s)=>['l'+k, R8.RK[s]]), i)}`, apply8);
 bindStrip($('c8s11'), i => `t=${i}\nresidual ${fmt(R8.DM[0][i])}\nJacobian ${fmt(R8.DM[1][i])}\n∇S ${fmt(R8.DM[2][i])}`, apply8);
 $('p7csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R7.n; i++)
-    rows.push([i, R7.xs[i], R7.L[i], R7.rn[i], R7.S[i], R7.Xt[i], R7.GdS[i], R7.Rpar[i], R7.Rperp[i], R7.Ru1[i],
+    rows.push([i, R7.xs[i], R7.L[i], R7.rn[i], R7.S[i], R7.Xt[i], R7.GdS[i], R7.Rpar[i], R7.Rperp[i], R7.Ru1[i], R7.RqF[i], R7.RqL[i], R7.Ruv[i],
                R7.RK[0][i], R7.DM[0][i], R7.DM[1][i], R7.DM[2][i]].join(','));
-  const blob = new Blob(['t,w,L,rnorm,lamPH,xT,pgDotGradS,rPar,rPerp,rDotU1,cosR1,dirMemR,dirMemJ,dirMemS\n' + rows.join('\n')], { type: 'text/csv' });
+  const blob = new Blob(['t,w,L,rnorm,lamPH,xT,pgDotGradS,rPar,rPerp,rDotU1,rDotJdSfrozen,rDotJdSlive,rDotJu,cosR1,dirMemR,dirMemJ,dirMemS\n' + rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'eos_multisample_1param.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
@@ -4451,9 +4505,9 @@ $('p8csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R8.n; i++)
     rows.push([i, R8.x1[i], R8.x2[i], R8.L[i], R8.rn[i], R8.S[i], R8.Xt[i], R8.GdS[i], R8.Rpar[i], R8.Rperp[i],
-               R8.Ru1[i], R8.Ru2[i], R8.AngO[i], R8.AngN[i], R8.Dfit[i], R8.Dosc[i],
+               R8.Ru1[i], R8.Ru2[i], R8.Rosc[i], R8.RqF[i], R8.RqL[i], R8.Ruv[i], R8.AngO[i], R8.AngN[i], R8.Dfit[i], R8.Dosc[i],
                R8.RK[0][i], R8.DM[0][i], R8.DM[1][i], R8.DM[2][i]].join(','));
-  const blob = new Blob(['t,w1,w2,L,rnorm,lamPH,xT,pgDotGradS,rPar,rPerp,rDotU1,rDotU2,cosOscFit,cosNTKfit,dW2fit,dW2osc,cosR1,dirMemR,dirMemJ,dirMemS\n' + rows.join('\n')], { type: 'text/csv' });
+  const blob = new Blob(['t,w1,w2,L,rnorm,lamPH,xT,pgDotGradS,rPar,rPerp,rDotU1,rDotU2,rDotUosc,rDotJdSfrozen,rDotJdSlive,rDotJu,cosOscFit,cosNTKfit,dW2fit,dW2osc,cosR1,dirMemR,dirMemJ,dirMemS\n' + rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'eos_multisample_2param.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
