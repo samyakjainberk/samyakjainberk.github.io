@@ -822,14 +822,16 @@
       inside range(J) — the only direction the optimizer can move outputs along — and an
       <b>orthogonal</b> part no optimizer can ever remove. <b>σ = 0</b> makes all samples identical
       and collapses the problem back to a single datapoint.
-      <b>n</b>: samples · <b>σ</b>: sample spread · <b>b</b>: curvature growth · <b>y</b>: target · <b>η</b>, <b>T</b>: optimizer.</div>
+      <b>SGD:</b> set <b>B</b> &lt; n and each step draws a fresh uniform batch of B samples (without replacement) and steps on that batch's gradient; B = n is full-batch. Every chart still reports <b>full-sample</b> quantities, so the loss, the sharpness and the 2/η line stay comparable across batch sizes — only the update is stochastic. The <b>seed</b> makes a run reproducible; change it to see a different noise realisation.<br><b>n</b>: samples · <b>B</b>: batch · <b>σ</b>: sample spread · <b>b</b>: curvature growth · <b>y</b>: target · <b>η</b>, <b>T</b>: optimizer.</div>
       <div class="row"><label for="p7opt">optimizer</label>
         <select id="p7opt">
           <option value="gd">plain GD (P = I)</option>
           <option value="spec">spectral GD</option>
           <option value="sign">signed GD</option>
           <option value="gn">Gauss–Newton</option></select></div>
-      <div class="row"><label for="p7n">samples n</label><input id="p7n" type="number" min="2" max="32" step="1" value="8"></div>
+      <div class="row"><label for="p7n">samples n</label><input id="p7n" type="number" min="2" max="100" step="1" value="8"></div>
+      <div class="row"><label for="p7bs">batch size B</label><input id="p7bs" type="number" min="1" max="100" step="1" value="8"></div>
+      <div class="row"><label for="p7seed">batch seed</label><input id="p7seed" type="number" min="1" step="1" value="1"></div>
       <div class="row"><label for="p7sig">spread σ</label><input id="p7sig" type="number" step="any" value="0.6"></div>
       <div class="row"><label for="p7b">b &nbsp;(steepness)</label><input id="p7b" type="number" step="any" value="1"></div>
       <div class="row"><label for="p7y">target y (&lt;0)</label><input id="p7y" type="number" step="any" value="-3"></div>
@@ -956,7 +958,7 @@
       degeneracy). Targets are yᵢ = y₂ + τ·(zᵢ² − ⅓): the Jacobian rows span {1, c} = {1, z}, so the <b>quadratic</b>
       part τ·zᵢ² is what the two parameters can never reach — set τ = 0 and the targets become exactly
       reachable and ‖r⊥‖ collapses to zero. With n &gt; 1 the oscillation also re-centres: it happens around w₁* ≠ 0 rather than around the valley, so watch x_t rather than the sign of w₁.
-      <b>n</b>: samples · <b>σ</b>: spread · <b>a, b</b>: valley sharpness and its gradient ·
+      <b>SGD:</b> with <b>B</b> &lt; n each step draws a fresh uniform batch of B samples and steps on that batch's gradient (the preconditioner is built from the same batch); B = n is full-batch. Charts report <b>full-sample</b> quantities so the 2/η comparison stays meaningful; the <b>seed</b> fixes the noise realisation.<br><b>n</b>: samples · <b>B</b>: batch · <b>σ</b>: spread · <b>a, b</b>: valley sharpness and its gradient ·
       <b>μ</b>: fitting strength · <b>y₂</b>: target · <b>η</b>, <b>T</b>: optimizer.</div>
       <div class="row"><label for="p8opt">optimizer</label>
         <select id="p8opt">
@@ -964,7 +966,9 @@
           <option value="spec">spectral GD</option>
           <option value="sign">signed GD</option>
           <option value="gn">Gauss–Newton</option></select></div>
-      <div class="row"><label for="p8n">samples n</label><input id="p8n" type="number" min="2" max="32" step="1" value="8"></div>
+      <div class="row"><label for="p8n">samples n</label><input id="p8n" type="number" min="2" max="100" step="1" value="8"></div>
+      <div class="row"><label for="p8bs">batch size B</label><input id="p8bs" type="number" min="1" max="100" step="1" value="8"></div>
+      <div class="row"><label for="p8seed">batch seed</label><input id="p8seed" type="number" min="1" step="1" value="1"></div>
       <div class="row"><label for="p8sig">spread σ</label><input id="p8sig" type="number" step="any" value="0.6"></div>
       <div class="row"><label for="p8tau">target curvature τ</label><input id="p8tau" type="number" step="any" value="0.4"></div>
       <div class="row"><label for="p8a">a &nbsp;(valley sharpness √)</label><input id="p8a" type="number" step="any" value="2.5"></div>
@@ -3510,6 +3514,21 @@ function sampleCoef(n, sig){
   for (let i = 0; i < n; i++) c[i] = 1 + sig*(n > 1 ? -1 + 2*i/(n-1) : 0);
   return c;
 }
+function lcg(seed){
+  // deterministic PRNG so a given (seed, batch size) always replays the same run
+  let s = (seed >>> 0) || 1;
+  return () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296;
+}
+function makeIdx(n){ const a = new Int32Array(n); for (let i = 0; i < n; i++) a[i] = i; return a; }
+function drawBatch(idx, B, rnd){
+  // partial Fisher–Yates: the first B entries become a uniform sample without replacement
+  const n = idx.length;
+  for (let i = 0; i < B && i < n - 1; i++){
+    const j = i + Math.floor(rnd()*(n - i));
+    const t = idx[i]; idx[i] = idx[j]; idx[j] = t;
+  }
+  return B;
+}
 function sum8(a, b){ let s = 0; for (let k = 0; k < a.length; k++) s += a[k]*b[k]; return s; }
 function sampleTarget(n, y0, tau){
   // targets carry a z² component. The Jacobian rows span {1, c} = {1, z}, so a purely
@@ -3554,7 +3573,7 @@ function drawLogMulti(cv, RR, t, arrs, cols){
 /* ---------- panel 7 : ONE parameter, n datapoints ----------
    f_i(w) = −c_i·e^{b·w},  target y for every sample (uniform, so with a
    spread c the targets are NOT exactly reachable: r keeps a ⊥ component). */
-const P7 = { opt:'gd', n:8, sig:0.6, b:1, y:-3, x0:-2, lr:0.15, T:600 };
+const P7 = { opt:'gd', n:8, sig:0.6, bs:8, seed:1, b:1, y:-3, x0:-2, lr:0.15, T:600 };
 let R7 = null, t7 = 0, playing7 = false;
 function st7(w, c){
   // MEAN squared error: every aggregate is divided by n, so the sharpness (and
@@ -3574,6 +3593,21 @@ function st7(w, c){
   }
   return { E, r, fp, L: L*inv, g: g*inv, S: S*inv, jn: jn*inv, nS: n };
 }
+function batchGrad7(w, c, idx, B){
+  // gradient of the MEAN loss over the sampled batch only
+  const e = P7.b*w, E = e > 60 ? Infinity : Math.exp(e), inv = 1/B;
+  let g = 0, jn = 0;
+  for (let t = 0; t < B; t++){
+    const i = idx[t], fi = -E*c[i], r = P7.y - fi, fp = -P7.b*c[i]*E;
+    g += -2*r*fp; jn += fp*fp;
+  }
+  return { g: g*inv, jn: jn*inv };
+}
+function preFrom7(bg){
+  if (P7.opt === 'gd') return 1;
+  if (P7.opt === 'gn') return 1/(bg.jn + 1e-9);
+  return 1/(Math.abs(bg.g) + 1e-12);
+}
 function pre7(s){
   if (P7.opt === 'gd') return 1;
   if (P7.opt === 'gn') return 1/(s.jn + 1e-9);
@@ -3582,12 +3616,16 @@ function pre7(s){
 function lamP7(w, c){ const s = st7(w, c); return pre7(s)*s.S; }
 function sim7(){
   const c = sampleCoef(Math.max(2, Math.round(P7.n)), P7.sig), nS = c.length, T = P7.T;
+  const B = clamp(Math.round(P7.bs), 1, nS), idx = makeIdx(nS), rnd = lcg(P7.seed);
   const ws = new Float64Array(T+1); ws[0] = P7.x0;
   let w = P7.x0, n = T, div = false;
   for (let t = 0; t < T; t++){
     const s = st7(w, c);
     if (!isFinite(s.g) || !isFinite(s.L)){ n = t; div = true; break; }
-    w = w - P7.lr*pre7(s)*s.g;
+    if (B < nS) drawBatch(idx, B, rnd);   // B = n keeps natural order ⇒ bit-identical to full batch
+    const bg = batchGrad7(w, c, idx, B);
+    if (!isFinite(bg.g)){ n = t; div = true; break; }
+    w = w - P7.lr*preFrom7(bg)*bg.g;
     if (!isFinite(w) || Math.abs(w) > 1e9){ n = t; div = true; break; }
     ws[t+1] = w;
   }
@@ -3657,7 +3695,7 @@ function sim7(){
    f_i(w1,w2) = a·e^{b·w2}·w1·c_i + μ·w2,  target y2 for every sample.
    The oscillating output enters weighted by c (spread over samples) while the
    fitting pull acts along 1 (uniform) — two different function-space directions. */
-const P8 = { opt:'gd', n:8, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 };
+const P8 = { opt:'gd', n:8, sig:0.6, tau:0.4, bs:8, seed:1, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 };
 let R8 = null, t8 = 0, playing8 = false;
 function st8(w1, w2, c, yv){
   // MEAN squared error (see st7): all aggregates below are divided by n
@@ -3692,6 +3730,29 @@ function pre8(s){
   const sc = 1/(Math.hypot(s.g1, s.g2) + 1e-12);
   return { p11: sc, p12: 0, p22: sc };
 }
+function batchGrad8(w1, w2, c, yv, idx, B){
+  const e = P8.b*w2, E = P8.a*(e > 60 ? Infinity : Math.exp(e)), inv = 1/B;
+  let g1 = 0, g2 = 0, M11 = 0, M12 = 0, M22 = 0;
+  for (let t = 0; t < B; t++){
+    const i = idx[t];
+    const r = yv[i] - (E*w1*c[i] + P8.mu*w2);
+    const J1 = E*c[i], J2 = E*P8.b*w1*c[i] + P8.mu;
+    g1 += -2*r*J1; g2 += -2*r*J2;
+    M11 += J1*J1; M12 += J1*J2; M22 += J2*J2;
+  }
+  return { g1: g1*inv, g2: g2*inv, M11: M11*inv, M12: M12*inv, M22: M22*inv };
+}
+function preFrom8(bg){
+  if (P8.opt === 'gd') return { p11:1, p12:0, p22:1 };
+  if (P8.opt === 'sign') return { p11: 1/(Math.abs(bg.g1)+1e-12), p12: 0, p22: 1/(Math.abs(bg.g2)+1e-12) };
+  if (P8.opt === 'gn'){
+    const eps = 1e-9*(1 + bg.M11 + bg.M22), a11 = bg.M11 + eps, a22 = bg.M22 + eps;
+    const det = a11*a22 - bg.M12*bg.M12;
+    if (isFinite(det) && Math.abs(det) > 1e-280) return { p11: a22/det, p12: -bg.M12/det, p22: a11/det };
+  }
+  const sc = 1/(Math.hypot(bg.g1, bg.g2) + 1e-12);
+  return { p11: sc, p12: 0, p22: sc };
+}
 function lamPH8(s){
   const P = pre8(s), Q = symSqrt2(P.p11, P.p12, P.p22);
   const b11 = Q.q11*s.h11 + Q.q12*s.h12, b12 = Q.q11*s.h12 + Q.q12*s.h22;
@@ -3702,15 +3763,19 @@ function lamP8(w1, w2, c, yv){ return lamPH8(st8(w1, w2, c, yv)).lam; }
 function sim8(){
   const c = sampleCoef(Math.max(2, Math.round(P8.n)), P8.sig), nS = c.length, T = P8.T;
   const yv = sampleTarget(nS, P8.y2, P8.tau);
+  const B = clamp(Math.round(P8.bs), 1, nS), idx = makeIdx(nS), rnd = lcg(P8.seed);
   const X1 = new Float64Array(T+1), X2 = new Float64Array(T+1);
   let w1 = P8.x10, w2 = 0, n = T, div = false;
   X1[0] = w1; X2[0] = w2;
   for (let t = 0; t < T; t++){
     const s = st8(w1, w2, c, yv);
     if (!isFinite(s.g1) || !isFinite(s.g2)){ n = t; div = true; break; }
-    const P = pre8(s);
-    w1 -= P8.lr*(P.p11*s.g1 + P.p12*s.g2);
-    w2 -= P8.lr*(P.p12*s.g1 + P.p22*s.g2);
+    if (B < nS) drawBatch(idx, B, rnd);   // B = n keeps natural order ⇒ bit-identical to full batch
+    const bg = batchGrad8(w1, w2, c, yv, idx, B);
+    if (!isFinite(bg.g1) || !isFinite(bg.g2)){ n = t; div = true; break; }
+    const P = preFrom8(bg);
+    w1 -= P8.lr*(P.p11*bg.g1 + P.p12*bg.g2);
+    w2 -= P8.lr*(P.p12*bg.g1 + P.p22*bg.g2);
     if (!isFinite(w1) || !isFinite(w2) || Math.max(Math.abs(w1), Math.abs(w2)) > 1e9){ n = t; div = true; break; }
     X1[t+1] = w1; X2[t+1] = w2;
   }
@@ -4346,7 +4411,9 @@ function drawAll7(){
   $('p7read').innerHTML = chip('t', up) + chip('w', fmt(R7.xs[up])) + chip('L', fmt(R7.L[up])) +
     chip('λ(PH)', fmt(R7.S[up])) + chip('‖r∥‖', fmt(R7.Rpar[up])) + chip('‖r⊥‖', fmt(R7.Rperp[up])) +
     `<span class="pill" style="background:${cls}">η·λ/2 = ${fmt(ratio)} · ${txt}</span>`;
+  const B7 = clamp(Math.round(P7.bs), 1, R7.c.length);
   $('p7info').innerHTML = chip('2/η', fmt(2/P7.lr)) + chip('samples n', R7.c.length) +
+    chip('batch B', B7 + (B7 === R7.c.length ? ' (full)' : ' · SGD')) +
     `<span class="chip">1 parameter ⇒ NTK rank 1: only one fittable direction, everything else is permanently ⊥</span>`;
   $('p7tlab').textContent = `t = ${up} / ${R7.n}`;
 }
@@ -4375,7 +4442,9 @@ function drawAll8(){
     chip('L', fmt(R8.L[up])) + chip('λ(PH)', fmt(R8.S[up])) +
     chip('cos(osc, fit)', fmt(R8.AngO[up])) +
     `<span class="pill" style="background:${cls}">η·λ/2 = ${fmt(ratio)} · ${txt}</span>`;
+  const B8 = clamp(Math.round(P8.bs), 1, R8.c.length);
   $('p8info').innerHTML = chip('2/η', fmt(2/P8.lr)) + chip('samples n', R8.c.length) +
+    chip('batch B', B8 + (B8 === R8.c.length ? ' (full)' : ' · SGD')) +
     chip('‖r∥‖', fmt(R8.Rpar[up])) + chip('‖r⊥‖', fmt(R8.Rperp[up])) +
     `<span class="chip">σ = 0 collapses the oscillation and fitting directions onto each other</span>`;
   $('p8tlab').textContent = `t = ${up} / ${R8.n}`;
@@ -4390,8 +4459,8 @@ function recompute8(keepT){
   t8 = keepT ? Math.min(t8, R8.n) : R8.n; $('p8scrub').value = t8;
   drawAll8(); saveHash();
 }
-const BIND7 = [['p7n','n'],['p7sig','sig'],['p7b','b'],['p7y','y'],['p7x0','x0'],['p7lr','lr'],['p7T','T']];
-const BIND8 = [['p8n','n'],['p8sig','sig'],['p8tau','tau'],['p8a','a'],['p8b','b'],['p8mu','mu'],['p8y2','y2'],['p8x10','x10'],['p8lr','lr'],['p8T','T']];
+const BIND7 = [['p7n','n'],['p7bs','bs'],['p7seed','seed'],['p7sig','sig'],['p7b','b'],['p7y','y'],['p7x0','x0'],['p7lr','lr'],['p7T','T']];
+const BIND8 = [['p8n','n'],['p8bs','bs'],['p8seed','seed'],['p8sig','sig'],['p8tau','tau'],['p8a','a'],['p8b','b'],['p8mu','mu'],['p8y2','y2'],['p8x10','x10'],['p8lr','lr'],['p8T','T']];
 function syncInputs7(){ for (const [id,k] of BIND7) $(id).value = P7[k]; $('p7lrs').value = lr2slider(P7.lr); $('p7opt').value = P7.opt; }
 function syncInputs8(){ for (const [id,k] of BIND8) $(id).value = P8[k]; $('p8lrs').value = lr2slider(P8.lr); $('p8opt').value = P8.opt; }
 function wireMulti(binds, PP, pid, rec){
@@ -4400,7 +4469,13 @@ function wireMulti(binds, PP, pid, rec){
       const v = parseFloat($(id).value);
       if (!isFinite(v)) return;
       if (k === 'T') PP.T = clamp(Math.round(v), 10, 20000);
-      else if (k === 'n') PP.n = clamp(Math.round(v), 2, 32);
+      else if (k === 'n'){
+        PP.n = clamp(Math.round(v), 2, 100);
+        PP.bs = clamp(PP.bs, 1, PP.n);          // batch can never exceed the sample count
+        $(pid + 'bs').value = PP.bs;
+      }
+      else if (k === 'bs') PP.bs = clamp(Math.round(v), 1, Math.round(PP.n));
+      else if (k === 'seed') PP.seed = Math.max(1, Math.round(v));
       else if (k === 'lr'){ if (v <= 0) return; PP.lr = v; $(pid + 'lrs').value = lr2slider(v); }
       else PP[k] = v;
       rec(true);
@@ -4419,30 +4494,42 @@ function wireMulti(binds, PP, pid, rec){
 wireMulti(BIND7, P7, 'p7', recompute7);
 wireMulti(BIND8, P8, 'p8', recompute8);
 const PRESETS7 = [
-  { n:'Default · GD, 8 points', d:'one parameter cannot fit 8 spread targets: ‖r⊥‖ is a hard floor the loss can never go below, while the whole EoS oscillation lives inside the single fittable direction',
-    v:{ opt:'gd', n:8, sig:0.6, b:1, y:-3, x0:-2, lr:0.15, T:600 } },
+  { n:'Full batch · 100 samples', d:'n=100, B=100, η=0.15: the deterministic reference — the full-sample sharpness rides just above 2/η = 13.3 and the loss oscillates with spread 0.19',
+    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, b:1, y:-3, x0:-2, lr:0.15, T:800 } },
+  { n:'SGD · batch 8 of 100', d:'same run with B=8: gradient noise widens the loss oscillation ~7× (spread 0.19 → 1.39) while the mean sharpness barely moves — try changing the seed, some realisations get ejected to the flat plateau',
+    v:{ opt:'gd', n:100, bs:8, seed:1, sig:0.6, b:1, y:-3, x0:-2, lr:0.15, T:800 } },
+  { n:'SGD · batch 2 of 100', d:'B=2: the noise is strong enough to push the iterate into a flatter region — mean sharpness falls 15.2 → 4.9, well below 2/η, the noise-driven flattening SGD is known for',
+    v:{ opt:'gd', n:100, bs:2, seed:1, sig:0.6, b:1, y:-3, x0:-2, lr:0.15, T:800 } },
+{ n:'Default · GD, 8 points', d:'one parameter cannot fit 8 spread targets: ‖r⊥‖ is a hard floor the loss can never go below, while the whole EoS oscillation lives inside the single fittable direction',
+    v:{ opt:'gd', n:8, bs:8, seed:1, sig:0.6, b:1, y:-3, x0:-2, lr:0.15, T:600 } },
   { n:'Identical samples (σ = 0)', d:'with no spread every row of J is the same: the n-sample problem collapses back to the single-datapoint case and ‖r⊥‖ vanishes',
-    v:{ opt:'gd', n:8, sig:0.0, b:1, y:-3, x0:-2, lr:0.15, T:600 } },
+    v:{ opt:'gd', n:8, bs:8, seed:1, sig:0.0, b:1, y:-3, x0:-2, lr:0.15, T:600 } },
   { n:'Signed GD', d:'constant-size steps: the fittable component locks into a limit cycle while ‖r⊥‖ sits untouched',
-    v:{ opt:'sign', n:8, sig:0.6, b:1, y:-3, x0:-2, lr:0.2, T:600 } },
+    v:{ opt:'sign', n:8, bs:8, seed:1, sig:0.6, b:1, y:-3, x0:-2, lr:0.2, T:600 } },
   { n:'Gauss–Newton', d:'GN inverts only the fittable direction — λ(PH) ≈ 2 and the ⊥ part is still untouched',
-    v:{ opt:'gn', n:8, sig:0.6, b:1, y:-3, x0:-2, lr:0.9, T:300 } },
+    v:{ opt:'gn', n:8, bs:8, seed:1, sig:0.6, b:1, y:-3, x0:-2, lr:0.9, T:300 } },
 ];
 const PRESETS8 = [
-  { n:'Default · oscillate, then get pushed back', d:'GD, 8 spread points: sharpen to 2/η, then oscillate WHILE w₂ still advances and the loss falls, then the oscillation coupling overtakes the fitting pull and drags w₂ back',
-    v:{ opt:'gd', n:8, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+  { n:'Full batch · 100 samples', d:'n=100, B=100: crosses 2/η at t≈421, w₂ peaks at t≈713 (4.62) and is then dragged back to 2.02 — the deterministic reference',
+    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+  { n:'SGD · batch 16 of 100', d:'B=16: the crossing barely moves (t≈457) but the pushback is DELAYED from t≈713 to t≈1013 — gradient noise slows the rectified force that reverses w₂',
+    v:{ opt:'gd', n:100, bs:16, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+  { n:'SGD · batch 4 of 100', d:'B=4: the pushback is delayed all the way to t≈1497 and w₂ only retreats to 3.23 instead of 2.02 — the noisier the gradient, the longer the fitting phase survives',
+    v:{ opt:'gd', n:100, bs:4, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+{ n:'Default · oscillate, then get pushed back', d:'GD, 8 spread points: sharpen to 2/η, then oscillate WHILE w₂ still advances and the loss falls, then the oscillation coupling overtakes the fitting pull and drags w₂ back',
+    v:{ opt:'gd', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
   { n:'Exactly reachable targets (τ = 0)', d:'with τ = 0 the targets lie inside span{1, c} = range(J): ‖r⊥‖ collapses to zero and the loss can reach machine precision',
-    v:{ opt:'gd', n:8, sig:0.6, tau:0.0, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+    v:{ opt:'gd', n:8, bs:8, seed:1, sig:0.6, tau:0.0, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
   { n:'Directions collapsed (σ = 0)', d:'identical samples: cos(oscillation, fitting) = ±1 — the oscillation and the fitting pull become the same function-space direction, exactly the single-datapoint degeneracy',
-    v:{ opt:'gd', n:8, sig:0.0, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+    v:{ opt:'gd', n:8, bs:8, seed:1, sig:0.0, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
   { n:'Strongly separated (σ = 0.95)', d:'a wide spread pulls the oscillation direction far from the uniform fitting direction',
-    v:{ opt:'gd', n:8, sig:0.95, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+    v:{ opt:'gd', n:8, bs:8, seed:1, sig:0.95, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
   { n:'Spectral GD', d:'normalized steps ride the edge while the two directions stay separated',
-    v:{ opt:'spec', n:8, sig:0.6, tau:0.4, a:2.5, b:0.08, mu:0.3, y2:2.0, x10:1.5, lr:0.1, T:600 } },
+    v:{ opt:'spec', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.08, mu:0.3, y2:2.0, x10:1.5, lr:0.1, T:600 } },
   { n:'Signed GD', d:'per-coordinate normalization; watch the fitting/oscillation balance chart change character',
-    v:{ opt:'sign', n:8, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.35, lr:0.02, T:1000 } },
+    v:{ opt:'sign', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.35, lr:0.02, T:1000 } },
   { n:'Gauss–Newton', d:'GN removes the curvature dependence: λ(PH) ≈ 2 and the pushback never happens',
-    v:{ opt:'gn', n:8, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, lr:0.9, T:300 } },
+    v:{ opt:'gn', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, lr:0.9, T:300 } },
 ];
 for (const [list, host, PP, sync_, rec_] of [[PRESETS7, 'p7presets', P7, syncInputs7, recompute7],
                                              [PRESETS8, 'p8presets', P8, syncInputs8, recompute8]]){
