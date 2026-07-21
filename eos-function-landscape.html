@@ -105,7 +105,8 @@
   #cs1,#cs2,#cs3,#cs4,#cs5,#cs6,#cs7,#cs8,#c3s1,#c3s2,#c3s3,#c3s4,#c3s5,#c3s6,#c3s7,#c3s8,#c5s1,#c5s2,#c5s3,#c5s4,#c5s5,#c5s6,#c5s7,#c5s8,#c6s1,#c6s2,#c6s3,#c6s4,#c6s5,#c6s6,#c6s7,#c6s8,#cs9,#c3s9,#c5s9,#c6s9,#cs10,#c3s10,#c5s10,#c6s10,#cs11,#c3s11,#c5s11,#c6s11,#cs12,#c3s12,#c5s12,#c6s12,#cs13,#c3s13,#c5s13,#c6s13,#cs14,#c3s14,#c5s14,#c6s14,#c3s15,#c6s15,#cs16,#c3s16,#c5s16,#c6s16{height:190px}
   #c7f,#c7L{height:330px}
   #c8f,#c8L{height:380px}
-  #c7s1,#c7s2,#c7s3,#c7s4,#c7s5,#c7s6,#c7s7,#c7s8,#c7s9,#c3s18,#c6s18,#c8s15,#c3s17,#c6s17,#c8s14,#c7s10,#c7s11,#c8s12,#c8s13,#c8s1,#c8s2,#c8s3,#c8s4,#c8s5,#c8s6,#c8s7,#c8s8,#c8s9,#c8s10,#c8s11{height:180px}
+  #c9f,#c9L{height:380px}
+  #c7s1,#c7s2,#c7s3,#c7s4,#c7s5,#c7s6,#c7s7,#c7s8,#c7s9,#c3s18,#c6s18,#c8s15,#c3s17,#c6s17,#c8s14,#c7s10,#c7s11,#c8s12,#c8s13,#c8s1,#c8s2,#c8s3,#c8s4,#c8s5,#c8s6,#c8s7,#c8s8,#c8s9,#c8s10,#c8s11,#c9s15,#c9s14,#c9s12,#c9s13,#c9s1,#c9s2,#c9s3,#c9s4,#c9s5,#c9s6,#c9s7,#c9s8,#c9s9,#c9s10,#c9s11{height:180px}
   #c3f,#c3L{height:380px}
   #c5f,#c5L{height:340px}
   #c6f,#c6L{height:380px}
@@ -145,6 +146,7 @@
     <button id="tab6" role="tab" aria-selected="false">Adaptive · tilted valley</button>
     <button id="tab7" role="tab" aria-selected="false">n points · 1 param</button>
     <button id="tab8" role="tab" aria-selected="false">n points · tilted valley</button>
+    <button id="tab9" role="tab" aria-selected="false">n points · constant Hessian</button>
   </div>
 </header>
 
@@ -1154,6 +1156,163 @@
 
   </div>
 </section>
+<section class="panel" id="panel9" hidden>
+  <div class="side">
+    <div class="card ctl">
+      <h3>Model &nbsp;·&nbsp; fᵢ = (a + b·w₂)·cᵢ·w₁ + μ·w₂</h3>
+      <div class="mdef"><b>Constant function Hessian.</b> Same tilted-valley story as the previous tab, but the exponential gain a·e<sup>b·w₂</sup> is replaced by the <b>linear</b> gain a + b·w₂, which makes each fᵢ bilinear in (w₁, w₂). So every ∇²fᵢ = [[0, b·cᵢ],[b·cᵢ, 0]] is <b>constant</b> and ∇³fᵢ ≡ 0 everywhere — the third-derivative term of ∇S vanishes identically. <b>Yet the full picture survives</b>: sharpness still grows (H₁₁ = 2(a+b·w₂)²·mean c² rises as the fit pulls w₂ up), the iterate still oscillates, and the rectified w₁² coupling still pushes it back out — proving self-stabilization here rides entirely on the <b>J·Q</b> term (Jacobian × function-Hessian), not on ∇³f. Batch B &lt; n gives SGD; τ sets the unfittable target curvature; the <b>linearise</b> switch removes the rectification.<br><b>a</b>: base gain · <b>b</b>: gain slope (= off-diagonal of ∇²f) · <b>n</b>: samples · <b>B</b>: batch · <b>σ</b>: spread · <b>μ</b>: fitting strength · <b>y₂</b>: target · <b>η</b>, <b>T</b>: optimizer.</div>
+      <div class="row"><label for="p9opt">optimizer</label>
+        <select id="p9opt">
+          <option value="gd">plain GD (P = I)</option>
+          <option value="spec">spectral GD</option>
+          <option value="sign">signed GD</option>
+          <option value="gn">Gauss–Newton</option></select></div>
+      <div class="row"><label for="p9n">samples n</label><input id="p9n" type="number" min="2" max="100" step="1" value="8"></div>
+      <div class="row"><label for="p9bs">batch size B</label><input id="p9bs" type="number" min="1" max="100" step="1" value="8"></div>
+      <div class="row"><label for="p9seed">batch seed</label><input id="p9seed" type="number" min="1" step="1" value="1"></div>
+      <div class="row"><label for="p9sig">spread σ</label><input id="p9sig" type="number" step="any" value="0.6"></div>
+      <div class="row"><label for="p9tau">target curvature τ</label><input id="p9tau" type="number" step="any" value="0.4"></div>
+      <div class="row"><label for="p9a">a &nbsp;(base gain)</label><input id="p9a" type="number" step="any" value="2.5"></div>
+      <div class="row"><label for="p9b">b &nbsp;(gain slope = ∇²f off-diag)</label><input id="p9b" type="number" step="any" value="0.05"></div>
+      <div class="row"><label for="p9mu">μ &nbsp;(fitting strength)</label><input id="p9mu" type="number" step="any" value="0.3"></div>
+      <div class="row"><label for="p9y2">target y₂</label><input id="p9y2" type="number" step="any" value="1.84"></div>
+      <div class="row"><label for="p9x10">init w₁</label><input id="p9x10" type="number" step="any" value="0.3"></div>
+      <div class="row"><label for="p9lr">learning rate η</label><input id="p9lr" type="number" step="any" value="0.1"></div>
+      <input id="p9lrs" type="range" min="0" max="1000" value="0" aria-label="learning rate slider">
+      <div class="row"><label for="p9T">iterations</label><input id="p9T" type="number" min="10" max="20000" step="10" value="1500"></div>
+      <div class="row"><label class="toggle" for="p9lin"><input type="checkbox" id="p9lin"> linearise oscillation coupling</label></div>
+      <div class="chips" id="p9info"></div>
+    </div>
+    <div class="card ctl"><h3>Presets</h3><div class="presets" id="p9presets"></div></div>
+    <div class="card ctl"><h3>At current step</h3><div class="chips" id="p9read"></div>
+      <div style="margin-top:8px"><button class="linkbtn" id="p9csv">Export trajectory CSV</button></div></div>
+  </div>
+
+  <div class="charts">
+    <div class="card transport">
+      <button id="p9play" aria-label="play or pause">▶</button>
+      <input id="p9scrub" type="range" min="0" max="1500" value="1500" aria-label="gradient step">
+      <span class="tlab num" id="p9tlab">t = 1500 / 1500</span>
+      <select id="p9view" aria-label="landscape view mode">
+        <option value="3d" selected>3-D surfaces</option>
+        <option value="map">top-down maps</option>
+      </select>
+      <select id="p9speed" aria-label="playback speed">
+        <option value="0.01">1/100×</option><option value="0.02">1/50×</option>
+        <option value="0.04">1/25×</option><option value="0.1">⅒×</option>
+        <option value="0.25">¼×</option><option value="1" selected>1×</option>
+        <option value="4">4×</option><option value="16">16×</option>
+      </select>
+    </div>
+
+        <div class="card">
+      <h3>Per-sample zero-residual curves in (w₁, w₂)</h3>
+      <p class="cap">3-D: the mean output surface f̄ = (a + b·w₂)·w₁·c̄ + μ·w₂ with each sample's zero-residual curve drawn on it · top-down: the same curves in the (w₁, w₂) plane · <b>they do not meet at a common point</b> — that gap is precisely the unfittable residual (set τ = 0 and they collapse through one point) · red tint: λ(PH) &gt; 2/η · drag to rotate</p>
+      <canvas class="plot" id="c9f" role="img" aria-label="per-sample zero residual curves with the trajectory"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="hd"><h3>Loss landscape L(w₁, w₂)</h3>
+        <label class="toggle"><input type="checkbox" id="p9logz" checked> log z</label></div>
+      <p class="cap">mean squared error surface · red tint: λ(PH) &gt; 2/η for the selected optimizer · drag to rotate</p>
+      <canvas class="plot" id="c9L" role="img" aria-label="loss surface with the trajectory"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Training loss</h3>
+      <p class="cap">L = (1/n)Σᵢ rᵢ² (mean squared error) · log scale</p>
+      <canvas class="plot" id="c9s1" role="img" aria-label="Training loss"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Sharpness vs 2/η</h3>
+      <p class="cap">λ<sub>max</sub>(PH) for the selected optimizer</p>
+      <canvas class="plot" id="c9s2" role="img" aria-label="Sharpness vs 2/η"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>λ<sub>max</sub>(PH)</span>
+        <span><i class="sw" style="background:var(--sharpmid)"></i>at midpoint</span>
+        <span><i class="sw" style="background:var(--unst)"></i>2/η</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Residual norm ‖r‖</h3>
+      <p class="cap">log scale</p>
+      <canvas class="plot" id="c9s3" role="img" aria-label="Residual norm ‖r‖"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Direction memory of the residual</h3>
+      <p class="cap">cos(r(t), r(t+l)), l = 1, 2, 5, 10</p>
+      <canvas class="plot" id="c9s10" role="img" aria-label="Direction memory of the residual"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>l = 1</span>
+        <span><i class="sw" style="background:var(--now)"></i>l = 2</span>
+        <span><i class="sw" style="background:var(--accent)"></i>l = 5</span>
+        <span><i class="sw" style="background:var(--nt3)"></i>l = 10</span></div>
+    </div>
+
+        <div class="card">
+      <h3>x_t — preconditioned gradient on the top eigenvector</h3>
+      <p class="cap">(Pg)·v̂₁ · signed, symlog · <b>read the oscillation here, not off w₁:</b> with spread cᵢ the model can fit part of the target using w₁, so the w₁-equilibrium sits at w₁* = (y₂−μw₂)·mean(c)/(E·mean(c²)) ≠ 0 and the period-2 oscillation happens <i>around that shifted centre</i> — w₁ itself never changes sign</p>
+      <canvas class="plot" id="c9s5" role="img" aria-label="x_t — preconditioned gradient on the top eigenvector"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Preconditioned gradient on ∇̂S</h3>
+      <p class="cap">(Pg)·∇̂S · signed, symlog</p>
+      <canvas class="plot" id="c9s6" role="img" aria-label="Preconditioned gradient on ∇̂S"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Residual projection on the oscillating NTK direction</h3>
+      <p class="cap">r·û with û = normalize(J·v̂₁), v̂₁ the top eigenvector of the (preconditioned) Hessian — the function-space image of the direction the iterate oscillates along · symlog</p>
+      <canvas class="plot" id="c9s7" role="img" aria-label="Residual on the top-2 NTK directions"></canvas>
+      
+    </div>
+
+    <div class="card">
+      <h3>Residual projection on J∇̂S</h3>
+      <p class="cap">r·(J∇S)/‖J∇S‖ · frozen at the first λ(PH) &gt; 2/η crossing and live at the iterate · with n samples this is a genuine function-space direction, distinct from the oscillating one · symlog</p>
+      <canvas class="plot" id="c9s12" role="img" aria-label="Residual projection on J∇̂S"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>frozen J*, ∇S* (DNL frame)</span>
+        <span><i class="sw" style="background:var(--sharp)"></i>live J, ∇S at the iterate</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Residual projection on a random direction Ju</h3>
+      <p class="cap">r·(Ju)/‖Ju‖ for a fixed random parameter direction u · the generic baseline · symlog</p>
+      <canvas class="plot" id="c9s13" role="img" aria-label="Residual projection on a random direction Ju"></canvas>
+    </div>
+
+                <div class="card">
+      <h3>Who actually turns?</h3>
+      <p class="cap">cos(X(t), X(t+1)) for the residual, the Jacobian and ∇S · dashed line: λ first crosses 2/η</p>
+      <canvas class="plot" id="c9s11" role="img" aria-label="Who actually turns?"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--crit)"></i>residual r</span>
+        <span><i class="sw" style="background:var(--accent)"></i>Jacobian J</span>
+        <span><i class="sw" style="background:var(--zero)"></i>∇S</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Self-stabilization cycles — where each catapult fires</h3>
+      <p class="cap">each tread is one cycle, read at each cycle's turning point (a local maximum of the oscillation envelope) · <b>red</b>: the oscillation amplitude there · <b>orange</b>: the instability excess η·λ/2 − 1 at the same step · ticks on the axis mark the cycles · the amplitude shrinks cycle after cycle because each catapult lowers w₂, which lowers E and hence λ, shrinking the excess that drives the growth · hover for the exact (t, w₁, w₂)</p>
+      <canvas class="plot" id="c9s14" role="img" aria-label="per-cycle oscillation amplitude and instability excess"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--crit)"></i>amplitude at kick-in</span>
+        <span><i class="sw" style="background:var(--sharp)"></i>excess η·λ/2 − 1</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>What moves w₂ — fitting pull vs oscillation coupling</h3>
+      <p class="cap">the two contributions to the w₂ step · <b>green</b>: the fitting pull +2ημr₂, which drags the iterate toward <i>sharper</i> · <b>red</b>: the oscillation coupling −2ηE²b·w₁², which is a perfect square and therefore pushes toward <i>flatter</i> in <b>both</b> halves of every cycle — the two halves add instead of cancelling, which is why the net motion is always outward · their crossover is the pushback · symlog</p>
+      <canvas class="plot" id="c9s15" role="img" aria-label="the two contributions to the w2 step"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--zero)"></i>fitting pull (toward sharper)</span>
+        <span><i class="sw" style="background:var(--crit)"></i>oscillation coupling (toward flatter)</span>
+      </div>
+    </div>
+
+  </div>
+</section>
 
 
 </main>
@@ -1832,6 +1991,12 @@ function tick(){
     $('p8scrub').value = t8;
     if (t8 >= R8.n){ playing8 = false; $('p8play').textContent = '▶'; }
     drawAll8();
+  }
+  if (playing9 && R9){
+    t9 = stepAdvance(t9, R9.n, +$('p9speed').value);
+    $('p9scrub').value = t9;
+    if (t9 >= R9.n){ playing9 = false; $('p9play').textContent = '▶'; }
+    drawAll9();
   }
   requestAnimationFrame(tick);
 }
@@ -4711,6 +4876,532 @@ function wireMulti(binds, PP, pid, rec){
 }
 wireMulti(BIND7, P7, 'p7', recompute7);
 wireMulti(BIND8, P8, 'p8', recompute8);
+wireMulti(BIND9, P9, 'p9', recompute9);
+
+
+/* ================= PANEL 9 : n samples, CONSTANT function Hessian (clone of panel 8) ================= */
+const P9 = { lin:false, opt:'gd', n:8, sig:0.6, tau:0.4, bs:8, seed:1, a:1.2, b:0.4, mu:0.3, y2:3.0, x10:0.3, lr:0.14, T:1500 };
+let R9 = null, t9 = 0, playing9 = false;
+const cam9 = { al: -0.95, ph: 0.50 };
+const cacheF9 = { cv: document.createElement('canvas'), key: '' };
+const cacheL9 = { cv: document.createElement('canvas'), key: '' };
+let surf9 = null;
+const BIND9 = [['p9n','n'],['p9bs','bs'],['p9seed','seed'],['p9sig','sig'],['p9tau','tau'],['p9a','a'],['p9b','b'],['p9mu','mu'],['p9y2','y2'],['p9x10','x10'],['p9lr','lr'],['p9T','T']];
+const PRESETS9 = [
+  { n:'Full batch · 100 samples', d:'n=100, B=100: crosses 2/η at t≈421, w₂ peaks at t≈713 (4.62) and is then dragged back to 2.02 — the deterministic reference',
+    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+  { n:'SGD · batch 16 of 100', d:'B=16: the crossing barely moves (t≈457) but the pushback is DELAYED from t≈713 to t≈1013 — gradient noise slows the rectified force that reverses w₂',
+    v:{ opt:'gd', n:100, bs:16, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+  { n:'SGD · batch 4 of 100', d:'B=4: the pushback is delayed all the way to t≈1497 and w₂ only retreats to 3.23 instead of 2.02 — the noisier the gradient, the longer the fitting phase survives',
+    v:{ opt:'gd', n:100, bs:4, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+{ n:'Default · oscillate, then get pushed back', d:'GD, 8 spread points: sharpen to 2/η, then oscillate WHILE w₂ still advances and the loss falls, then the oscillation coupling overtakes the fitting pull and drags w₂ back',
+    v:{ opt:'gd', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+  { n:'Exactly reachable targets (τ = 0)', d:'with τ = 0 the targets lie inside span{1, c} = range(J): ‖r⊥‖ collapses to zero and the loss can reach machine precision',
+    v:{ opt:'gd', n:8, bs:8, seed:1, sig:0.6, tau:0.0, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+  { n:'Directions collapsed (σ = 0)', d:'identical samples: cos(oscillation, fitting) = ±1 — the oscillation and the fitting pull become the same function-space direction, exactly the single-datapoint degeneracy',
+    v:{ opt:'gd', n:8, bs:8, seed:1, sig:0.0, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+  { n:'Strongly separated (σ = 0.95)', d:'a wide spread pulls the oscillation direction far from the uniform fitting direction',
+    v:{ opt:'gd', n:8, bs:8, seed:1, sig:0.95, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:1.84, x10:0.3, lr:0.1, T:1500 } },
+  { n:'Spectral GD', d:'normalized steps ride the edge while the two directions stay separated',
+    v:{ opt:'spec', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.08, mu:0.3, y2:2.0, x10:1.5, lr:0.1, T:600 } },
+  { n:'Signed GD', d:'per-coordinate normalization; watch the fitting/oscillation balance chart change character',
+    v:{ opt:'sign', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.35, lr:0.02, T:1000 } },
+  { n:'Gauss–Newton', d:'GN removes the curvature dependence: λ(PH) ≈ 2 and the pushback never happens',
+    v:{ opt:'gn', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, lr:0.9, T:300 } },
+];
+
+function st9(w1, w2, c, yv){
+  // MEAN squared error (see st7): all aggregates below are divided by n
+  const nS = c.length, E = P9.a + P9.b*w2, inv = 1/nS;   // LINEAR gain ⇒ ∇²f constant
+  const r = new Float64Array(nS), J1 = new Float64Array(nS), J2 = new Float64Array(nS);
+  let L = 0, g1 = 0, g2 = 0, M11 = 0, M12 = 0, M22 = 0, N12 = 0, N22 = 0, sumR = 0, sumRc = 0;
+  for (let i = 0; i < nS; i++){
+    const fi = E*w1*c[i] + P9.mu*w2;
+    r[i] = yv[i] - fi;
+    J1[i] = E*c[i];
+    J2[i] = P9.b*w1*c[i] + P9.mu;
+    L += r[i]*r[i];
+    g1 += -2*r[i]*J1[i];
+    g2 += -2*r[i]*J2[i];
+    M11 += J1[i]*J1[i]; M12 += J1[i]*J2[i]; M22 += J2[i]*J2[i];
+    N12 += r[i]*P9.b*c[i];                 // Σ r_i ∂²f_i/∂w1∂w2
+    N22 += 0;         // Σ r_i ∂²f_i/∂w2²
+    sumR += r[i]; sumRc += r[i]*c[i];
+  }
+  return { E, r, J1, J2, nS, L: L*inv, g1: g1*inv, g2: g2*inv,
+           M11: M11*inv, M12: M12*inv, M22: M22*inv, sumR: sumR*inv, sumRc: sumRc*inv,
+           h11: 2*M11*inv, h12: (2*M12 - 2*N12)*inv, h22: (2*M22 - 2*N22)*inv };
+}
+function batchGrad9(w1, w2, c, yv, idx, B){
+  const E = P9.a + P9.b*w2, inv = 1/B;
+  let g1 = 0, g2 = 0, M11 = 0, M12 = 0, M22 = 0;
+  for (let t = 0; t < B; t++){
+    const i = idx[t];
+    const r = yv[i] - (E*w1*c[i] + P9.mu*w2);
+    const J1 = E*c[i], J2 = P9.b*w1*c[i] + P9.mu;
+    g1 += -2*r*J1; g2 += -2*r*J2;
+    M11 += J1*J1; M12 += J1*J2; M22 += J2*J2;
+  }
+  return { g1: g1*inv, g2: g2*inv, M11: M11*inv, M12: M12*inv, M22: M22*inv };
+}
+function pre9(s){
+  if (P9.opt === 'gd') return { p11:1, p12:0, p22:1 };
+  if (P9.opt === 'sign') return { p11: 1/(Math.abs(s.g1)+1e-12), p12: 0, p22: 1/(Math.abs(s.g2)+1e-12) };
+  if (P9.opt === 'gn'){
+    const eps = 1e-9*(1 + s.M11 + s.M22), a11 = s.M11 + eps, a22 = s.M22 + eps;
+    const det = a11*a22 - s.M12*s.M12;
+    if (isFinite(det) && Math.abs(det) > 1e-280) return { p11: a22/det, p12: -s.M12/det, p22: a11/det };
+  }
+  const sc = 1/(Math.hypot(s.g1, s.g2) + 1e-12);
+  return { p11: sc, p12: 0, p22: sc };
+}
+function preFrom9(bg){
+  if (P9.opt === 'gd') return { p11:1, p12:0, p22:1 };
+  if (P9.opt === 'sign') return { p11: 1/(Math.abs(bg.g1)+1e-12), p12: 0, p22: 1/(Math.abs(bg.g2)+1e-12) };
+  if (P9.opt === 'gn'){
+    const eps = 1e-9*(1 + bg.M11 + bg.M22), a11 = bg.M11 + eps, a22 = bg.M22 + eps;
+    const det = a11*a22 - bg.M12*bg.M12;
+    if (isFinite(det) && Math.abs(det) > 1e-280) return { p11: a22/det, p12: -bg.M12/det, p22: a11/det };
+  }
+  const sc = 1/(Math.hypot(bg.g1, bg.g2) + 1e-12);
+  return { p11: sc, p12: 0, p22: sc };
+}
+function lamPH9(s){
+  const P = pre9(s), Q = symSqrt2(P.p11, P.p12, P.p22);
+  const b11 = Q.q11*s.h11 + Q.q12*s.h12, b12 = Q.q11*s.h12 + Q.q12*s.h22;
+  const b21 = Q.q12*s.h11 + Q.q22*s.h12, b22 = Q.q12*s.h12 + Q.q22*s.h22;
+  return symEig2(b11*Q.q11 + b12*Q.q12, b11*Q.q12 + b12*Q.q22, b21*Q.q12 + b22*Q.q22);
+}
+function lamP9(w1, w2, c, yv){ return lamPH9(st9(w1, w2, c, yv)).lam; }
+function sim9(){
+  const c = sampleCoef(Math.max(2, Math.round(P9.n)), P9.sig), nS = c.length, T = P9.T;
+  const yv = sampleTarget(nS, P9.y2, P9.tau);
+  const B = clamp(Math.round(P9.bs), 1, nS), idx = makeIdx(nS), rnd = lcg(P9.seed);
+  const X1 = new Float64Array(T+1), X2 = new Float64Array(T+1);
+  let w1 = P9.x10, w2 = 0, n = T, div = false;
+  X1[0] = w1; X2[0] = w2;
+  for (let t = 0; t < T; t++){
+    const s = st9(w1, w2, c, yv);
+    if (!isFinite(s.g1) || !isFinite(s.g2)){ n = t; div = true; break; }
+    if (B < nS) drawBatch(idx, B, rnd);   // B = n keeps natural order ⇒ bit-identical to full batch
+    const bg = batchGrad9(w1, w2, c, yv, idx, B);
+    if (!isFinite(bg.g1) || !isFinite(bg.g2)){ n = t; div = true; break; }
+    const P = preFrom9(bg);
+    // the piece of g₂ quadratic in w₁ is the rectified coupling; P9.lin swaps w₁² for |w₁|·sign
+    let g2u = bg.g2;
+    if (P9.lin){
+      const Eb = P9.a + P9.b*w2;
+      let scc = 0;
+      for (let k = 0; k < nS; k++) scc += c[k]*c[k];
+      const q = 2*Eb*P9.b*w1*w1*(scc/nS);
+      g2u = bg.g2 - q + q*(w1 > 0 ? 1 : w1 < 0 ? -1 : 0);
+    }
+    w1 -= P9.lr*(P.p11*bg.g1 + P.p12*g2u);
+    w2 -= P9.lr*(P.p12*bg.g1 + P.p22*g2u);
+    if (!isFinite(w1) || !isFinite(w2) || Math.max(Math.abs(w1), Math.abs(w2)) > 1e9){ n = t; div = true; break; }
+    X1[t+1] = w1; X2[t+1] = w2;
+  }
+  const m = n+1, clip = v => Math.max(-1e150, Math.min(1e150, v));
+  const L = new Float64Array(m), rn = new Float64Array(m), S = new Float64Array(m), Sm = new Float64Array(Math.max(0,m-1)),
+        Xt = new Float64Array(m), GdS = new Float64Array(m), Rpar = new Float64Array(m), Rperp = new Float64Array(m),
+        Ru1 = new Float64Array(m), Ru2 = new Float64Array(m), AngO = new Float64Array(m), AngN = new Float64Array(m),
+        Dfit = new Float64Array(m), Dosc = new Float64Array(m), cS1 = new Float64Array(m), cS2 = new Float64Array(m),
+        Rosc = new Float64Array(m), RqF = new Float64Array(m), RqL = new Float64Array(m), Ruv = new Float64Array(m);
+  // J and ∇S frozen at the first λ(PH) > 2/η crossing (same convention as the θ-lab)
+  let tcJ = Infinity, J1c = null, J2c = null, gc1 = 0, gc2 = 0;
+  for (let i = 0; i < m; i++){
+    const lp = lamP9(X1[i], X2[i], c, yv);
+    if (isFinite(lp) && lp > 2/P9.lr){
+      tcJ = i;
+      const sc = st9(X1[i], X2[i], c, yv);
+      J1c = Float64Array.from(sc.J1); J2c = Float64Array.from(sc.J2);
+      const hh = 1e-5*(1 + Math.abs(X1[i]) + Math.abs(X2[i]));
+      gc1 = (lamP9(X1[i]+hh, X2[i], c, yv) - lamP9(X1[i]-hh, X2[i], c, yv))/(2*hh);
+      gc2 = (lamP9(X1[i], X2[i]+hh, c, yv) - lamP9(X1[i], X2[i]-hh, c, yv))/(2*hh);
+      break;
+    }
+  }
+  const Rc = [], Jc = [];
+  for (let i = 0; i < nS; i++){ Rc.push(new Float64Array(m)); Jc.push(new Float64Array(m)); Jc.push(new Float64Array(m)); }
+  let pv1 = null, pv2 = 0;
+  for (let i = 0; i < m; i++){
+    const s = st9(X1[i], X2[i], c, yv), P = pre9(s), eA = lamPH9(s);
+    L[i] = clip(s.L); rn[i] = Math.sqrt(Math.max(0, L[i])); S[i] = clip(eA.lam);
+    const Q = symSqrt2(P.p11, P.p12, P.p22);
+    let vw1 = Q.q11*eA.v1 + Q.q12*eA.v2, vw2 = Q.q12*eA.v1 + Q.q22*eA.v2;
+    const nv = Math.hypot(vw1, vw2);
+    if (nv > 1e-300){ vw1 /= nv; vw2 /= nv; } else { vw1 = 1; vw2 = 0; }
+    if (pv1 !== null && vw1*pv1 + vw2*pv2 < 0){ vw1 = -vw1; vw2 = -vw2; }
+    pv1 = vw1; pv2 = vw2;
+    const pg1 = P.p11*s.g1 + P.p12*s.g2, pg2 = P.p12*s.g1 + P.p22*s.g2;
+    Xt[i] = clip(pg1*vw1 + pg2*vw2);
+    const h = 1e-5*(1 + Math.abs(X1[i]) + Math.abs(X2[i]));
+    const gS1 = (lamP9(X1[i]+h, X2[i], c, yv) - lamP9(X1[i]-h, X2[i], c, yv))/(2*h);
+    const gS2 = (lamP9(X1[i], X2[i]+h, c, yv) - lamP9(X1[i], X2[i]-h, c, yv))/(2*h);
+    const nSg = Math.hypot(gS1, gS2);
+    GdS[i] = nSg > 1e-12 ? clip((pg1*gS1 + pg2*gS2)/nSg) : 0;
+    cS1[i] = gS1; cS2[i] = gS2;
+    // NTK directions: eigenvectors of the 2×2 Gram M pushed to function space
+    const eM = symEig2(s.M11, s.M12, s.M22);
+    const uA = new Float64Array(nS), uB = new Float64Array(nS), uOsc = new Float64Array(nS);
+    let nA = 0, nB = 0, nO = 0;
+    for (let k = 0; k < nS; k++){
+      uA[k] = s.J1[k]*eM.v1 + s.J2[k]*eM.v2;   nA += uA[k]*uA[k];
+      uB[k] = -s.J1[k]*eM.v2 + s.J2[k]*eM.v1;  nB += uB[k]*uB[k];
+      uOsc[k] = s.J1[k]*vw1 + s.J2[k]*vw2;     nO += uOsc[k]*uOsc[k];
+    }
+    nA = Math.sqrt(nA); nB = Math.sqrt(nB); nO = Math.sqrt(nO);
+    // when the Gram is rank-deficient (identical samples ⇒ σ = 0) the second mode is
+    // numerically empty; dividing by its vanishing norm would inject pure noise
+    const nBok = nB > 1e-8*Math.max(nA, 1e-300);
+    let pA = 0, pB = 0, sumU = 0;
+    for (let k = 0; k < nS; k++){
+      if (nA > 1e-300) pA += s.r[k]*uA[k]/nA;
+      if (nBok) pB += s.r[k]*uB[k]/nB;
+      if (nO > 1e-300) sumU += uOsc[k]/nO;      // ⟨û_osc, 1̂⟩·√n
+    }
+    // ⊥ part component-wise (stable); RMS scaling so rpar² + rperp² = L
+    let perp2 = 0;
+    for (let k = 0; k < nS; k++){
+      const a1 = nA > 1e-300 ? uA[k]/nA : 0, b1 = nBok ? uB[k]/nB : 0;
+      const d = s.r[k] - pA*a1 - pB*b1;
+      perp2 += d*d;
+    }
+    const rt = 1/Math.sqrt(nS);
+    Ru1[i] = clip(pA*rt); Ru2[i] = clip(pB*rt);
+    Rpar[i] = clip(Math.hypot(pA, pB)*rt);
+    Rperp[i] = clip(Math.sqrt(Math.max(0, perp2))*rt);
+    AngO[i] = clip(sumU/Math.sqrt(nS));                       // cos(oscillation dir, uniform fitting dir)
+    let sA = 0;
+    for (let k = 0; k < nS; k++) if (nA > 1e-300) sA += uA[k]/nA;
+    AngN[i] = clip(sA/Math.sqrt(nS));                         // cos(top NTK dir, fitting dir)
+    // residual on the oscillating NTK direction Ĵv₁, on J∇S (frozen + live), and on J·u
+    Rosc[i] = nO > 1e-300 ? clip(sum8(s.r, uOsc)/nO*rt) : 0;
+    {
+      const jl1 = new Float64Array(nS);
+      let nl = 0;
+      for (let k = 0; k < nS; k++){ jl1[k] = s.J1[k]*gS1 + s.J2[k]*gS2; nl += jl1[k]*jl1[k]; }
+      nl = Math.sqrt(nl);
+      RqL[i] = nl > 1e-300 ? clip(sum8(s.r, jl1)/nl*rt) : 0;
+      if (i >= tcJ && J1c){
+        const jf = new Float64Array(nS);
+        let nf = 0;
+        for (let k = 0; k < nS; k++){ jf[k] = J1c[k]*gc1 + J2c[k]*gc2; nf += jf[k]*jf[k]; }
+        nf = Math.sqrt(nf);
+        RqF[i] = nf > 1e-300 ? clip(sum8(s.r, jf)/nf*rt) : 0;
+      } else RqF[i] = RqL[i];
+      const ju = new Float64Array(nS);
+      let nu2 = 0;
+      for (let k = 0; k < nS; k++){ ju[k] = s.J1[k]*UPHI6a + s.J2[k]*UPHI6b; nu2 += ju[k]*ju[k]; }
+      nu2 = Math.sqrt(nu2);
+      Ruv[i] = nu2 > 1e-300 ? clip(sum8(s.r, ju)/nu2*rt) : 0;
+    }
+    Dfit[i] = clip(2*P9.lr*P9.mu*s.sumR);                     // w₂ advance from the fitting pull
+    Dosc[i] = clip(2*P9.lr*P9.b*X1[i]*s.sumRc);           // w₂ change from the oscillation coupling
+    for (let k = 0; k < nS; k++){ Rc[k][i] = s.r[k]; Jc[2*k][i] = s.J1[k]; Jc[2*k+1][i] = s.J2[k]; }
+    if (i+1 < m) Sm[i] = clip(lamP9(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1]), c, yv));
+  }
+  // panel 8's oscillation is centred on w₁* = mean(r)·mean(c)/(E·mean(c²)) ≠ 0, so the cycle
+  // detector must look at the deviation from that centre rather than at w₁ itself
+  const dev8 = new Float64Array(m);
+  {
+    let sc = 0, sc2 = 0;
+    for (let k = 0; k < nS; k++){ sc += c[k]; sc2 += c[k]*c[k]; }
+    const cbar = sc/nS, c2bar = sc2/nS;
+    for (let i = 0; i < m; i++){
+      const s = st9(X1[i], X2[i], c, yv);
+      const den = s.E*c2bar;
+      const wstar = Math.abs(den) > 1e-300 ? (s.sumR*cbar)/den : 0;
+      dev8[i] = X1[i] - (isFinite(wstar) ? wstar : 0);
+    }
+  }
+  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), c, yv, L, rn, S, Sm, Xt, GdS,
+           KC: kickCycles(dev8, X2.subarray(0,m), S, P9.lr, m),
+           Rpar, Rperp, Ru1, Ru2, AngO, AngN, Dfit, Dosc, Rosc, RqF, RqL, Ruv, tcJ,
+           RK: lagCosArrays2(Rc, m),
+           DM: [dirMemory(Rc, m), dirMemory(Jc, m), dirMemory([cS1, cS2], m)],
+           n, div, conv: !div && L[m-1] < 1e-10 };
+}
+function L8ful9(w1, w2, c, yv){
+  const E = P9.a + P9.b*w2;
+  let L = 0;
+  for (let k = 0; k < c.length; k++){ const r = yv[k] - (E*w1*c[k] + P9.mu*w2); L += r*r; }
+  return Math.min(L/c.length, 1e300);
+}
+function drawMap9(cv, kind){
+  const { ctx, w, h } = setup(cv);
+  if (w < 10 || h < 10) return;
+  const A = area(w, h);
+  const up = Math.min(Math.round(t9), R9.n);
+  const c = R9.c, yv = R9.yv, nS = c.length;
+  const [m1l, m1h] = fullRange(R9.x1, 1, 99, 3), [m2l, m2h] = fullRange(R9.x2, 1, 99, 3);
+  let lo1 = Math.min(m1l, P9.x10, 0), hi1 = Math.max(m1h, P9.x10, 0);
+  let lo2 = Math.min(m2l, 0), hi2 = Math.max(m2h, 0);
+  let s1 = hi1-lo1 || 1, s2 = hi2-lo2 || 1;
+  lo1 -= 0.18*s1; hi1 += 0.18*s1; lo2 -= 0.18*s2; hi2 += 0.18*s2;
+  s1 = hi1-lo1; s2 = hi2-lo2;
+  A.x = x => A.l + (x-lo1)/s1*A.w;
+  A.y = x => A.t + (hi2-x)/s2*A.h;
+  // unstable tint for the selected optimizer
+  const thr = 2/P9.lr, M = 46;
+  ctx.save(); ctx.beginPath(); ctx.rect(A.l, A.t, A.w, A.h); ctx.clip(); applyMapRot(ctx, A, mapRot.a9);
+  ctx.fillStyle = alpha(PAL.unst, 0.10);
+  const cw = A.w/M + 0.5, chh = A.h/M + 0.5;
+  for (let i = 0; i < M; i++) for (let j = 0; j < M; j++){
+    const lam = lamP9(lo1 + s1*(i+0.5)/M, lo2 + s2*(j+0.5)/M, c, yv);
+    if (isFinite(lam) && lam > thr) ctx.fillRect(A.x(lo1 + s1*i/M), A.y(lo2 + s2*(j+1)/M), cw, chh);
+  }
+  ctx.restore();
+  axes(ctx, A, ticks(lo1,hi1,7), ticks(lo2,hi2,6), fmt, fmt);
+  ctx.save(); ctx.beginPath(); ctx.rect(A.l-1, A.t-1, A.w+2, A.h+2); ctx.clip(); applyMapRot(ctx, A, mapRot.a9);
+  if (kind === 'L'){
+    const M2 = 64, G = [];
+    for (let i = 0; i <= M2; i++){
+      G.push([]);
+      const x1 = lo1 + s1*i/M2;
+      for (let j = 0; j <= M2; j++) G[i].push(Math.log10(L8ful9(x1, lo2 + s2*j/M2, c, yv) + 1e-12));
+    }
+    contourGrid(ctx, A, G, M2, lo1, s1, lo2, s2, false);
+  }
+  // per-sample zero-residual curves: w1 = (y_i − μ w2)/(a e^{b w2} c_i)
+  const NP = 160;
+  for (let k = 0; kind === 'f' && k < nS; k++){
+    ctx.strokeStyle = alpha(mix(PAL.surflo, PAL.surfhi, nS > 1 ? k/(nS-1) : 0.5), 0.9);
+    ctx.lineWidth = 1.4; ctx.beginPath();
+    let started = false;
+    for (let j = 0; j <= NP; j++){
+      const w2 = lo2 + s2*j/NP;
+      const E = P9.a + P9.b*w2;
+      if (!isFinite(E) || Math.abs(E*c[k]) < 1e-300) { started = false; continue; }
+      const w1 = (yv[k] - P9.mu*w2)/(E*c[k]);
+      const px = A.x(w1), py = A.y(w2);
+      if (!isFinite(px) || !isFinite(py)) { started = false; continue; }
+      started ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+      started = true;
+    }
+    ctx.stroke();
+  }
+  // trajectory
+  const stp = decim(up, 3000);
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = alpha(PAL.traj1, 0.30);
+  ctx.beginPath();
+  // stride 1 for the connecting geometry: with a period-2 oscillation any stride > 1
+  // aliases onto a single arm and the other arm's iterates would draw nothing
+  for (let i = 0; i <= up; i++){
+    const px = A.x(R9.x1[i]), py = A.y(R9.x2[i]);
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  for (let i = 0; i <= up; i += stp){
+    ctx.fillStyle = trajCol(R9.n ? i/R9.n : 0);
+    ctx.beginPath(); ctx.arc(A.x(R9.x1[i]), A.y(R9.x2[i]), 2.2, 0, 7); ctx.fill();
+  }
+  ctx.fillStyle = PAL.now;
+  ctx.beginPath(); ctx.arc(A.x(R9.x1[up]), A.y(R9.x2[up]), 5.5, 0, 7); ctx.fill();
+  ctx.strokeStyle = PAL.surface; ctx.lineWidth = 2; ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle = PAL.muted; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+  ctx.fillText('w₁', A.l + A.w, A.t + A.h - 4);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('w₂', A.l + 4, A.t + 2);
+  rotBadge(ctx, A, mapRot.a9);
+}
+function buildSurf9(){
+  const [q1l, q1h] = fullRange(R9.x1, 2, 98, 3), [q2l, q2h] = fullRange(R9.x2, 2, 98, 3);
+  let l1 = Math.min(q1l, P9.x10, 0), h1 = Math.max(q1h, P9.x10, 0);
+  let l2 = Math.min(q2l, 0), h2 = Math.max(q2h, 0);
+  const s1 = (h1-l1 || 2), s2 = (h2-l2 || 2);
+  l1 -= 0.25*s1; h1 += 0.25*s1; l2 -= 0.25*s2; h2 += 0.25*s2;
+  const w1r = h1-l1, w2r = h2-l2;
+  if (w1r < 0.3*w2r){ const cc = 0.5*(l1+h1), half = 0.15*w2r; l1 = cc-half; h1 = cc+half; }
+  if (w2r < 0.3*w1r){ const cc = 0.5*(l2+h2), half = 0.15*w1r; l2 = cc-half; h2 = cc+half; }
+  const LM = [], F = [], UN = [], thr = 2/P9.lr;
+  let cbar = 0;
+  for (let k = 0; k < R9.c.length; k++) cbar += R9.c[k];
+  cbar /= R9.c.length;
+  for (let i = 0; i <= GN; i++){
+    LM.push([]); F.push([]);
+    const x1 = l1 + (h1-l1)*i/GN;
+    for (let j = 0; j <= GN; j++){
+      const x2 = l2 + (h2-l2)*j/GN;
+      LM[i].push(L8ful9(x1, x2, R9.c, R9.yv));
+      const E = (P9.a + P9.b*x2);
+      F[i].push(Math.max(-1e100, Math.min(1e100, E*x1*cbar + P9.mu*x2)));   // mean output f̄
+    }
+  }
+  for (let i = 0; i < GN; i++){
+    UN.push([]);
+    for (let j = 0; j < GN; j++){
+      const lam = lamP9(l1 + (h1-l1)*(i+0.5)/GN, l2 + (h2-l2)*(j+0.5)/GN, R9.c, R9.yv);
+      UN[i].push(isFinite(lam) && lam > thr);
+    }
+  }
+  surf9 = { l1, h1, l2, h2, LM, F, UN, cbar };
+}
+function proj9(u, v, z, s, cx, cyv){
+  const ca = Math.cos(cam9.al), sa = Math.sin(cam9.al);
+  const cp = Math.cos(cam9.ph), sp = Math.sin(cam9.ph);
+  const wv = u*ca + v*sa, tv = -u*sa + v*ca;
+  return [cx + s*tv, cyv - s*(z*cp - wv*sp), wv*cp + z*sp];
+}
+function drawSurf9(cv, kind){
+  if (!surf9) return;
+  const cache = kind === 'f' ? cacheF9 : cacheL9;
+  const logz = kind === 'L' && $('p9logz').checked;
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  if (w < 10 || h < 10) return;
+  const key = [kind, w, h, dpr, cam9.al.toFixed(3), cam9.ph.toFixed(3), logz, PAL.ink,
+    surf9.l1, surf9.h1, surf9.l2, surf9.h2, P9.n, P9.sig, P9.tau, P9.a, P9.b, P9.mu, P9.y2, P9.lr, P9.opt].join('|');
+  const G = kind === 'f' ? surf9.F : surf9.LM;
+  const zf = logz ? (v => Math.log10(1 + Math.max(0, v))) : (v => v);
+  let zlo = Infinity, zhi = -Infinity;
+  for (let i = 0; i <= GN; i++) for (let j = 0; j <= GN; j++){
+    const z = zf(G[i][j]); if (z < zlo) zlo = z; if (z > zhi) zhi = z;
+  }
+  if (!(zhi > zlo)) zhi = zlo + 1;
+  const ZH = 0.85;
+  const nz = v => (zf(v) - zlo)/(zhi - zlo)*ZH;
+  const NX = x => -1 + 2*(x - surf9.l1)/(surf9.h1 - surf9.l1);
+  const NY = x => -1 + 2*(x - surf9.l2)/(surf9.h2 - surf9.l2);
+  const s = Math.min(w, h)/3.05, cx = w/2, cyv = h*0.56;
+  const P3d = (x1, x2, zv) => proj9(NX(x1), NY(x2), nz(zv), s, cx, cyv);
+  const floorz = logz ? Math.pow(10, zlo) - 1 : zlo;
+  if (cache.key !== key){
+    cache.key = key;
+    cache.cv.width = Math.round(w*dpr); cache.cv.height = Math.round(h*dpr);
+    const ctx = cache.cv.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,w,h);
+    ctx.strokeStyle = PAL.axis; ctx.lineWidth = 1;
+    const corners = [[surf9.l1,surf9.l2],[surf9.h1,surf9.l2],[surf9.h1,surf9.h2],[surf9.l1,surf9.h2]];
+    ctx.beginPath();
+    corners.forEach((cc,i) => { const p = P3d(cc[0], cc[1], floorz); i===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]); });
+    ctx.closePath(); ctx.stroke();
+    const quads = [];
+    for (let i = 0; i < GN; i++) for (let j = 0; j < GN; j++){
+      const x1a = surf9.l1 + (surf9.h1-surf9.l1)*i/GN, x1b = surf9.l1 + (surf9.h1-surf9.l1)*(i+1)/GN;
+      const x2a = surf9.l2 + (surf9.h2-surf9.l2)*j/GN, x2b = surf9.l2 + (surf9.h2-surf9.l2)*(j+1)/GN;
+      const pa = P3d(x1a,x2a,G[i][j]), pb = P3d(x1b,x2a,G[i+1][j]),
+            pc = P3d(x1b,x2b,G[i+1][j+1]), pd = P3d(x1a,x2b,G[i][j+1]);
+      quads.push({ pa, pb, pc, pd, un: surf9.UN[i][j],
+        zn: (nz(G[i][j]) + nz(G[i+1][j]) + nz(G[i+1][j+1]) + nz(G[i][j+1]))/(4*ZH),
+        depth: (pa[2]+pb[2]+pc[2]+pd[2])/4 });
+    }
+    quads.sort((q1,q2) => q1.depth - q2.depth);
+    for (const q of quads){
+      ctx.beginPath();
+      ctx.moveTo(q.pa[0], q.pa[1]); ctx.lineTo(q.pb[0], q.pb[1]);
+      ctx.lineTo(q.pc[0], q.pc[1]); ctx.lineTo(q.pd[0], q.pd[1]); ctx.closePath();
+      ctx.fillStyle = mix(PAL.surflo, PAL.surfhi, clamp(q.zn, 0, 1));
+      ctx.fill();
+      if (q.un){ ctx.fillStyle = alpha(PAL.unst, 0.13); ctx.fill(); }
+      ctx.strokeStyle = alpha(PAL.muted, 0.18); ctx.lineWidth = 0.5; ctx.stroke();
+    }
+    ctx.fillStyle = PAL.muted; ctx.font = '11px ui-monospace,Menlo,Consolas,monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`w₁∈[${fmt(surf9.l1)}, ${fmt(surf9.h1)}]  w₂∈[${fmt(surf9.l2)}, ${fmt(surf9.h2)}]`, 8, h - 8);
+    ctx.textAlign = 'right';
+    ctx.fillText((kind === 'f' ? 'f̄' : (logz ? 'log₁₀(1+L)' : 'L')) + `∈[${fmt(zlo)}, ${fmt(zhi)}]`, w - 8, h - 8);
+    if (kind === 'f'){
+      // per-sample zero-residual curves drawn on the mean-output surface
+      const nS = R9.c.length, NP = 90;
+      for (let k = 0; k < nS; k++){
+        ctx.strokeStyle = alpha(mix(PAL.surflo, PAL.surfhi, nS > 1 ? k/(nS-1) : 0.5), 0.95);
+        ctx.lineWidth = 1.6; ctx.beginPath();
+        let started = false;
+        for (let j = 0; j <= NP; j++){
+          const x2 = surf9.l2 + (surf9.h2-surf9.l2)*j/NP;
+          const E = (P9.a + P9.b*x2);
+          if (!isFinite(E) || Math.abs(E*R9.c[k]) < 1e-300){ started = false; continue; }
+          const x1 = (R9.yv[k] - P9.mu*x2)/(E*R9.c[k]);
+          if (!isFinite(x1) || x1 < surf9.l1 || x1 > surf9.h1){ started = false; continue; }
+          const p = P3d(x1, x2, E*x1*surf9.cbar + P9.mu*x2);
+          started ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
+          started = true;
+        }
+        ctx.stroke();
+      }
+    }
+  }
+  const { ctx } = setup(cv);
+  ctx.drawImage(cache.cv, 0, 0, w, h);
+  const up = Math.min(Math.round(t9), R9.n);
+  const st = decim(up, 2500);
+  const inD = i => R9.x1[i] >= surf9.l1 && R9.x1[i] <= surf9.h1 && R9.x2[i] >= surf9.l2 && R9.x2[i] <= surf9.h2;
+  const zcl = v => clamp(zf(v), zlo, zhi);
+  const zof = i => {
+    if (kind !== 'f') return R9.L[i];
+    const E = (P9.a + P9.b*R9.x2[i]);
+    return Math.max(-1e100, Math.min(1e100, E*R9.x1[i]*surf9.cbar + P9.mu*R9.x2[i]));
+  };
+  ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+  ctx.strokeStyle = alpha(PAL.traj1, 0.35);
+  ctx.beginPath();
+  let prev = null;
+  // stride 1 for the connecting geometry: with a period-2 oscillation any stride > 1
+  // aliases onto a single arm and the other arm's iterates would draw nothing
+  for (let i = 0; i <= up; i++){
+    if (!inD(i)){ prev = null; continue; }
+    const p = proj9(NX(R9.x1[i]), NY(R9.x2[i]), (zcl(zof(i)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
+    prev ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
+    prev = p;
+  }
+  ctx.stroke();
+  for (let i = 0; i <= up; i += st){
+    if (!inD(i)) continue;
+    const p = proj9(NX(R9.x1[i]), NY(R9.x2[i]), (zcl(zof(i)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
+    ctx.fillStyle = trajCol(R9.n ? i/R9.n : 0);
+    ctx.beginPath(); ctx.arc(p[0], p[1], 2.3, 0, 7); ctx.fill();
+  }
+  if (inD(up)){
+    const p = proj9(NX(R9.x1[up]), NY(R9.x2[up]), (zcl(zof(up)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
+    ctx.fillStyle = PAL.now; ctx.beginPath(); ctx.arc(p[0], p[1], 5.5, 0, 7); ctx.fill();
+    ctx.strokeStyle = PAL.surface; ctx.lineWidth = 2; ctx.stroke();
+  }
+}
+function drawAll9(){
+  if (!R9) return;
+  readPal();
+  const is3d8 = view9 === '3d';
+  if (is3d8){ drawSurf9($('c9f'), 'f'); drawSurf9($('c9L'), 'L'); }
+  else { drawMap9($('c9f'), 'f'); drawMap9($('c9L'), 'L'); }
+  drawLogStrip($('c9s1'), R9, t9, R9.L, 0, PAL.accent);
+  drawSharpStrip($('c9s2'), R9, t9, P9.lr, true);
+  drawLogStrip($('c9s3'), R9, t9, R9.rn, 0, PAL.accent);
+  drawSymlogStrip($('c9s5'), R9, t9, R9.Xt, PAL.sharp);
+  drawSymlogStrip($('c9s6'), R9, t9, R9.GdS, PAL.now);
+  drawSymlogStrip($('c9s7'), R9, t9, R9.Rosc, PAL.sharpmid);
+  drawSymlogMulti($('c9s12'), R9, t9, [R9.RqF, R9.RqL], [PAL.accent, PAL.sharp]);
+  drawSymlogStrip($('c9s13'), R9, t9, R9.Ruv, PAL.nt[2]);
+  drawCosStrip($('c9s10'), R9, t9, R9.RK);
+  drawWhoTurnsStrip($('c9s11'), R9, t9, R9.tcJ);
+  drawCycleStrip($('c9s14'), R9, t9);
+  drawSymlogMulti($('c9s15'), R9, t9, [R9.Dfit, R9.Dosc], [PAL.zero, PAL.crit]);
+  const up = Math.min(Math.round(t9), R9.n), ratio = R9.S[up]*P9.lr/2;
+  let cls = PAL.good, txt = 'stable';
+  if (R9.div){ cls = PAL.crit; txt = 'diverged'; }
+  else if (ratio > 1.06){ cls = PAL.crit; txt = 'unstable here'; }
+  else if (ratio >= 0.985){ cls = PAL.warn; txt = 'edge of stability'; }
+  $('p9read').innerHTML = chip('t', up) + chip('w₁', fmt(R9.x1[up])) + chip('w₂', fmt(R9.x2[up])) +
+    chip('L', fmt(R9.L[up])) + chip('λ(PH)', fmt(R9.S[up])) +
+    chip('cos(osc, fit)', fmt(R9.AngO[up])) +
+    `<span class="pill" style="background:${cls}">η·λ/2 = ${fmt(ratio)} · ${txt}</span>`;
+  const B8 = clamp(Math.round(P9.bs), 1, R9.c.length);
+  $('p9info').innerHTML = chip('2/η', fmt(2/P9.lr)) + chip('samples n', R9.c.length) +
+    chip('batch B', B8 + (B8 === R9.c.length ? ' (full)' : ' · SGD')) +
+    chip('‖r∥‖', fmt(R9.Rpar[up])) + chip('‖r⊥‖', fmt(R9.Rperp[up])) +
+    `<span class="chip">σ = 0 collapses the oscillation and fitting directions onto each other</span>`;
+  $('p9tlab').textContent = `t = ${up} / ${R9.n}`;
+}
+function recompute9(keepT){
+  R9 = sim9(); buildSurf9(); $('p9scrub').max = R9.n;
+  t9 = keepT ? Math.min(t9, R9.n) : R9.n; $('p9scrub').value = t9;
+  drawAll9(); saveHash();
+}
+function syncInputs9(){ $('p9lin').checked = !!P9.lin; for (const [id,k] of BIND9) $(id).value = P9[k]; $('p9lrs').value = lr2slider(P9.lr); $('p9opt').value = P9.opt; }
+
 const PRESETS7 = [
   { n:'Full batch · 100 samples', d:'n=100, B=100, η=0.15: the deterministic reference — the full-sample sharpness rides just above 2/η = 13.3 and the loss oscillates with spread 0.19',
     v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, b:1, y:-3, x0:-2, lr:0.15, T:800 } },
@@ -4750,7 +5441,8 @@ const PRESETS8 = [
     v:{ opt:'gn', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, lr:0.9, T:300 } },
 ];
 for (const [list, host, PP, sync_, rec_] of [[PRESETS7, 'p7presets', P7, syncInputs7, recompute7],
-                                             [PRESETS8, 'p8presets', P8, syncInputs8, recompute8]]){
+                                             [PRESETS8, 'p8presets', P8, syncInputs8, recompute8],
+                                             [PRESETS9, 'p9presets', P9, syncInputs9, recompute9]]){
   for (const pr of list){
     const btn = document.createElement('button');
     btn.innerHTML = `${pr.n}<span class="d">${pr.d}</span>`;
@@ -4822,10 +5514,47 @@ $('p8csv').addEventListener('click', () => {
   a.href = URL.createObjectURL(blob); a.download = 'eos_multisample_2param.csv'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 });
+$('p9scrub').addEventListener('input', () => { t9 = +$('p9scrub').value; drawAll9(); });
+$('p9play').addEventListener('click', () => {
+  if (playing9){ playing9 = false; $('p9play').textContent = '▶'; return; }
+  if (t9 >= R9.n){ t9 = 0; $('p9scrub').value = 0; }
+  playing9 = true; $('p9play').textContent = '❚❚';
+});
+const apply9 = i => { t9 = i; $('p9scrub').value = i; drawAll9(); };
+bindStrip($('c9s1'), i => `t=${i}\nL=${fmt(R9.L[i])}`, apply9);
+bindStrip($('c9s2'), i => `t=${i}\nλ(PH)=${fmt(R9.S[i])}\n2/η=${fmt(2/P9.lr)}`, apply9);
+bindStrip($('c9s3'), i => `t=${i}\n‖r‖=${fmt(R9.rn[i])}`, apply9);
+bindStrip($('c9s5'), i => `t=${i}\nx_t=${fmt(R9.Xt[i])}`, apply9);
+bindStrip($('c9s6'), i => `t=${i}\n(Pg)·∇̂S=${fmt(R9.GdS[i])}`, apply9);
+bindStrip($('c9s7'), i => `t=${i}\nr·û=${fmt(R9.Rosc[i])}`, apply9);
+bindStrip($('c9s12'), i => `t=${i}\nfrozen=${fmt(R9.RqF[i])}\nlive=${fmt(R9.RqL[i])}`, apply9);
+bindStrip($('c9s13'), i => `t=${i}\nr·(Ĵu)=${fmt(R9.Ruv[i])}`, apply9);
+bindStrip($('c9s10'), i => `t=${i}\ncos(r): ${cosTip('c9s10', KLAGS.map((k,s)=>['l'+k, R9.RK[s]]), i)}`, apply9);
+bindStrip($('c9s11'), i => `t=${i}\nresidual ${fmt(R9.DM[0][i])}\nJacobian ${fmt(R9.DM[1][i])}\n∇S ${fmt(R9.DM[2][i])}`, apply9);
+bindStrip($('c9s14'), i => `t=${i}` + (R9.KC.tev[i] ? `\ncycle fired at t=${R9.KC.tev[i]}\n  w₁=${fmt(R9.KC.osc[i])}  w₂=${fmt(R9.KC.w2[i])}\n  amplitude=${fmt(R9.KC.amp[i])}  excess=${fmt(R9.KC.exc[i])}` : '\nno cycle yet'), apply9);
+bindStrip($('c9s15'), i => `t=${i}\nfitting pull = ${fmt(R9.Dfit[i])}\noscillation  = ${fmt(R9.Dosc[i])}\nnet Δw₂ = ${fmt(R9.Dfit[i] + R9.Dosc[i])}`, apply9);
+$('p9logz').addEventListener('change', () => { cacheL9.key = ''; drawAll9(); });
+$('p9lin').addEventListener('change', () => { P9.lin = $('p9lin').checked; recompute9(false); });
+$('p9view').addEventListener('change', () => { view9 = $('p9view').value === 'map' ? 'map' : '3d'; drawAll9(); });
+bindRotate($('c9f'), cam9, drawAll9, () => view9 === '3d');
+bindMapRot($('c9f'), 'a9', drawAll9, () => view9 === 'map');
+bindMapRot($('c9L'), 'a9', drawAll9, () => view9 === 'map');
+bindRotate($('c9L'), cam9, drawAll9, () => view9 === '3d');
+$('p9csv').addEventListener('click', () => {
+  const rows = [];
+  for (let i = 0; i <= R9.n; i++)
+    rows.push([i, R9.x1[i], R9.x2[i], R9.L[i], R9.rn[i], R9.S[i], R9.Xt[i], R9.GdS[i], R9.Rpar[i], R9.Rperp[i],
+               R9.Ru1[i], R9.Ru2[i], R9.Rosc[i], R9.RqF[i], R9.RqL[i], R9.Ruv[i], R9.AngO[i], R9.AngN[i], R9.Dfit[i], R9.Dosc[i],
+               R9.RK[0][i], R9.DM[0][i], R9.DM[1][i], R9.DM[2][i]].join(','));
+  const blob = new Blob(['t,w1,w2,L,rnorm,lamPH,xT,pgDotGradS,rPar,rPerp,rDotU1,rDotU2,rDotUosc,rDotJdSfrozen,rDotJdSlive,rDotJu,cosOscFit,cosNTKfit,dW2fit,dW2osc,cosR1,dirMemR,dirMemJ,dirMemS\n' + rows.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'eos_constHessian.csv'; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
 
 /* ---------- tabs ---------- */
 function switchTab(nb){
-  for (const k of [1,3,5,6,7,8]){
+  for (const k of [1,3,5,6,7,8,9]){
     $('panel' + k).hidden = nb !== k;
     $('tab' + k).setAttribute('aria-selected', nb === k);
   }
@@ -4834,7 +5563,8 @@ function switchTab(nb){
   else if (nb === 5) drawAll5();
   else if (nb === 6) drawAll6();
   else if (nb === 7) drawAll7();
-  else drawAll8();
+  else if (nb === 8) drawAll8();
+  else drawAll9();
   saveHash();
 }
 $('tab1').addEventListener('click', () => switchTab(1));
@@ -4843,6 +5573,7 @@ $('tab5').addEventListener('click', () => switchTab(5));
 $('tab6').addEventListener('click', () => switchTab(6));
 $('tab7').addEventListener('click', () => switchTab(7));
 $('tab8').addEventListener('click', () => switchTab(8));
+$('tab9').addEventListener('click', () => switchTab(9));
 
 /* ---------- CSV / hash ---------- */
 $('csvb').addEventListener('click', () => {
@@ -4858,8 +5589,8 @@ function saveHash(){
   clearTimeout(hashTimer);
   hashTimer = setTimeout(() => {
     try {
-      const tab = !$('panel3').hidden ? 3 : !$('panel5').hidden ? 5 : !$('panel6').hidden ? 6 : !$('panel7').hidden ? 7 : !$('panel8').hidden ? 8 : 1;
-      const st = { p: P, p3: P3, p5: P5, p6: P6, p7: P7, p8: P8, tab };
+      const tab = !$('panel3').hidden ? 3 : !$('panel5').hidden ? 5 : !$('panel6').hidden ? 6 : !$('panel7').hidden ? 7 : !$('panel8').hidden ? 8 : !$('panel9').hidden ? 9 : 1;
+      const st = { p: P, p3: P3, p5: P5, p6: P6, p7: P7, p8: P8, p9: P9, tab };
       history.replaceState(null, '', '#' + encodeURIComponent(JSON.stringify(st)));
     } catch(e){ /* sandboxed */ }
   }, 300);
@@ -4873,7 +5604,8 @@ function loadHash(){
     if (st && st.p6) Object.assign(P6, st.p6);
     if (st && st.p7) Object.assign(P7, st.p7);
     if (st && st.p8) Object.assign(P8, st.p8);
-    return st && [3,5,6,7,8].includes(st.tab) ? st.tab : 1;
+    if (st && st.p9) Object.assign(P9, st.p9);
+    return st && [3,5,6,7,8,9].includes(st.tab) ? st.tab : 1;
   } catch(e){ return 1; }
 }
 
@@ -4886,12 +5618,14 @@ syncInputs5();
 syncInputs6();
 syncInputs7();
 syncInputs8();
+syncInputs9();
 recompute(false);
 recompute3(false);
 recompute5(false);
 recompute6(false);
 recompute7(false);
 recompute8(false);
+recompute9(false);
 if (initTab !== 1) switchTab(initTab);
 requestAnimationFrame(tick);
 function redrawVisible(){
@@ -4901,8 +5635,9 @@ function redrawVisible(){
   if (!$('panel6').hidden) drawAll6();
   if (!$('panel7').hidden) drawAll7();
   if (!$('panel8').hidden) drawAll8();
+  if (!$('panel9').hidden) drawAll9();
 }
-function clearSurfCaches(){ cacheF3.key = ''; cacheL3.key = ''; cacheF6.key = ''; cacheL6.key = ''; cacheF8.key = ''; cacheL8.key = ''; }
+function clearSurfCaches(){ cacheF3.key = ''; cacheL3.key = ''; cacheF6.key = ''; cacheL6.key = ''; cacheF8.key = ''; cacheL8.key = ''; cacheF9.key = ''; cacheL9.key = ''; }
 const ro = new ResizeObserver(() => { clearSurfCaches(); redrawVisible(); });
 document.querySelectorAll('canvas.plot').forEach(c => ro.observe(c));
 
