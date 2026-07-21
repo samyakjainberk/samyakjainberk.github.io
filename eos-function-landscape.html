@@ -1321,7 +1321,7 @@
   <div class="side">
     <div class="card ctl">
       <h3>Model &nbsp;·&nbsp; fᵢ = (a + b·w₂ + ½γ·w₁)·cᵢ·w₁ + μ·w₂ &nbsp;·&nbsp; ∇²fᵢ = cᵢ·[[γ, b],[b, 0]] (constant in w)</h3>
-      <div class="mdef"><b>Residuals that sharpen — the anti-stabilization tab.</b> This is the constant-Hessian model of the previous tab with <b>one extra residual term</b>, ½γ·w₁²·cᵢ. Setting <b>γ = 0 reproduces that tab exactly</b>: sharpness depends only on the slow coordinate w₂, the top eigenvector points along w₁, and ∂λ/∂w₁ = 0, so the growing w₁-oscillation feeds back on λ only through w₂ as the <b>perfect square −2ηE²b·w₁²</b> — always flattening, hence self-stabilizing.<br><br><b>γ ≠ 0 breaks the perfect square.</b> Now ∂²fᵢ/∂w₁² = γ·cᵢ ≠ 0, so the Gauss–Newton block H₁₁ = 2(a + b·w₂ + γ·w₁)²·mean c² depends on the <b>oscillating</b> coordinate. When the iterate oscillates with amplitude A the rectified part raises λ by ≈ 2γ²·A²·mean c² — the residual structure now <b>pushes into a sharper region</b>. Above a threshold γ this positive feedback overwhelms the w₂ pushback: sharpness overshoots 2/η and the run <b>diverges completely</b> — no edge-of-stability plateau. Sweep γ to cross from self-stabilization → overshoot → divergence.<br><b>a</b>: base gain · <b>b</b>: gain slope (∇²f off-diag) · <b>γ</b>: self-sharpening (∇²f w₁w₁ curvature) · <b>n</b>: samples · <b>B</b>: batch · <b>σ</b>: spread · <b>μ</b>: fitting · <b>y₂</b>: target · <b>η</b>, <b>T</b>: optimizer.</div>
+      <div class="mdef"><b>Residuals that sharpen — the anti-stabilization tab.</b> This is the constant-Hessian model of the previous tab with <b>one extra residual term</b>, ½γ·w₁²·cᵢ. Setting <b>γ = 0 reproduces that tab exactly</b>: sharpness depends only on the slow coordinate w₂, the top eigenvector points along w₁, and ∂λ/∂w₁ = 0, so the growing w₁-oscillation feeds back on λ only through w₂ as the <b>perfect square −2ηE²b·w₁²</b> — always flattening, hence self-stabilizing.<br><br><b>γ ≠ 0 breaks the perfect square.</b> Now ∂²fᵢ/∂w₁² = γ·cᵢ ≠ 0, so the Gauss–Newton block H₁₁ = 2(a + b·w₂ + γ·w₁)²·mean c² depends on the <b>oscillating</b> coordinate. When the iterate oscillates with amplitude A the rectified part raises λ by ≈ 2γ²·A²·mean c² — the residual structure now <b>pushes into a sharper region</b>. Above a threshold γ this positive feedback overwhelms the w₂ pushback: sharpness overshoots 2/η and the run <b>diverges completely</b> — no edge-of-stability plateau. Sweep γ to cross from self-stabilization → overshoot → divergence.<br><br><b>Anti-stabilizing coupling (checkbox) — the HARD threshold.</b> γ gives a soft bifurcation (a window where λ parks <i>above</i> 2/η). For "stable below 2/η, complete divergence the moment it crosses," flip the sign of the pushback drift directly: the genuine gradient moves w₂ by −2ηE·b·w₁² (toward flatter); this toggle subtracts <b>astr×</b> that, so the oscillation drives w₂ toward <b>sharper</b>. It's a deliberate <b>non-gradient</b> edit of the update (the model f and its constant Hessian ∇²f are untouched) — self-stabilization run in reverse. Now below 2/η the oscillation decays; above it, λ climbs monotonically and blows up with no plateau. astr = 2 is the exact sign-flip; larger = faster.<br><b>a</b>: base gain · <b>b</b>: gain slope (∇²f off-diag) · <b>γ</b>: self-sharpening (∇²f w₁w₁ curvature) · <b>astr</b>: flip strength · <b>n</b>: samples · <b>B</b>: batch · <b>σ</b>: spread · <b>μ</b>: fitting · <b>y₂</b>: target · <b>η</b>, <b>T</b>: optimizer.</div>
       <div class="row"><label for="p10opt">optimizer</label>
         <select id="p10opt">
           <option value="gd">plain GD (P = I)</option>
@@ -1337,6 +1337,8 @@
       <div class="row"><label for="p10b">b &nbsp;(gain slope = ∇²f w₁w₂)</label><input id="p10b" type="number" step="any" value="0.10"></div>
       <div class="row"><label for="p10gam">γ &nbsp;(self-sharpening = ∇²f w₁w₁)</label><input id="p10gam" type="number" step="any" value="0"></div>
       <input id="p10gams" type="range" min="0" max="1000" value="0" aria-label="self-sharpening slider">
+      <div class="row"><label class="toggle" for="p10flip"><input type="checkbox" id="p10flip"> anti-stabilizing coupling — flip pushback → sharper</label></div>
+      <div class="row"><label for="p10astr">&nbsp;&nbsp;↳ flip strength (2 = exact flip, more = faster)</label><input id="p10astr" type="number" step="any" value="6"></div>
       <div class="row"><label for="p10mu">μ &nbsp;(fitting strength)</label><input id="p10mu" type="number" step="any" value="0.5"></div>
       <div class="row"><label for="p10y2">target y₂</label><input id="p10y2" type="number" step="any" value="2.5"></div>
       <div class="row"><label for="p10x10">init w₁</label><input id="p10x10" type="number" step="any" value="0.3"></div>
@@ -1403,7 +1405,7 @@
 
     <div class="card">
       <h3>What moves w₂ — fitting pull vs oscillation coupling</h3>
-      <p class="cap">the two contributions to the w₂ step · <b>green</b>: fitting pull +2ημr̄ (toward sharper) · <b>red</b>: the w₂-coupling −2ηE·b·w₁²·mean c² (toward flatter — the panel-9 pushback, still present) · here a <b>third</b> channel — the direct λ(w₁) self-sharpening — sits outside this w₂ balance and overrules it · symlog</p>
+      <p class="cap">the two contributions to the w₂ step · <b>green</b>: fitting pull +2ημr̄ (toward sharper) · <b>red</b>: the w₂-coupling from the oscillation — normally −2ηE·b·w₁²·mean c² (toward flatter, the panel-9 pushback), but with the <b>anti-stabilizing coupling</b> on it flips sign and drives w₂ toward <i>sharper</i> (watch red change sign) · symlog</p>
       <canvas class="plot" id="c10s3" role="img" aria-label="the two contributions to the w2 step"></canvas>
       <div class="legend">
         <span><i class="sw" style="background:var(--zero)"></i>fitting pull (toward sharper)</span>
@@ -5541,24 +5543,26 @@ function syncInputs9(){ $('p9lin').checked = !!P9.lin; for (const [id,k] of BIND
    γ ≠ 0 adds ∂²fᵢ/∂w₁² = γ·cᵢ, so H₁₁ = 2(a+b·w₂+γ·w₁)²·mean c² depends on the OSCILLATING coordinate.
    The oscillation then sharpens λ directly (∂²λ/∂x² ≈ 2γ²·mean c² > 0), breaking the perfect-square
    self-stabilization of panel 9 and, past a threshold γ, driving complete divergence.                */
-const P10 = { opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.3, gam:0, lr:0.1, T:1500 };
+const P10 = { opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.3, gam:0, flip:false, astr:6, lr:0.1, T:1500 };
 let R10 = null, t10 = 0, playing10 = false;
 const cam10 = { al: -0.95, ph: 0.50 };
 const cacheF10 = { cv: document.createElement('canvas'), key: '' };
 const cacheL10 = { cv: document.createElement('canvas'), key: '' };
 let surf10 = null;
-const BIND10 = [['p10n','n'],['p10bs','bs'],['p10seed','seed'],['p10sig','sig'],['p10tau','tau'],['p10a','a'],['p10b','b'],['p10gam','gam'],['p10mu','mu'],['p10y2','y2'],['p10x10','x10'],['p10lr','lr'],['p10T','T']];
+const BIND10 = [['p10n','n'],['p10bs','bs'],['p10seed','seed'],['p10sig','sig'],['p10tau','tau'],['p10a','a'],['p10b','b'],['p10gam','gam'],['p10astr','astr'],['p10mu','mu'],['p10y2','y2'],['p10x10','x10'],['p10lr','lr'],['p10T','T']];
 const PRESETS10 = [
+  { n:'⚡ Anti-stab coupling · diverges the moment it crosses 2/η', d:'THE clean anti-self-stabilization. Flips the self-stabilizing drift so the oscillation drives w₂ toward SHARPER instead of flatter (a deliberate non-gradient modification of the update — the model f and its constant Hessian are untouched). Below 2/η the run is stable; the instant λ crosses 2/η there is NO plateau — it climbs monotonically and blows up within a few dozen steps. Watch the "sharpness vs 2/η" chart cross the dashed line and never come back',
+    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.20, mu:0.5, y2:2.0, x10:0.3, gam:0, flip:true, astr:6, lr:0.1, T:1500 } },
   { n:'γ = 0 · self-stabilized (recovers panel 9)', d:'the constant-Hessian run with no self-sharpening: λ climbs to 2/η = 20, the rectified w₁² coupling pushes w₂ back, sharpness pins at the edge — bounded forever',
-    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.3, gam:0, lr:0.1, T:1500 } },
+    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.3, gam:0, flip:false, astr:6, lr:0.1, T:1500 } },
   { n:'γ small · pinned ABOVE the edge', d:'a little self-sharpening: the oscillation now raises λ on its own, so the pushback can no longer hold it at 2/η — a new, higher equilibrium forms and sharpness settles at λ ≈ 24, above 2/η = 20. The residuals have pushed the operating point into a sharper region, but the run still survives',
-    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.3, gam:1.5, lr:0.1, T:1500 } },
+    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.3, gam:1.5, flip:false, astr:6, lr:0.1, T:1500 } },
   { n:'γ over threshold · complete divergence', d:'past the bifurcation (γ ≈ 2.6 here) the ∂²λ/∂x² > 0 feedback overwhelms the pushback: every oscillation sharpens, which grows the oscillation, which sharpens more — a super-exponential runaway. λ and the loss blow up within a few dozen steps. No edge-of-stability plateau exists — watch the sharpness climb past 2/η and never come back',
-    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.08, gam:2.6, lr:0.1, T:1500 } },
+    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.08, gam:2.6, flip:false, astr:6, lr:0.1, T:1500 } },
   { n:'Divergence, few spread points', d:'the same runaway with n = 8: fewer samples, identical mechanism — self-sharpening does not need many points',
-    v:{ opt:'gd', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.08, gam:2.6, lr:0.1, T:1500 } },
+    v:{ opt:'gd', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.08, gam:2.6, flip:false, astr:6, lr:0.1, T:1500 } },
   { n:'Gauss–Newton resists it', d:'GN divides out the curvature, flattening λ(PH) toward 2 — it suppresses the self-sharpening feedback and the run survives where plain GD diverges',
-    v:{ opt:'gn', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.15, gam:2.6, lr:0.9, T:300 } },
+    v:{ opt:'gn', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.15, gam:2.6, flip:false, astr:6, lr:0.9, T:300 } },
 ];
 function gam2slider(g){ return clamp(Math.round(g/8*1000), 0, 1000); }
 function slider2gam(v){ return Math.round(v/1000*8*1000)/1000; }
@@ -5646,8 +5650,14 @@ function sim10(){
     const bg = batchGrad10(w1, w2, c, yv, idx, B);
     if (!isFinite(bg.g1) || !isFinite(bg.g2)){ n = t; div = true; break; }
     const P = preFrom10(bg);
-    w1 -= P10.lr*(P.p11*bg.g1 + P.p12*bg.g2);
-    w2 -= P10.lr*(P.p12*bg.g1 + P.p22*bg.g2);
+    // ANTI-STABILIZING COUPLING (flip): the genuine gradient's rectified w₁² drift is +2b·E·⟨c²⟩·w₁²
+    // in g₂ (drives w₂ DOWN → flatter → the pushback). Subtracting astr× that flips it (and overdrives)
+    // so the oscillation drives w₂ UP → sharper. A deliberate NON-gradient modification of the update;
+    // the model f and its Hessian ∇²f are untouched. astr = 2 is the exact sign-flip, > 2 overdrives.
+    let g2u = bg.g2;
+    if (P10.flip){ const Eb = P10.a + P10.b*w2; g2u = bg.g2 - P10.astr*(2*P10.b*Eb*mc2*w1*w1); }
+    w1 -= P10.lr*(P.p11*bg.g1 + P.p12*g2u);
+    w2 -= P10.lr*(P.p12*bg.g1 + P.p22*g2u);
     if (!isFinite(w1) || !isFinite(w2) || Math.max(Math.abs(w1), Math.abs(w2)) > 1e9){ n = t; div = true; break; }
     X1[t+1] = w1; X2[t+1] = w2;
   }
@@ -5668,7 +5678,8 @@ function sim10(){
     const pg1 = P.p11*s.g1 + P.p12*s.g2, pg2 = P.p12*s.g1 + P.p22*s.g2;
     Xt[i] = clip(pg1*vw1 + pg2*vw2);
     Dfit[i] = clip(2*P10.lr*P10.mu*s.sumR);              // w₂ advance from the fitting pull
-    Dosc[i] = clip(2*P10.lr*P10.b*X1[i]*s.sumRc);        // w₂ change from the w₂-coupling (panel-9 pushback)
+    Dosc[i] = clip(2*P10.lr*P10.b*X1[i]*s.sumRc          // w₂ change from the w₂-coupling (panel-9 pushback)
+                   + (P10.flip ? P10.lr*P10.astr*2*P10.b*s.E*mc2*X1[i]*X1[i] : 0));  // + the flip's push-toward-sharper
     // the Gauss–Newton curvature 2‖J₁‖² (J linear in w ⇒ grows along the oscillation) vs the
     // magnitude of the CONSTANT function-Hessian tensor ‖∇²f‖ (fixed — never moves as w moves):
     GN11[i] = clip(2*s.M11);
@@ -5974,7 +5985,7 @@ function recompute10(keepT){
   t10 = keepT ? Math.min(t10, R10.n) : R10.n; $('p10scrub').value = t10;
   drawAll10(); saveHash();
 }
-function syncInputs10(){ for (const [id,k] of BIND10) $(id).value = P10[k]; $('p10lrs').value = lr2slider(P10.lr); $('p10gams').value = gam2slider(P10.gam); $('p10opt').value = P10.opt; }
+function syncInputs10(){ for (const [id,k] of BIND10) $(id).value = P10[k]; $('p10flip').checked = !!P10.flip; $('p10lrs').value = lr2slider(P10.lr); $('p10gams').value = gam2slider(P10.gam); $('p10opt').value = P10.opt; }
 
 const PRESETS7 = [
   { n:'Full batch · 100 samples', d:'n=100, B=100, η=0.15: the deterministic reference — the full-sample sharpness rides just above 2/η = 13.3 and the loss oscillates with spread 0.19',
@@ -6135,6 +6146,7 @@ $('p10play').addEventListener('click', () => {
   playing10 = true; $('p10play').textContent = '❚❚';
 });
 $('p10gams').addEventListener('input', () => { P10.gam = slider2gam(+$('p10gams').value); $('p10gam').value = P10.gam; recompute10(true); });
+$('p10flip').addEventListener('change', () => { P10.flip = $('p10flip').checked; recompute10(false); });
 const apply10 = i => { t10 = i; $('p10scrub').value = i; drawAll10(); };
 bindStrip($('c10s1'), i => `t=${i}\nL=${fmt(R10.L[i])}`, apply10);
 bindStrip($('c10s2'), i => `t=${i}\nλ(PH)=${fmt(R10.S[i])}\n2/η=${fmt(2/P10.lr)}`, apply10);
