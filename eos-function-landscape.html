@@ -106,6 +106,8 @@
   #c7f,#c7L{height:330px}
   #c8f,#c8L{height:380px}
   #c9f,#c9L{height:380px}
+  #c10f,#c10L,#c10map{height:380px}
+  #c10s1,#c10s2,#c10s3,#c10s4,#c10s5,#c10s6{height:180px}
   #c7s1,#c7s2,#c7s3,#c7s4,#c7s5,#c7s6,#c7s7,#c7s8,#c7s9,#c3s18,#c6s18,#c8s15,#c3s17,#c6s17,#c8s14,#c7s10,#c7s11,#c8s12,#c8s13,#c8s1,#c8s2,#c8s3,#c8s4,#c8s5,#c8s6,#c8s7,#c8s8,#c8s9,#c8s10,#c8s11,#c9s15,#c9s14,#c9s12,#c9s13,#c9s1,#c9s2,#c9s3,#c9s4,#c9s5,#c9s6,#c9s7,#c9s8,#c9s9,#c9s10,#c9s11{height:180px}
   #c3f,#c3L{height:380px}
   #c5f,#c5L{height:340px}
@@ -1353,6 +1355,10 @@
       <button id="p10play" aria-label="play or pause">▶</button>
       <input id="p10scrub" type="range" min="0" max="1500" value="1500" aria-label="gradient step">
       <span class="tlab num" id="p10tlab">t = 1500 / 1500</span>
+      <select id="p10view" aria-label="landscape view mode">
+        <option value="3d" selected>3-D surfaces</option>
+        <option value="map">top-down maps</option>
+      </select>
       <select id="p10speed" aria-label="playback speed">
         <option value="0.01">1/100×</option><option value="0.02">1/50×</option>
         <option value="0.04">1/25×</option><option value="0.1">⅒×</option>
@@ -1362,15 +1368,22 @@
     </div>
 
     <div class="card">
-      <h3>Sharpness landscape λ(w₁, w₂) — which way is sharper?</h3>
-      <p class="cap"><b>The residual-contour picture.</b> Contour lines of λ<sub>max</sub>(PH) over the (w₁, w₂) plane · faint grey arrows point <b>up-hill in sharpness</b> (∇λ, toward sharper) · red tint: λ &gt; 2/η (unstable) · the trajectory is drawn on top. <b>γ = 0:</b> λ contours run nearly horizontal (sharpness depends on w₂ only) and the run hugs the 2/η edge — the oscillation slides <i>along</i> the contours, feedback is orthogonal. <b>γ &gt; 0:</b> the contours bend so that the oscillation direction climbs them — the iterate is carried across the 2/η line into ever-redder, ever-sharper territory until it diverges · drag to rotate</p>
-      <canvas class="plot" id="c10map" role="img" aria-label="sharpness landscape with gradient-of-sharpness arrows and trajectory"></canvas>
+      <h3>Per-sample zero-residual curves in (w₁, w₂)</h3>
+      <p class="cap">3-D: the mean output surface f̄ = (a + b·w₂ + ½γ·w₁)·w₁·c̄ + μ·w₂ with each sample's zero-residual curve · the ½γ·w₁² term bends the surface, so a sample's zero-residual set becomes a <b>parabola</b> in w₁ (two branches) rather than a line · top-down: the same curves in the plane · red tint: λ(PH) &gt; 2/η · drag to rotate</p>
+      <canvas class="plot" id="c10f" role="img" aria-label="per-sample zero residual curves with the trajectory"></canvas>
     </div>
 
     <div class="card">
-      <h3>Loss landscape L(w₁, w₂)</h3>
-      <p class="cap">mean-squared-error contours · red tint: λ(PH) &gt; 2/η · the same trajectory · drag to rotate</p>
-      <canvas class="plot" id="c10L" role="img" aria-label="loss contours with trajectory"></canvas>
+      <div class="hd"><h3>Loss landscape L(w₁, w₂)</h3>
+        <label class="toggle"><input type="checkbox" id="p10logz" checked> log z</label></div>
+      <p class="cap">mean-squared-error surface · red tint: λ(PH) &gt; 2/η · the trajectory climbs it into ever-sharper territory when γ is large · drag to rotate</p>
+      <canvas class="plot" id="c10L" role="img" aria-label="loss surface with trajectory"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Sharpness landscape λ(w₁, w₂) — which way is sharper?</h3>
+      <p class="cap"><b>The residual-contour picture.</b> Contour lines of λ<sub>max</sub>(PH) over the (w₁, w₂) plane · faint grey arrows point <b>up-hill in sharpness</b> (∇λ, toward sharper) · red tint: λ &gt; 2/η (unstable) · the trajectory is drawn on top. <b>γ = 0:</b> λ contours run nearly horizontal (sharpness depends on w₂ only) and the run hugs the 2/η edge — the oscillation slides <i>along</i> the contours, feedback is orthogonal. <b>γ &gt; 0:</b> the contours bend so that the oscillation direction climbs them — the iterate is carried across the 2/η line into ever-redder, ever-sharper territory until it diverges · drag to rotate</p>
+      <canvas class="plot" id="c10map" role="img" aria-label="sharpness landscape with gradient-of-sharpness arrows and trajectory"></canvas>
     </div>
 
     <div class="card">
@@ -4696,7 +4709,7 @@ function drawMap8(cv, kind){
   ctx.fillText('w₂', A.l + 4, A.t + 2);
   rotBadge(ctx, A, mapRot.a8);
 }
-let view6 = '3d', view8 = '3d', view9 = '3d';
+let view6 = '3d', view8 = '3d', view9 = '3d', view10 = '3d';
 const mapRot = { a3: 0, a6: 0, a8: 0, a9: 0, a10: 0 };
 function bindMapRot(cv, key, redraw, active){
   let last = null;
@@ -5520,6 +5533,10 @@ function syncInputs9(){ $('p9lin').checked = !!P9.lin; for (const [id,k] of BIND
    self-stabilization of panel 9 and, past a threshold γ, driving complete divergence.                */
 const P10 = { opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.3, gam:0, lr:0.1, T:1500 };
 let R10 = null, t10 = 0, playing10 = false;
+const cam10 = { al: -0.95, ph: 0.50 };
+const cacheF10 = { cv: document.createElement('canvas'), key: '' };
+const cacheL10 = { cv: document.createElement('canvas'), key: '' };
+let surf10 = null;
 const BIND10 = [['p10n','n'],['p10bs','bs'],['p10seed','seed'],['p10sig','sig'],['p10tau','tau'],['p10a','a'],['p10b','b'],['p10gam','gam'],['p10mu','mu'],['p10y2','y2'],['p10x10','x10'],['p10lr','lr'],['p10T','T']];
 const PRESETS10 = [
   { n:'γ = 0 · self-stabilized (recovers panel 9)', d:'the constant-Hessian run with no self-sharpening: λ climbs to 2/η = 20, the rectified w₁² coupling pushes w₂ back, sharpness pins at the edge — bounded forever',
@@ -5650,6 +5667,164 @@ function sim10(){
   return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), c, yv, L, rn, S, Sm, Xt, Dfit, Dosc, Kss, mc2,
            n, div, conv: !div && L[m-1] < 1e-10 };
 }
+// solve the zero-residual set of sample k for w1 given w2:  ½γ·c·w1² + E·c·w1 + (μ·w2 − y) = 0
+function zeroResW1_10(k, w2, branch){
+  const E = P10.a + P10.b*w2, g = P10.gam, ck = R10.c[k];
+  if (Math.abs(g) < 1e-12){
+    if (branch === 1) return NaN;                 // only one branch when the surface is bilinear
+    if (Math.abs(E*ck) < 1e-300) return NaN;
+    return (R10.yv[k] - P10.mu*w2)/(E*ck);
+  }
+  const aq = 0.5*g*ck, bq = E*ck, cq = P10.mu*w2 - R10.yv[k], disc = bq*bq - 4*aq*cq;
+  if (disc < 0) return NaN;
+  return (-bq + branch*Math.sqrt(disc))/(2*aq);
+}
+function meanOut10(x1, x2, cbar){ const E = P10.a + P10.b*x2; return (E + 0.5*P10.gam*x1)*x1*cbar + P10.mu*x2; }
+function buildSurf10(){
+  const [q1l, q1h] = fullRange(R10.x1, 2, 98, 3), [q2l, q2h] = fullRange(R10.x2, 2, 98, 3);
+  let l1 = Math.min(q1l, P10.x10, 0), h1 = Math.max(q1h, P10.x10, 0);
+  let l2 = Math.min(q2l, 0), h2 = Math.max(q2h, 0);
+  const s1 = (h1-l1 || 2), s2 = (h2-l2 || 2);
+  l1 -= 0.25*s1; h1 += 0.25*s1; l2 -= 0.25*s2; h2 += 0.25*s2;
+  const w1r = h1-l1, w2r = h2-l2;
+  if (w1r < 0.3*w2r){ const cc = 0.5*(l1+h1), half = 0.15*w2r; l1 = cc-half; h1 = cc+half; }
+  if (w2r < 0.3*w1r){ const cc = 0.5*(l2+h2), half = 0.15*w1r; l2 = cc-half; h2 = cc+half; }
+  const LM = [], F = [], UN = [], thr = 2/P10.lr;
+  let cbar = 0;
+  for (let k = 0; k < R10.c.length; k++) cbar += R10.c[k];
+  cbar /= R10.c.length;
+  for (let i = 0; i <= GN; i++){
+    LM.push([]); F.push([]);
+    const x1 = l1 + (h1-l1)*i/GN;
+    for (let j = 0; j <= GN; j++){
+      const x2 = l2 + (h2-l2)*j/GN;
+      LM[i].push(L10full(x1, x2, R10.c, R10.yv));
+      F[i].push(Math.max(-1e100, Math.min(1e100, meanOut10(x1, x2, cbar))));
+    }
+  }
+  for (let i = 0; i < GN; i++){
+    UN.push([]);
+    for (let j = 0; j < GN; j++){
+      const lam = lamP10(l1 + (h1-l1)*(i+0.5)/GN, l2 + (h2-l2)*(j+0.5)/GN, R10.c, R10.yv);
+      UN[i].push(isFinite(lam) && lam > thr);
+    }
+  }
+  surf10 = { l1, h1, l2, h2, LM, F, UN, cbar };
+}
+function proj10(u, v, z, s, cx, cyv){
+  const ca = Math.cos(cam10.al), sa = Math.sin(cam10.al);
+  const cp = Math.cos(cam10.ph), sp = Math.sin(cam10.ph);
+  const wv = u*ca + v*sa, tv = -u*sa + v*ca;
+  return [cx + s*tv, cyv - s*(z*cp - wv*sp), wv*cp + z*sp];
+}
+function drawSurf10(cv, kind){
+  if (!surf10) return;
+  const cache = kind === 'f' ? cacheF10 : cacheL10;
+  const logz = kind === 'L' && $('p10logz').checked;
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  if (w < 10 || h < 10) return;
+  const key = [kind, w, h, dpr, cam10.al.toFixed(3), cam10.ph.toFixed(3), logz, PAL.ink,
+    surf10.l1, surf10.h1, surf10.l2, surf10.h2, P10.n, P10.sig, P10.tau, P10.a, P10.b, P10.gam, P10.mu, P10.y2, P10.lr, P10.opt].join('|');
+  const G = kind === 'f' ? surf10.F : surf10.LM;
+  const zf = logz ? (v => Math.log10(1 + Math.max(0, v))) : (v => v);
+  let zlo = Infinity, zhi = -Infinity;
+  for (let i = 0; i <= GN; i++) for (let j = 0; j <= GN; j++){
+    const z = zf(G[i][j]); if (z < zlo) zlo = z; if (z > zhi) zhi = z;
+  }
+  if (!(zhi > zlo)) zhi = zlo + 1;
+  const ZH = 0.85;
+  const nz = v => (zf(v) - zlo)/(zhi - zlo)*ZH;
+  const NX = x => -1 + 2*(x - surf10.l1)/(surf10.h1 - surf10.l1);
+  const NY = x => -1 + 2*(x - surf10.l2)/(surf10.h2 - surf10.l2);
+  const s = Math.min(w, h)/3.05, cx = w/2, cyv = h*0.56;
+  const P3d = (x1, x2, zv) => proj10(NX(x1), NY(x2), nz(zv), s, cx, cyv);
+  const floorz = logz ? Math.pow(10, zlo) - 1 : zlo;
+  if (cache.key !== key){
+    cache.key = key;
+    cache.cv.width = Math.round(w*dpr); cache.cv.height = Math.round(h*dpr);
+    const ctx = cache.cv.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,w,h);
+    ctx.strokeStyle = PAL.axis; ctx.lineWidth = 1;
+    const corners = [[surf10.l1,surf10.l2],[surf10.h1,surf10.l2],[surf10.h1,surf10.h2],[surf10.l1,surf10.h2]];
+    ctx.beginPath();
+    corners.forEach((cc,i) => { const p = P3d(cc[0], cc[1], floorz); i===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]); });
+    ctx.closePath(); ctx.stroke();
+    const quads = [];
+    for (let i = 0; i < GN; i++) for (let j = 0; j < GN; j++){
+      const x1a = surf10.l1 + (surf10.h1-surf10.l1)*i/GN, x1b = surf10.l1 + (surf10.h1-surf10.l1)*(i+1)/GN;
+      const x2a = surf10.l2 + (surf10.h2-surf10.l2)*j/GN, x2b = surf10.l2 + (surf10.h2-surf10.l2)*(j+1)/GN;
+      const pa = P3d(x1a,x2a,G[i][j]), pb = P3d(x1b,x2a,G[i+1][j]),
+            pc = P3d(x1b,x2b,G[i+1][j+1]), pd = P3d(x1a,x2b,G[i][j+1]);
+      quads.push({ pa, pb, pc, pd, un: surf10.UN[i][j],
+        zn: (nz(G[i][j]) + nz(G[i+1][j]) + nz(G[i+1][j+1]) + nz(G[i][j+1]))/(4*ZH),
+        depth: (pa[2]+pb[2]+pc[2]+pd[2])/4 });
+    }
+    quads.sort((q1,q2) => q1.depth - q2.depth);
+    for (const q of quads){
+      ctx.beginPath();
+      ctx.moveTo(q.pa[0], q.pa[1]); ctx.lineTo(q.pb[0], q.pb[1]);
+      ctx.lineTo(q.pc[0], q.pc[1]); ctx.lineTo(q.pd[0], q.pd[1]); ctx.closePath();
+      ctx.fillStyle = mix(PAL.surflo, PAL.surfhi, clamp(q.zn, 0, 1));
+      ctx.fill();
+      if (q.un){ ctx.fillStyle = alpha(PAL.unst, 0.13); ctx.fill(); }
+      ctx.strokeStyle = alpha(PAL.muted, 0.18); ctx.lineWidth = 0.5; ctx.stroke();
+    }
+    ctx.fillStyle = PAL.muted; ctx.font = '11px ui-monospace,Menlo,Consolas,monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`w₁∈[${fmt(surf10.l1)}, ${fmt(surf10.h1)}]  w₂∈[${fmt(surf10.l2)}, ${fmt(surf10.h2)}]`, 8, h - 8);
+    ctx.textAlign = 'right';
+    ctx.fillText((kind === 'f' ? 'f̄' : (logz ? 'log₁₀(1+L)' : 'L')) + `∈[${fmt(zlo)}, ${fmt(zhi)}]`, w - 8, h - 8);
+    if (kind === 'f'){
+      const nS = R10.c.length, NP = 120;
+      for (let k = 0; k < nS; k++){
+        ctx.strokeStyle = alpha(mix(PAL.surflo, PAL.surfhi, nS > 1 ? k/(nS-1) : 0.5), 0.95);
+        ctx.lineWidth = 1.6;
+        for (const branch of [-1, 1]){
+          ctx.beginPath(); let started = false;
+          for (let j = 0; j <= NP; j++){
+            const x2 = surf10.l2 + (surf10.h2-surf10.l2)*j/NP, x1 = zeroResW1_10(k, x2, branch);
+            if (!isFinite(x1) || x1 < surf10.l1 || x1 > surf10.h1){ started = false; continue; }
+            const p = P3d(x1, x2, meanOut10(x1, x2, surf10.cbar));
+            started ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
+            started = true;
+          }
+          ctx.stroke();
+        }
+      }
+    }
+  }
+  const { ctx } = setup(cv);
+  ctx.drawImage(cache.cv, 0, 0, w, h);
+  const up = Math.min(Math.round(t10), R10.n);
+  const st = decim(up, 2500);
+  const inD = i => R10.x1[i] >= surf10.l1 && R10.x1[i] <= surf10.h1 && R10.x2[i] >= surf10.l2 && R10.x2[i] <= surf10.h2;
+  const zcl = v => clamp(zf(v), zlo, zhi);
+  const zof = i => kind !== 'f' ? R10.L[i] : Math.max(-1e100, Math.min(1e100, meanOut10(R10.x1[i], R10.x2[i], surf10.cbar)));
+  ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+  ctx.strokeStyle = alpha(PAL.traj1, 0.35);
+  ctx.beginPath();
+  let prev = null;
+  for (let i = 0; i <= up; i++){
+    if (!inD(i)){ prev = null; continue; }
+    const p = proj10(NX(R10.x1[i]), NY(R10.x2[i]), (zcl(zof(i)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
+    prev ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
+    prev = p;
+  }
+  ctx.stroke();
+  for (let i = 0; i <= up; i += st){
+    if (!inD(i)) continue;
+    const p = proj10(NX(R10.x1[i]), NY(R10.x2[i]), (zcl(zof(i)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
+    ctx.fillStyle = trajCol(R10.n ? i/R10.n : 0);
+    ctx.beginPath(); ctx.arc(p[0], p[1], 2.3, 0, 7); ctx.fill();
+  }
+  if (inD(up)){
+    const p = proj10(NX(R10.x1[up]), NY(R10.x2[up]), (zcl(zof(up)) - zlo)/(zhi - zlo)*ZH, s, cx, cyv);
+    ctx.fillStyle = PAL.now; ctx.beginPath(); ctx.arc(p[0], p[1], 5.5, 0, 7); ctx.fill();
+    ctx.strokeStyle = PAL.surface; ctx.lineWidth = 2; ctx.stroke();
+  }
+}
 function drawMap10(cv, kind){
   const { ctx, w, h } = setup(cv);
   if (w < 10 || h < 10) return;
@@ -5683,6 +5858,23 @@ function drawMap10(cv, kind){
       for (let j = 0; j <= M2; j++) G[i].push(Math.log10(L10full(x1, lo2 + s2*j/M2, c, yv) + 1e-12));
     }
     contourGrid(ctx, A, G, M2, lo1, s1, lo2, s2, false);
+  } else if (kind === 'f'){
+    const nS = c.length, NP = 200;
+    for (let k = 0; k < nS; k++){
+      ctx.strokeStyle = alpha(mix(PAL.surflo, PAL.surfhi, nS > 1 ? k/(nS-1) : 0.5), 0.9);
+      ctx.lineWidth = 1.4;
+      for (const branch of [-1, 1]){
+        ctx.beginPath(); let started = false;
+        for (let j = 0; j <= NP; j++){
+          const w2 = lo2 + s2*j/NP, w1 = zeroResW1_10(k, w2, branch);
+          const px = A.x(w1), py = A.y(w2);
+          if (!isFinite(px) || !isFinite(py) || w1 < lo1 || w1 > hi1){ started = false; continue; }
+          started ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+          started = true;
+        }
+        ctx.stroke();
+      }
+    }
   } else {
     // sharpness contour lines + gradient-of-sharpness arrows (uphill = sharper)
     const M2 = 56, G = [];
@@ -5736,8 +5928,9 @@ function drawMap10(cv, kind){
 function drawAll10(){
   if (!R10) return;
   readPal();
+  if (view10 === '3d'){ drawSurf10($('c10f'), 'f'); drawSurf10($('c10L'), 'L'); }
+  else { drawMap10($('c10f'), 'f'); drawMap10($('c10L'), 'L'); }
   drawMap10($('c10map'), 'S');
-  drawMap10($('c10L'), 'L');
   drawLogStrip($('c10s1'), R10, t10, R10.L, 0, PAL.accent);
   drawSharpStrip($('c10s2'), R10, t10, P10.lr, true);
   drawSymlogMulti($('c10s3'), R10, t10, [R10.Dfit, R10.Dosc], [PAL.zero, PAL.crit]);
@@ -5759,7 +5952,7 @@ function drawAll10(){
   $('p10tlab').textContent = `t = ${up} / ${R10.n}`;
 }
 function recompute10(keepT){
-  R10 = sim10(); $('p10scrub').max = R10.n;
+  R10 = sim10(); buildSurf10(); $('p10scrub').max = R10.n;
   t10 = keepT ? Math.min(t10, R10.n) : R10.n; $('p10scrub').value = t10;
   drawAll10(); saveHash();
 }
@@ -5931,8 +6124,13 @@ bindStrip($('c10s3'), i => `t=${i}\nfitting pull = ${fmt(R10.Dfit[i])}\nw₂ cou
 bindStrip($('c10s4'), i => `t=${i}\n∂²λ/∂x² = ${fmt(R10.Kss[i])}\n(> 0 ⇒ oscillation sharpens ⇒ runaway)`, apply10);
 bindStrip($('c10s5'), i => `t=${i}\n‖r‖=${fmt(R10.rn[i])}`, apply10);
 bindStrip($('c10s6'), i => `t=${i}\nx_t=${fmt(R10.Xt[i])}`, apply10);
+$('p10view').addEventListener('change', () => { view10 = $('p10view').value === 'map' ? 'map' : '3d'; drawAll10(); });
+$('p10logz').addEventListener('change', () => { cacheL10.key = ''; drawAll10(); });
+bindRotate($('c10f'), cam10, drawAll10, () => view10 === '3d');
+bindRotate($('c10L'), cam10, drawAll10, () => view10 === '3d');
+bindMapRot($('c10f'), 'a10', drawAll10, () => view10 === 'map');
+bindMapRot($('c10L'), 'a10', drawAll10, () => view10 === 'map');
 bindMapRot($('c10map'), 'a10', drawAll10, () => true);
-bindMapRot($('c10L'), 'a10', drawAll10, () => true);
 $('p10csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R10.n; i++)
@@ -6035,7 +6233,7 @@ function redrawVisible(){
   if (!$('panel9').hidden) drawAll9();
   if (!$('panel10').hidden) drawAll10();
 }
-function clearSurfCaches(){ cacheF3.key = ''; cacheL3.key = ''; cacheF6.key = ''; cacheL6.key = ''; cacheF8.key = ''; cacheL8.key = ''; cacheF9.key = ''; cacheL9.key = ''; }
+function clearSurfCaches(){ cacheF3.key = ''; cacheL3.key = ''; cacheF6.key = ''; cacheL6.key = ''; cacheF8.key = ''; cacheL8.key = ''; cacheF9.key = ''; cacheL9.key = ''; cacheF10.key = ''; cacheL10.key = ''; }
 const ro = new ResizeObserver(() => { clearSurfCaches(); redrawVisible(); });
 document.querySelectorAll('canvas.plot').forEach(c => ro.observe(c));
 
