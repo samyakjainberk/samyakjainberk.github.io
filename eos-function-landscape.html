@@ -4876,7 +4876,6 @@ function wireMulti(binds, PP, pid, rec){
 }
 wireMulti(BIND7, P7, 'p7', recompute7);
 wireMulti(BIND8, P8, 'p8', recompute8);
-wireMulti(BIND9, P9, 'p9', recompute9);
 
 
 /* ================= PANEL 9 : n samples, CONSTANT function Hessian (clone of panel 8) ================= */
@@ -4909,6 +4908,7 @@ const PRESETS9 = [
   { n:'Gauss–Newton', d:'GN removes the curvature dependence: λ(PH) ≈ 2 and the pushback never happens',
     v:{ opt:'gn', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.05, mu:0.3, y2:2.0, x10:0.15, lr:0.9, T:300 } },
 ];
+wireMulti(BIND9, P9, 'p9', recompute9);
 
 function st9(w1, w2, c, yv){
   // MEAN squared error (see st7): all aggregates below are divided by n
@@ -5122,7 +5122,7 @@ function sim9(){
            DM: [dirMemory(Rc, m), dirMemory(Jc, m), dirMemory([cS1, cS2], m)],
            n, div, conv: !div && L[m-1] < 1e-10 };
 }
-function L8ful9(w1, w2, c, yv){
+function L9full(w1, w2, c, yv){
   const E = P9.a + P9.b*w2;
   let L = 0;
   for (let k = 0; k < c.length; k++){ const r = yv[k] - (E*w1*c[k] + P9.mu*w2); L += r*r; }
@@ -5159,7 +5159,7 @@ function drawMap9(cv, kind){
     for (let i = 0; i <= M2; i++){
       G.push([]);
       const x1 = lo1 + s1*i/M2;
-      for (let j = 0; j <= M2; j++) G[i].push(Math.log10(L8ful9(x1, lo2 + s2*j/M2, c, yv) + 1e-12));
+      for (let j = 0; j <= M2; j++) G[i].push(Math.log10(L9full(x1, lo2 + s2*j/M2, c, yv) + 1e-12));
     }
     contourGrid(ctx, A, G, M2, lo1, s1, lo2, s2, false);
   }
@@ -5225,7 +5225,7 @@ function buildSurf9(){
     const x1 = l1 + (h1-l1)*i/GN;
     for (let j = 0; j <= GN; j++){
       const x2 = l2 + (h2-l2)*j/GN;
-      LM[i].push(L8ful9(x1, x2, R9.c, R9.yv));
+      LM[i].push(L9full(x1, x2, R9.c, R9.yv));
       const E = (P9.a + P9.b*x2);
       F[i].push(Math.max(-1e100, Math.min(1e100, E*x1*cbar + P9.mu*x2)));   // mean output f̄
     }
