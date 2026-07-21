@@ -147,6 +147,7 @@
     <button id="tab7" role="tab" aria-selected="false">n points · 1 param</button>
     <button id="tab8" role="tab" aria-selected="false">n points · tilted valley</button>
     <button id="tab9" role="tab" aria-selected="false">n points · constant Hessian</button>
+    <button id="tab10" role="tab" aria-selected="false">n points · anti-stabilization</button>
   </div>
 </header>
 
@@ -1314,6 +1315,110 @@
   </div>
 </section>
 
+<section class="panel" id="panel10" hidden>
+  <div class="side">
+    <div class="card ctl">
+      <h3>Model &nbsp;·&nbsp; fᵢ = (a + b·w₂ + ½γ·w₁)·cᵢ·w₁ + μ·w₂</h3>
+      <div class="mdef"><b>Residuals that sharpen — the anti-stabilization tab.</b> This is the constant-Hessian model of the previous tab with <b>one extra residual term</b>, ½γ·w₁²·cᵢ. Setting <b>γ = 0 reproduces that tab exactly</b>: sharpness depends only on the slow coordinate w₂, the top eigenvector points along w₁, and ∂λ/∂w₁ = 0, so the growing w₁-oscillation feeds back on λ only through w₂ as the <b>perfect square −2ηE²b·w₁²</b> — always flattening, hence self-stabilizing.<br><br><b>γ ≠ 0 breaks the perfect square.</b> Now ∂²fᵢ/∂w₁² = γ·cᵢ ≠ 0, so the Gauss–Newton block H₁₁ = 2(a + b·w₂ + γ·w₁)²·mean c² depends on the <b>oscillating</b> coordinate. When the iterate oscillates with amplitude A the rectified part raises λ by ≈ 2γ²·A²·mean c² — the residual structure now <b>pushes into a sharper region</b>. Above a threshold γ this positive feedback overwhelms the w₂ pushback: sharpness overshoots 2/η and the run <b>diverges completely</b> — no edge-of-stability plateau. Sweep γ to cross from self-stabilization → overshoot → divergence.<br><b>a</b>: base gain · <b>b</b>: gain slope (∇²f off-diag) · <b>γ</b>: self-sharpening (∇²f w₁w₁ curvature) · <b>n</b>: samples · <b>B</b>: batch · <b>σ</b>: spread · <b>μ</b>: fitting · <b>y₂</b>: target · <b>η</b>, <b>T</b>: optimizer.</div>
+      <div class="row"><label for="p10opt">optimizer</label>
+        <select id="p10opt">
+          <option value="gd">plain GD (P = I)</option>
+          <option value="spec">spectral GD</option>
+          <option value="sign">signed GD</option>
+          <option value="gn">Gauss–Newton</option></select></div>
+      <div class="row"><label for="p10n">samples n</label><input id="p10n" type="number" min="2" max="100" step="1" value="100"></div>
+      <div class="row"><label for="p10bs">batch size B</label><input id="p10bs" type="number" min="1" max="100" step="1" value="100"></div>
+      <div class="row"><label for="p10seed">batch seed</label><input id="p10seed" type="number" min="1" step="1" value="1"></div>
+      <div class="row"><label for="p10sig">spread σ</label><input id="p10sig" type="number" step="any" value="0.6"></div>
+      <div class="row"><label for="p10tau">target curvature τ</label><input id="p10tau" type="number" step="any" value="0.4"></div>
+      <div class="row"><label for="p10a">a &nbsp;(base gain)</label><input id="p10a" type="number" step="any" value="2.5"></div>
+      <div class="row"><label for="p10b">b &nbsp;(gain slope = ∇²f w₁w₂)</label><input id="p10b" type="number" step="any" value="0.10"></div>
+      <div class="row"><label for="p10gam">γ &nbsp;(self-sharpening = ∇²f w₁w₁)</label><input id="p10gam" type="number" step="any" value="0"></div>
+      <input id="p10gams" type="range" min="0" max="1000" value="0" aria-label="self-sharpening slider">
+      <div class="row"><label for="p10mu">μ &nbsp;(fitting strength)</label><input id="p10mu" type="number" step="any" value="0.5"></div>
+      <div class="row"><label for="p10y2">target y₂</label><input id="p10y2" type="number" step="any" value="2.5"></div>
+      <div class="row"><label for="p10x10">init w₁</label><input id="p10x10" type="number" step="any" value="0.3"></div>
+      <div class="row"><label for="p10lr">learning rate η</label><input id="p10lr" type="number" step="any" value="0.1"></div>
+      <input id="p10lrs" type="range" min="0" max="1000" value="0" aria-label="learning rate slider">
+      <div class="row"><label for="p10T">iterations</label><input id="p10T" type="number" min="10" max="20000" step="10" value="1500"></div>
+      <div class="chips" id="p10info"></div>
+    </div>
+    <div class="card ctl"><h3>Presets</h3><div class="presets" id="p10presets"></div></div>
+    <div class="card ctl"><h3>At current step</h3><div class="chips" id="p10read"></div>
+      <div style="margin-top:8px"><button class="linkbtn" id="p10csv">Export trajectory CSV</button></div></div>
+  </div>
+
+  <div class="charts">
+    <div class="card transport">
+      <button id="p10play" aria-label="play or pause">▶</button>
+      <input id="p10scrub" type="range" min="0" max="1500" value="1500" aria-label="gradient step">
+      <span class="tlab num" id="p10tlab">t = 1500 / 1500</span>
+      <select id="p10speed" aria-label="playback speed">
+        <option value="0.01">1/100×</option><option value="0.02">1/50×</option>
+        <option value="0.04">1/25×</option><option value="0.1">⅒×</option>
+        <option value="0.25">¼×</option><option value="1" selected>1×</option>
+        <option value="4">4×</option><option value="16">16×</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <h3>Sharpness landscape λ(w₁, w₂) — which way is sharper?</h3>
+      <p class="cap"><b>The residual-contour picture.</b> Contour lines of λ<sub>max</sub>(PH) over the (w₁, w₂) plane · faint grey arrows point <b>up-hill in sharpness</b> (∇λ, toward sharper) · red tint: λ &gt; 2/η (unstable) · the trajectory is drawn on top. <b>γ = 0:</b> λ contours run nearly horizontal (sharpness depends on w₂ only) and the run hugs the 2/η edge — the oscillation slides <i>along</i> the contours, feedback is orthogonal. <b>γ &gt; 0:</b> the contours bend so that the oscillation direction climbs them — the iterate is carried across the 2/η line into ever-redder, ever-sharper territory until it diverges · drag to rotate</p>
+      <canvas class="plot" id="c10map" role="img" aria-label="sharpness landscape with gradient-of-sharpness arrows and trajectory"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Loss landscape L(w₁, w₂)</h3>
+      <p class="cap">mean-squared-error contours · red tint: λ(PH) &gt; 2/η · the same trajectory · drag to rotate</p>
+      <canvas class="plot" id="c10L" role="img" aria-label="loss contours with trajectory"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Sharpness vs 2/η — overshoot &amp; runaway</h3>
+      <p class="cap">λ<sub>max</sub>(PH) · <b>γ = 0</b> pins at 2/η; <b>γ &gt; 0</b> overshoots and, past threshold, runs away to divergence</p>
+      <canvas class="plot" id="c10s2" role="img" aria-label="Sharpness vs 2/η"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>λ<sub>max</sub>(PH)</span>
+        <span><i class="sw" style="background:var(--sharpmid)"></i>at midpoint</span>
+        <span><i class="sw" style="background:var(--unst)"></i>2/η</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Self-sharpening curvature ∂²λ/∂x² along the oscillation</h3>
+      <p class="cap">second derivative of λ along the top eigenvector (the direction the iterate oscillates) · <b>this is the whole story:</b> ≈ 0 ⇒ oscillation cannot sharpen ⇒ self-stabilizes (γ = 0) · <b>&gt; 0</b> ⇒ every unit of oscillation amplitude² raises λ ⇒ positive feedback ⇒ runaway · equals ≈ 2γ²·mean c² · symlog</p>
+      <canvas class="plot" id="c10s4" role="img" aria-label="self-sharpening curvature along the oscillation direction"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>What moves w₂ — fitting pull vs oscillation coupling</h3>
+      <p class="cap">the two contributions to the w₂ step · <b>green</b>: fitting pull +2ημr̄ (toward sharper) · <b>red</b>: the w₂-coupling −2ηE·b·w₁²·mean c² (toward flatter — the panel-9 pushback, still present) · here a <b>third</b> channel — the direct λ(w₁) self-sharpening — sits outside this w₂ balance and overrules it · symlog</p>
+      <canvas class="plot" id="c10s3" role="img" aria-label="the two contributions to the w2 step"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--zero)"></i>fitting pull (toward sharper)</span>
+        <span><i class="sw" style="background:var(--crit)"></i>w₂ coupling (toward flatter)</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Training loss</h3>
+      <p class="cap">L = (1/n)Σᵢ rᵢ² · log scale · diverges when the self-sharpening wins</p>
+      <canvas class="plot" id="c10s1" role="img" aria-label="Training loss"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Residual norm ‖r‖</h3>
+      <p class="cap">log scale</p>
+      <canvas class="plot" id="c10s5" role="img" aria-label="Residual norm"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>x_t — preconditioned gradient on the top eigenvector</h3>
+      <p class="cap">(Pg)·v̂₁ · signed, symlog · the oscillation amplitude — watch it <b>grow without bound</b> once the self-sharpening feedback takes over</p>
+      <canvas class="plot" id="c10s6" role="img" aria-label="oscillation on the top eigenvector"></canvas>
+    </div>
+
+  </div>
+</section>
+
 
 </main>
 <div id="tip"></div>
@@ -1997,6 +2102,12 @@ function tick(){
     $('p9scrub').value = t9;
     if (t9 >= R9.n){ playing9 = false; $('p9play').textContent = '▶'; }
     drawAll9();
+  }
+  if (playing10 && R10){
+    t10 = stepAdvance(t10, R10.n, +$('p10speed').value);
+    $('p10scrub').value = t10;
+    if (t10 >= R10.n){ playing10 = false; $('p10play').textContent = '▶'; }
+    drawAll10();
   }
   requestAnimationFrame(tick);
 }
@@ -4586,7 +4697,7 @@ function drawMap8(cv, kind){
   rotBadge(ctx, A, mapRot.a8);
 }
 let view6 = '3d', view8 = '3d', view9 = '3d';
-const mapRot = { a3: 0, a6: 0, a8: 0, a9: 0 };
+const mapRot = { a3: 0, a6: 0, a8: 0, a9: 0, a10: 0 };
 function bindMapRot(cv, key, redraw, active){
   let last = null;
   cv.addEventListener('pointerdown', ev => { if (!active()) return; last = ev.clientX; cv.setPointerCapture(ev.pointerId); });
@@ -5402,6 +5513,258 @@ function recompute9(keepT){
 }
 function syncInputs9(){ $('p9lin').checked = !!P9.lin; for (const [id,k] of BIND9) $(id).value = P9[k]; $('p9lrs').value = lr2slider(P9.lr); $('p9opt').value = P9.opt; }
 
+/* ===================== Panel 10 — anti-stabilization: residuals that sharpen =====================
+   fᵢ = (a + b·w₂ + ½γ·w₁)·cᵢ·w₁ + μ·w₂.  γ = 0 ⇒ identical to the constant-Hessian tab (panel 9).
+   γ ≠ 0 adds ∂²fᵢ/∂w₁² = γ·cᵢ, so H₁₁ = 2(a+b·w₂+γ·w₁)²·mean c² depends on the OSCILLATING coordinate.
+   The oscillation then sharpens λ directly (∂²λ/∂x² ≈ 2γ²·mean c² > 0), breaking the perfect-square
+   self-stabilization of panel 9 and, past a threshold γ, driving complete divergence.                */
+const P10 = { opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.3, gam:0, lr:0.1, T:1500 };
+let R10 = null, t10 = 0, playing10 = false;
+const BIND10 = [['p10n','n'],['p10bs','bs'],['p10seed','seed'],['p10sig','sig'],['p10tau','tau'],['p10a','a'],['p10b','b'],['p10gam','gam'],['p10mu','mu'],['p10y2','y2'],['p10x10','x10'],['p10lr','lr'],['p10T','T']];
+const PRESETS10 = [
+  { n:'γ = 0 · self-stabilized (recovers panel 9)', d:'the constant-Hessian run with no self-sharpening: λ climbs to 2/η = 20, the rectified w₁² coupling pushes w₂ back, sharpness pins at the edge — bounded forever',
+    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.3, gam:0, lr:0.1, T:1500 } },
+  { n:'γ small · pinned ABOVE the edge', d:'a little self-sharpening: the oscillation now raises λ on its own, so the pushback can no longer hold it at 2/η — a new, higher equilibrium forms and sharpness settles at λ ≈ 24, above 2/η = 20. The residuals have pushed the operating point into a sharper region, but the run still survives',
+    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.3, gam:1.5, lr:0.1, T:1500 } },
+  { n:'γ over threshold · complete divergence', d:'past the bifurcation (γ ≈ 2.6 here) the ∂²λ/∂x² > 0 feedback overwhelms the pushback: every oscillation sharpens, which grows the oscillation, which sharpens more — a super-exponential runaway. λ and the loss blow up within a few dozen steps. No edge-of-stability plateau exists — watch the sharpness climb past 2/η and never come back',
+    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.08, gam:2.6, lr:0.1, T:1500 } },
+  { n:'Divergence, few spread points', d:'the same runaway with n = 8: fewer samples, identical mechanism — self-sharpening does not need many points',
+    v:{ opt:'gd', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.08, gam:2.6, lr:0.1, T:1500 } },
+  { n:'Gauss–Newton resists it', d:'GN divides out the curvature, flattening λ(PH) toward 2 — it suppresses the self-sharpening feedback and the run survives where plain GD diverges',
+    v:{ opt:'gn', n:8, bs:8, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.10, mu:0.5, y2:2.5, x10:0.15, gam:2.6, lr:0.9, T:300 } },
+];
+function gam2slider(g){ return clamp(Math.round(g/8*1000), 0, 1000); }
+function slider2gam(v){ return Math.round(v/1000*8*1000)/1000; }
+wireMulti(BIND10, P10, 'p10', recompute10);
+
+function st10(w1, w2, c, yv){
+  const nS = c.length, E = P10.a + P10.b*w2, g = P10.gam, inv = 1/nS;
+  const r = new Float64Array(nS), J1 = new Float64Array(nS), J2 = new Float64Array(nS);
+  let L = 0, g1 = 0, g2 = 0, M11 = 0, M12 = 0, M22 = 0, N12 = 0, N11 = 0, sumR = 0, sumRc = 0;
+  for (let i = 0; i < nS; i++){
+    const fi = (E + 0.5*g*w1)*w1*c[i] + P10.mu*w2;
+    r[i] = yv[i] - fi;
+    J1[i] = (E + g*w1)*c[i];            // ∂f/∂w₁  (depends on w₁ once γ ≠ 0)
+    J2[i] = P10.b*w1*c[i] + P10.mu;     // ∂f/∂w₂
+    L += r[i]*r[i];
+    g1 += -2*r[i]*J1[i]; g2 += -2*r[i]*J2[i];
+    M11 += J1[i]*J1[i]; M12 += J1[i]*J2[i]; M22 += J2[i]*J2[i];
+    N12 += r[i]*P10.b*c[i];             // Σ rᵢ ∂²fᵢ/∂w₁∂w₂
+    N11 += r[i]*g*c[i];                 // Σ rᵢ ∂²fᵢ/∂w₁²  = the self-sharpening curvature
+    sumR += r[i]; sumRc += r[i]*c[i];
+  }
+  return { E, r, J1, J2, nS, L: L*inv, g1: g1*inv, g2: g2*inv,
+           M11: M11*inv, M12: M12*inv, M22: M22*inv, sumR: sumR*inv, sumRc: sumRc*inv,
+           h11: (2*M11 - 2*N11)*inv, h12: (2*M12 - 2*N12)*inv, h22: 2*M22*inv };
+}
+function batchGrad10(w1, w2, c, yv, idx, B){
+  const E = P10.a + P10.b*w2, g = P10.gam, inv = 1/B;
+  let g1 = 0, g2 = 0, M11 = 0, M12 = 0, M22 = 0;
+  for (let t = 0; t < B; t++){
+    const i = idx[t];
+    const r = yv[i] - ((E + 0.5*g*w1)*w1*c[i] + P10.mu*w2);
+    const J1 = (E + g*w1)*c[i], J2 = P10.b*w1*c[i] + P10.mu;
+    g1 += -2*r*J1; g2 += -2*r*J2; M11 += J1*J1; M12 += J1*J2; M22 += J2*J2;
+  }
+  return { g1: g1*inv, g2: g2*inv, M11: M11*inv, M12: M12*inv, M22: M22*inv };
+}
+function pre10(s){
+  if (P10.opt === 'gd') return { p11:1, p12:0, p22:1 };
+  if (P10.opt === 'sign') return { p11: 1/(Math.abs(s.g1)+1e-12), p12: 0, p22: 1/(Math.abs(s.g2)+1e-12) };
+  if (P10.opt === 'gn'){
+    const eps = 1e-9*(1 + s.M11 + s.M22), a11 = s.M11 + eps, a22 = s.M22 + eps;
+    const det = a11*a22 - s.M12*s.M12;
+    if (isFinite(det) && Math.abs(det) > 1e-280) return { p11: a22/det, p12: -s.M12/det, p22: a11/det };
+  }
+  const sc = 1/(Math.hypot(s.g1, s.g2) + 1e-12);
+  return { p11: sc, p12: 0, p22: sc };
+}
+function preFrom10(bg){
+  if (P10.opt === 'gd') return { p11:1, p12:0, p22:1 };
+  if (P10.opt === 'sign') return { p11: 1/(Math.abs(bg.g1)+1e-12), p12: 0, p22: 1/(Math.abs(bg.g2)+1e-12) };
+  if (P10.opt === 'gn'){
+    const eps = 1e-9*(1 + bg.M11 + bg.M22), a11 = bg.M11 + eps, a22 = bg.M22 + eps;
+    const det = a11*a22 - bg.M12*bg.M12;
+    if (isFinite(det) && Math.abs(det) > 1e-280) return { p11: a22/det, p12: -bg.M12/det, p22: a11/det };
+  }
+  const sc = 1/(Math.hypot(bg.g1, bg.g2) + 1e-12);
+  return { p11: sc, p12: 0, p22: sc };
+}
+function lamPH10(s){
+  const P = pre10(s), Q = symSqrt2(P.p11, P.p12, P.p22);
+  const b11 = Q.q11*s.h11 + Q.q12*s.h12, b12 = Q.q11*s.h12 + Q.q12*s.h22;
+  const b21 = Q.q12*s.h11 + Q.q22*s.h12, b22 = Q.q12*s.h12 + Q.q22*s.h22;
+  return symEig2(b11*Q.q11 + b12*Q.q12, b11*Q.q12 + b12*Q.q22, b21*Q.q12 + b22*Q.q22);
+}
+function lamP10(w1, w2, c, yv){ return lamPH10(st10(w1, w2, c, yv)).lam; }
+function L10full(w1, w2, c, yv){
+  const E = P10.a + P10.b*w2, g = P10.gam;
+  let L = 0;
+  for (let k = 0; k < c.length; k++){ const r = yv[k] - ((E + 0.5*g*w1)*w1*c[k] + P10.mu*w2); L += r*r; }
+  return Math.min(L/c.length, 1e300);
+}
+function sim10(){
+  const c = sampleCoef(Math.max(2, Math.round(P10.n)), P10.sig), nS = c.length, T = P10.T;
+  const yv = sampleTarget(nS, P10.y2, P10.tau);
+  const B = clamp(Math.round(P10.bs), 1, nS), idx = makeIdx(nS), rnd = lcg(P10.seed);
+  let mc2 = 0; for (let k = 0; k < nS; k++) mc2 += c[k]*c[k]; mc2 /= nS;
+  const X1 = new Float64Array(T+1), X2 = new Float64Array(T+1);
+  let w1 = P10.x10, w2 = 0, n = T, div = false;
+  X1[0] = w1; X2[0] = w2;
+  for (let t = 0; t < T; t++){
+    const s = st10(w1, w2, c, yv);
+    if (!isFinite(s.g1) || !isFinite(s.g2)){ n = t; div = true; break; }
+    if (B < nS) drawBatch(idx, B, rnd);
+    const bg = batchGrad10(w1, w2, c, yv, idx, B);
+    if (!isFinite(bg.g1) || !isFinite(bg.g2)){ n = t; div = true; break; }
+    const P = preFrom10(bg);
+    w1 -= P10.lr*(P.p11*bg.g1 + P.p12*bg.g2);
+    w2 -= P10.lr*(P.p12*bg.g1 + P.p22*bg.g2);
+    if (!isFinite(w1) || !isFinite(w2) || Math.max(Math.abs(w1), Math.abs(w2)) > 1e9){ n = t; div = true; break; }
+    X1[t+1] = w1; X2[t+1] = w2;
+  }
+  const m = n+1, clip = v => Math.max(-1e150, Math.min(1e150, v));
+  const L = new Float64Array(m), rn = new Float64Array(m), S = new Float64Array(m), Sm = new Float64Array(Math.max(0,m-1)),
+        Xt = new Float64Array(m), Dfit = new Float64Array(m), Dosc = new Float64Array(m), Kss = new Float64Array(m);
+  let pv1 = null, pv2 = 0;
+  for (let i = 0; i < m; i++){
+    const s = st10(X1[i], X2[i], c, yv), P = pre10(s), eA = lamPH10(s);
+    L[i] = clip(s.L); rn[i] = Math.sqrt(Math.max(0, L[i])); S[i] = clip(eA.lam);
+    const Q = symSqrt2(P.p11, P.p12, P.p22);
+    let vw1 = Q.q11*eA.v1 + Q.q12*eA.v2, vw2 = Q.q12*eA.v1 + Q.q22*eA.v2;
+    const nv = Math.hypot(vw1, vw2);
+    if (nv > 1e-300){ vw1 /= nv; vw2 /= nv; } else { vw1 = 1; vw2 = 0; }
+    if (pv1 !== null && vw1*pv1 + vw2*pv2 < 0){ vw1 = -vw1; vw2 = -vw2; }
+    pv1 = vw1; pv2 = vw2;
+    const pg1 = P.p11*s.g1 + P.p12*s.g2, pg2 = P.p12*s.g1 + P.p22*s.g2;
+    Xt[i] = clip(pg1*vw1 + pg2*vw2);
+    Dfit[i] = clip(2*P10.lr*P10.mu*s.sumR);              // w₂ advance from the fitting pull
+    Dosc[i] = clip(2*P10.lr*P10.b*X1[i]*s.sumRc);        // w₂ change from the w₂-coupling (panel-9 pushback)
+    // self-sharpening: second derivative of λ along the top eigenvector (the oscillation direction)
+    const hs = 1e-3*(1 + Math.abs(X1[i]) + Math.abs(X2[i]));
+    const lp = lamP10(X1[i] + hs*vw1, X2[i] + hs*vw2, c, yv);
+    const lm = lamP10(X1[i] - hs*vw1, X2[i] - hs*vw2, c, yv);
+    Kss[i] = clip((lp - 2*S[i] + lm)/(hs*hs));
+    if (i+1 < m) Sm[i] = clip(lamP10(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1]), c, yv));
+  }
+  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), c, yv, L, rn, S, Sm, Xt, Dfit, Dosc, Kss, mc2,
+           n, div, conv: !div && L[m-1] < 1e-10 };
+}
+function drawMap10(cv, kind){
+  const { ctx, w, h } = setup(cv);
+  if (w < 10 || h < 10) return;
+  const A = area(w, h);
+  const up = Math.min(Math.round(t10), R10.n);
+  const c = R10.c, yv = R10.yv;
+  const [m1l, m1h] = fullRange(R10.x1, 1, 99, 3), [m2l, m2h] = fullRange(R10.x2, 1, 99, 3);
+  let lo1 = Math.min(m1l, P10.x10, 0), hi1 = Math.max(m1h, P10.x10, 0);
+  let lo2 = Math.min(m2l, 0), hi2 = Math.max(m2h, 0);
+  let s1 = hi1-lo1 || 1, s2 = hi2-lo2 || 1;
+  lo1 -= 0.18*s1; hi1 += 0.18*s1; lo2 -= 0.18*s2; hi2 += 0.18*s2;
+  s1 = hi1-lo1; s2 = hi2-lo2;
+  A.x = x => A.l + (x-lo1)/s1*A.w;
+  A.y = x => A.t + (hi2-x)/s2*A.h;
+  const thr = 2/P10.lr, M = 46;
+  ctx.save(); ctx.beginPath(); ctx.rect(A.l, A.t, A.w, A.h); ctx.clip(); applyMapRot(ctx, A, mapRot.a10);
+  ctx.fillStyle = alpha(PAL.unst, 0.10);
+  const cw = A.w/M + 0.5, chh = A.h/M + 0.5;
+  for (let i = 0; i < M; i++) for (let j = 0; j < M; j++){
+    const lam = lamP10(lo1 + s1*(i+0.5)/M, lo2 + s2*(j+0.5)/M, c, yv);
+    if (isFinite(lam) && lam > thr) ctx.fillRect(A.x(lo1 + s1*i/M), A.y(lo2 + s2*(j+1)/M), cw, chh);
+  }
+  ctx.restore();
+  axes(ctx, A, ticks(lo1,hi1,7), ticks(lo2,hi2,6), fmt, fmt);
+  ctx.save(); ctx.beginPath(); ctx.rect(A.l-1, A.t-1, A.w+2, A.h+2); ctx.clip(); applyMapRot(ctx, A, mapRot.a10);
+  if (kind === 'L'){
+    const M2 = 64, G = [];
+    for (let i = 0; i <= M2; i++){
+      G.push([]);
+      const x1 = lo1 + s1*i/M2;
+      for (let j = 0; j <= M2; j++) G[i].push(Math.log10(L10full(x1, lo2 + s2*j/M2, c, yv) + 1e-12));
+    }
+    contourGrid(ctx, A, G, M2, lo1, s1, lo2, s2, false);
+  } else {
+    // sharpness contour lines + gradient-of-sharpness arrows (uphill = sharper)
+    const M2 = 56, G = [];
+    for (let i = 0; i <= M2; i++){
+      G.push([]);
+      const x1 = lo1 + s1*i/M2;
+      for (let j = 0; j <= M2; j++){ const lv = lamP10(x1, lo2 + s2*j/M2, c, yv); G[i].push(isFinite(lv) ? lv : NaN); }
+    }
+    contourGrid(ctx, A, G, M2, lo1, s1, lo2, s2, true);
+    const GA = 11, GB = 8, al = Math.min(A.w/GA, A.h/GB)*0.34, ah = 3.2;
+    ctx.strokeStyle = alpha(PAL.muted, 0.6); ctx.fillStyle = alpha(PAL.muted, 0.6); ctx.lineWidth = 1;
+    for (let i = 0; i < GA; i++) for (let j = 0; j < GB; j++){
+      const x1 = lo1 + s1*(i+0.5)/GA, x2 = lo2 + s2*(j+0.5)/GB;
+      const hx = 1e-3*(1 + Math.abs(x1) + Math.abs(x2));
+      const gx = (lamP10(x1+hx,x2,c,yv) - lamP10(x1-hx,x2,c,yv))/(2*hx);
+      const gy = (lamP10(x1,x2+hx,c,yv) - lamP10(x1,x2-hx,c,yv))/(2*hx);
+      const gn = Math.hypot(gx, gy);
+      if (!isFinite(gn) || gn < 1e-9) continue;
+      const px = A.x(x1), py = A.y(x2), ex = px + al*gx/gn, ey = py - al*gy/gn;
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(ex, ey); ctx.stroke();
+      const ang = Math.atan2(ey-py, ex-px);
+      ctx.beginPath(); ctx.moveTo(ex, ey);
+      ctx.lineTo(ex - ah*Math.cos(ang-0.5), ey - ah*Math.sin(ang-0.5));
+      ctx.lineTo(ex - ah*Math.cos(ang+0.5), ey - ah*Math.sin(ang+0.5));
+      ctx.closePath(); ctx.fill();
+    }
+  }
+  const stp = decim(up, 3000);
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = alpha(PAL.traj1, 0.30);
+  ctx.beginPath();
+  for (let i = 0; i <= up; i++){
+    const px = A.x(R10.x1[i]), py = A.y(R10.x2[i]);
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  for (let i = 0; i <= up; i += stp){
+    ctx.fillStyle = trajCol(R10.n ? i/R10.n : 0);
+    ctx.beginPath(); ctx.arc(A.x(R10.x1[i]), A.y(R10.x2[i]), 2.2, 0, 7); ctx.fill();
+  }
+  ctx.fillStyle = PAL.now;
+  ctx.beginPath(); ctx.arc(A.x(R10.x1[up]), A.y(R10.x2[up]), 5.5, 0, 7); ctx.fill();
+  ctx.strokeStyle = PAL.surface; ctx.lineWidth = 2; ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle = PAL.muted; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+  ctx.fillText('w₁', A.l + A.w, A.t + A.h - 4);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('w₂', A.l + 4, A.t + 2);
+  rotBadge(ctx, A, mapRot.a10);
+}
+function drawAll10(){
+  if (!R10) return;
+  readPal();
+  drawMap10($('c10map'), 'S');
+  drawMap10($('c10L'), 'L');
+  drawLogStrip($('c10s1'), R10, t10, R10.L, 0, PAL.accent);
+  drawSharpStrip($('c10s2'), R10, t10, P10.lr, true);
+  drawSymlogMulti($('c10s3'), R10, t10, [R10.Dfit, R10.Dosc], [PAL.zero, PAL.crit]);
+  drawSymlogStrip($('c10s4'), R10, t10, R10.Kss, PAL.sharp);
+  drawLogStrip($('c10s5'), R10, t10, R10.rn, 0, PAL.accent);
+  drawSymlogStrip($('c10s6'), R10, t10, R10.Xt, PAL.sharpmid);
+  const up = Math.min(Math.round(t10), R10.n), ratio = R10.S[up]*P10.lr/2;
+  let cls = PAL.good, txt = 'stable';
+  if (R10.div){ cls = PAL.crit; txt = 'diverged'; }
+  else if (ratio > 1.06){ cls = PAL.crit; txt = 'unstable here'; }
+  else if (ratio >= 0.985){ cls = PAL.warn; txt = 'edge of stability'; }
+  $('p10read').innerHTML = chip('t', up) + chip('w₁', fmt(R10.x1[up])) + chip('w₂', fmt(R10.x2[up])) +
+    chip('L', fmt(R10.L[up])) + chip('λ(PH)', fmt(R10.S[up])) + chip('∂²λ/∂x²', fmt(R10.Kss[up])) +
+    `<span class="pill" style="background:${cls}">η·λ/2 = ${fmt(ratio)} · ${txt}</span>`;
+  const B10 = clamp(Math.round(P10.bs), 1, R10.c.length);
+  $('p10info').innerHTML = chip('2/η', fmt(2/P10.lr)) + chip('γ', fmt(P10.gam)) + chip('samples n', R10.c.length) +
+    chip('batch B', B10 + (B10 === R10.c.length ? ' (full)' : ' · SGD')) + chip('mean c²', fmt(R10.mc2)) +
+    `<span class="chip">γ = 0 recovers the constant-Hessian tab exactly · ∂²λ/∂x² ≈ 2γ²·mean c²</span>`;
+  $('p10tlab').textContent = `t = ${up} / ${R10.n}`;
+}
+function recompute10(keepT){
+  R10 = sim10(); $('p10scrub').max = R10.n;
+  t10 = keepT ? Math.min(t10, R10.n) : R10.n; $('p10scrub').value = t10;
+  drawAll10(); saveHash();
+}
+function syncInputs10(){ for (const [id,k] of BIND10) $(id).value = P10[k]; $('p10lrs').value = lr2slider(P10.lr); $('p10gams').value = gam2slider(P10.gam); $('p10opt').value = P10.opt; }
+
 const PRESETS7 = [
   { n:'Full batch · 100 samples', d:'n=100, B=100, η=0.15: the deterministic reference — the full-sample sharpness rides just above 2/η = 13.3 and the loss oscillates with spread 0.19',
     v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, b:1, y:-3, x0:-2, lr:0.15, T:800 } },
@@ -5442,7 +5805,8 @@ const PRESETS8 = [
 ];
 for (const [list, host, PP, sync_, rec_] of [[PRESETS7, 'p7presets', P7, syncInputs7, recompute7],
                                              [PRESETS8, 'p8presets', P8, syncInputs8, recompute8],
-                                             [PRESETS9, 'p9presets', P9, syncInputs9, recompute9]]){
+                                             [PRESETS9, 'p9presets', P9, syncInputs9, recompute9],
+                                             [PRESETS10, 'p10presets', P10, syncInputs10, recompute10]]){
   for (const pr of list){
     const btn = document.createElement('button');
     btn.innerHTML = `${pr.n}<span class="d">${pr.d}</span>`;
@@ -5552,9 +5916,37 @@ $('p9csv').addEventListener('click', () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 });
 
+/* ---------- panel 10 transport / strips / wiring ---------- */
+$('p10scrub').addEventListener('input', () => { t10 = +$('p10scrub').value; drawAll10(); });
+$('p10play').addEventListener('click', () => {
+  if (playing10){ playing10 = false; $('p10play').textContent = '▶'; return; }
+  if (t10 >= R10.n){ t10 = 0; $('p10scrub').value = 0; }
+  playing10 = true; $('p10play').textContent = '❚❚';
+});
+$('p10gams').addEventListener('input', () => { P10.gam = slider2gam(+$('p10gams').value); $('p10gam').value = P10.gam; recompute10(true); });
+const apply10 = i => { t10 = i; $('p10scrub').value = i; drawAll10(); };
+bindStrip($('c10s1'), i => `t=${i}\nL=${fmt(R10.L[i])}`, apply10);
+bindStrip($('c10s2'), i => `t=${i}\nλ(PH)=${fmt(R10.S[i])}\n2/η=${fmt(2/P10.lr)}`, apply10);
+bindStrip($('c10s3'), i => `t=${i}\nfitting pull = ${fmt(R10.Dfit[i])}\nw₂ coupling = ${fmt(R10.Dosc[i])}`, apply10);
+bindStrip($('c10s4'), i => `t=${i}\n∂²λ/∂x² = ${fmt(R10.Kss[i])}\n(> 0 ⇒ oscillation sharpens ⇒ runaway)`, apply10);
+bindStrip($('c10s5'), i => `t=${i}\n‖r‖=${fmt(R10.rn[i])}`, apply10);
+bindStrip($('c10s6'), i => `t=${i}\nx_t=${fmt(R10.Xt[i])}`, apply10);
+bindMapRot($('c10map'), 'a10', drawAll10, () => true);
+bindMapRot($('c10L'), 'a10', drawAll10, () => true);
+$('p10csv').addEventListener('click', () => {
+  const rows = [];
+  for (let i = 0; i <= R10.n; i++)
+    rows.push([i, R10.x1[i], R10.x2[i], R10.L[i], R10.rn[i], R10.S[i], R10.Sm[i-1<0?0:i-1], R10.Xt[i],
+               R10.Dfit[i], R10.Dosc[i], R10.Kss[i]].join(','));
+  const blob = new Blob(['t,w1,w2,L,rnorm,lamPH,lamMid,xT,dW2fit,dW2coupling,d2lambda_dx2\n' + rows.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'eos_antistab.csv'; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
+
 /* ---------- tabs ---------- */
 function switchTab(nb){
-  for (const k of [1,3,5,6,7,8,9]){
+  for (const k of [1,3,5,6,7,8,9,10]){
     $('panel' + k).hidden = nb !== k;
     $('tab' + k).setAttribute('aria-selected', nb === k);
   }
@@ -5564,7 +5956,8 @@ function switchTab(nb){
   else if (nb === 6) drawAll6();
   else if (nb === 7) drawAll7();
   else if (nb === 8) drawAll8();
-  else drawAll9();
+  else if (nb === 9) drawAll9();
+  else drawAll10();
   saveHash();
 }
 $('tab1').addEventListener('click', () => switchTab(1));
@@ -5574,6 +5967,7 @@ $('tab6').addEventListener('click', () => switchTab(6));
 $('tab7').addEventListener('click', () => switchTab(7));
 $('tab8').addEventListener('click', () => switchTab(8));
 $('tab9').addEventListener('click', () => switchTab(9));
+$('tab10').addEventListener('click', () => switchTab(10));
 
 /* ---------- CSV / hash ---------- */
 $('csvb').addEventListener('click', () => {
@@ -5589,8 +5983,8 @@ function saveHash(){
   clearTimeout(hashTimer);
   hashTimer = setTimeout(() => {
     try {
-      const tab = !$('panel3').hidden ? 3 : !$('panel5').hidden ? 5 : !$('panel6').hidden ? 6 : !$('panel7').hidden ? 7 : !$('panel8').hidden ? 8 : !$('panel9').hidden ? 9 : 1;
-      const st = { p: P, p3: P3, p5: P5, p6: P6, p7: P7, p8: P8, p9: P9, tab };
+      const tab = !$('panel3').hidden ? 3 : !$('panel5').hidden ? 5 : !$('panel6').hidden ? 6 : !$('panel7').hidden ? 7 : !$('panel8').hidden ? 8 : !$('panel9').hidden ? 9 : !$('panel10').hidden ? 10 : 1;
+      const st = { p: P, p3: P3, p5: P5, p6: P6, p7: P7, p8: P8, p9: P9, p10: P10, tab };
       history.replaceState(null, '', '#' + encodeURIComponent(JSON.stringify(st)));
     } catch(e){ /* sandboxed */ }
   }, 300);
@@ -5605,7 +5999,8 @@ function loadHash(){
     if (st && st.p7) Object.assign(P7, st.p7);
     if (st && st.p8) Object.assign(P8, st.p8);
     if (st && st.p9) Object.assign(P9, st.p9);
-    return st && [3,5,6,7,8,9].includes(st.tab) ? st.tab : 1;
+    if (st && st.p10) Object.assign(P10, st.p10);
+    return st && [3,5,6,7,8,9,10].includes(st.tab) ? st.tab : 1;
   } catch(e){ return 1; }
 }
 
@@ -5619,6 +6014,7 @@ syncInputs6();
 syncInputs7();
 syncInputs8();
 syncInputs9();
+syncInputs10();
 recompute(false);
 recompute3(false);
 recompute5(false);
@@ -5626,6 +6022,7 @@ recompute6(false);
 recompute7(false);
 recompute8(false);
 recompute9(false);
+recompute10(false);
 if (initTab !== 1) switchTab(initTab);
 requestAnimationFrame(tick);
 function redrawVisible(){
@@ -5636,6 +6033,7 @@ function redrawVisible(){
   if (!$('panel7').hidden) drawAll7();
   if (!$('panel8').hidden) drawAll8();
   if (!$('panel9').hidden) drawAll9();
+  if (!$('panel10').hidden) drawAll10();
 }
 function clearSurfCaches(){ cacheF3.key = ''; cacheL3.key = ''; cacheF6.key = ''; cacheL6.key = ''; cacheF8.key = ''; cacheL8.key = ''; cacheF9.key = ''; cacheL9.key = ''; }
 const ro = new ResizeObserver(() => { clearSurfCaches(); redrawVisible(); });
