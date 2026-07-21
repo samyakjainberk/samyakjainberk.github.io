@@ -4585,8 +4585,8 @@ function drawMap8(cv, kind){
   ctx.fillText('w₂', A.l + 4, A.t + 2);
   rotBadge(ctx, A, mapRot.a8);
 }
-let view6 = '3d', view8 = '3d';
-const mapRot = { a3: 0, a6: 0, a8: 0 };
+let view6 = '3d', view8 = '3d', view9 = '3d';
+const mapRot = { a3: 0, a6: 0, a8: 0, a9: 0 };
 function bindMapRot(cv, key, redraw, active){
   let last = null;
   cv.addEventListener('pointerdown', ev => { if (!active()) return; last = ev.clientX; cv.setPointerCapture(ev.pointerId); });
