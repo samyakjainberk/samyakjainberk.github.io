@@ -107,7 +107,7 @@
   #c8f,#c8L{height:380px}
   #c9f,#c9L{height:380px}
   #c10f,#c10L,#c10map{height:380px}
-  #c10s1,#c10s2,#c10s3,#c10s4,#c10s5,#c10s6{height:180px}
+  #c10s1,#c10s2,#c10s3,#c10s4,#c10s5,#c10s6,#c10s7{height:180px}
   #c7s1,#c7s2,#c7s3,#c7s4,#c7s5,#c7s6,#c7s7,#c7s8,#c7s9,#c3s18,#c6s18,#c8s15,#c3s17,#c6s17,#c8s14,#c7s10,#c7s11,#c8s12,#c8s13,#c8s1,#c8s2,#c8s3,#c8s4,#c8s5,#c8s6,#c8s7,#c8s8,#c8s9,#c8s10,#c8s11,#c9s15,#c9s14,#c9s12,#c9s13,#c9s1,#c9s2,#c9s3,#c9s4,#c9s5,#c9s6,#c9s7,#c9s8,#c9s9,#c9s10,#c9s11{height:180px}
   #c3f,#c3L{height:380px}
   #c5f,#c5L{height:340px}
@@ -1320,7 +1320,7 @@
 <section class="panel" id="panel10" hidden>
   <div class="side">
     <div class="card ctl">
-      <h3>Model &nbsp;·&nbsp; fᵢ = (a + b·w₂ + ½γ·w₁)·cᵢ·w₁ + μ·w₂</h3>
+      <h3>Model &nbsp;·&nbsp; fᵢ = (a + b·w₂ + ½γ·w₁)·cᵢ·w₁ + μ·w₂ &nbsp;·&nbsp; ∇²fᵢ = cᵢ·[[γ, b],[b, 0]] (constant in w)</h3>
       <div class="mdef"><b>Residuals that sharpen — the anti-stabilization tab.</b> This is the constant-Hessian model of the previous tab with <b>one extra residual term</b>, ½γ·w₁²·cᵢ. Setting <b>γ = 0 reproduces that tab exactly</b>: sharpness depends only on the slow coordinate w₂, the top eigenvector points along w₁, and ∂λ/∂w₁ = 0, so the growing w₁-oscillation feeds back on λ only through w₂ as the <b>perfect square −2ηE²b·w₁²</b> — always flattening, hence self-stabilizing.<br><br><b>γ ≠ 0 breaks the perfect square.</b> Now ∂²fᵢ/∂w₁² = γ·cᵢ ≠ 0, so the Gauss–Newton block H₁₁ = 2(a + b·w₂ + γ·w₁)²·mean c² depends on the <b>oscillating</b> coordinate. When the iterate oscillates with amplitude A the rectified part raises λ by ≈ 2γ²·A²·mean c² — the residual structure now <b>pushes into a sharper region</b>. Above a threshold γ this positive feedback overwhelms the w₂ pushback: sharpness overshoots 2/η and the run <b>diverges completely</b> — no edge-of-stability plateau. Sweep γ to cross from self-stabilization → overshoot → divergence.<br><b>a</b>: base gain · <b>b</b>: gain slope (∇²f off-diag) · <b>γ</b>: self-sharpening (∇²f w₁w₁ curvature) · <b>n</b>: samples · <b>B</b>: batch · <b>σ</b>: spread · <b>μ</b>: fitting · <b>y₂</b>: target · <b>η</b>, <b>T</b>: optimizer.</div>
       <div class="row"><label for="p10opt">optimizer</label>
         <select id="p10opt">
@@ -1427,6 +1427,16 @@
       <h3>x_t — preconditioned gradient on the top eigenvector</h3>
       <p class="cap">(Pg)·v̂₁ · signed, symlog · the oscillation amplitude — watch it <b>grow without bound</b> once the self-sharpening feedback takes over</p>
       <canvas class="plot" id="c10s6" role="img" aria-label="oscillation on the top eigenvector"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Where the sharpness comes from — Gauss–Newton grows, Q does not</h3>
+      <p class="cap">the Gauss–Newton curvature 2‖J₁‖² vs the magnitude of the function Hessian ‖∇²fᵢ‖ = c̄·√(γ²+2b²) · <b>the tensor ∇²f is fixed — its line is dead flat for the whole run</b>, yet the Gauss–Newton line climbs past 2/η and runs away · that is the point: sharpness diverges through the Gauss–Newton term J<sup>T</sup>J (J = ∂f/∂w is <i>linear</i> in w, so ‖J₁‖² rises as the oscillation grows), <b>with a completely constant function Hessian</b> · symlog</p>
+      <canvas class="plot" id="c10s7" role="img" aria-label="Gauss-Newton curvature growing vs constant function-Hessian norm"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--sharp)"></i>Gauss–Newton 2‖J₁‖² (grows)</span>
+        <span><i class="sw" style="background:var(--zero)"></i>‖∇²f‖ constant Q (flat)</span>
+      </div>
     </div>
 
   </div>
@@ -5624,7 +5634,8 @@ function sim10(){
   const c = sampleCoef(Math.max(2, Math.round(P10.n)), P10.sig), nS = c.length, T = P10.T;
   const yv = sampleTarget(nS, P10.y2, P10.tau);
   const B = clamp(Math.round(P10.bs), 1, nS), idx = makeIdx(nS), rnd = lcg(P10.seed);
-  let mc2 = 0; for (let k = 0; k < nS; k++) mc2 += c[k]*c[k]; mc2 /= nS;
+  let mc2 = 0, cbar = 0; for (let k = 0; k < nS; k++){ mc2 += c[k]*c[k]; cbar += c[k]; } mc2 /= nS; cbar /= nS;
+  const qnorm = Math.abs(cbar)*Math.sqrt(P10.gam*P10.gam + 2*P10.b*P10.b);   // ‖∇²fᵢ‖ (Frobenius) averaged — CONSTANT over the whole run
   const X1 = new Float64Array(T+1), X2 = new Float64Array(T+1);
   let w1 = P10.x10, w2 = 0, n = T, div = false;
   X1[0] = w1; X2[0] = w2;
@@ -5642,7 +5653,8 @@ function sim10(){
   }
   const m = n+1, clip = v => Math.max(-1e150, Math.min(1e150, v));
   const L = new Float64Array(m), rn = new Float64Array(m), S = new Float64Array(m), Sm = new Float64Array(Math.max(0,m-1)),
-        Xt = new Float64Array(m), Dfit = new Float64Array(m), Dosc = new Float64Array(m), Kss = new Float64Array(m);
+        Xt = new Float64Array(m), Dfit = new Float64Array(m), Dosc = new Float64Array(m), Kss = new Float64Array(m),
+        GN11 = new Float64Array(m), QN = new Float64Array(m);
   let pv1 = null, pv2 = 0;
   for (let i = 0; i < m; i++){
     const s = st10(X1[i], X2[i], c, yv), P = pre10(s), eA = lamPH10(s);
@@ -5657,6 +5669,10 @@ function sim10(){
     Xt[i] = clip(pg1*vw1 + pg2*vw2);
     Dfit[i] = clip(2*P10.lr*P10.mu*s.sumR);              // w₂ advance from the fitting pull
     Dosc[i] = clip(2*P10.lr*P10.b*X1[i]*s.sumRc);        // w₂ change from the w₂-coupling (panel-9 pushback)
+    // the Gauss–Newton curvature 2‖J₁‖² (J linear in w ⇒ grows along the oscillation) vs the
+    // magnitude of the CONSTANT function-Hessian tensor ‖∇²f‖ (fixed — never moves as w moves):
+    GN11[i] = clip(2*s.M11);
+    QN[i]   = qnorm;
     // self-sharpening: second derivative of λ along the top eigenvector (the oscillation direction)
     const hs = 1e-3*(1 + Math.abs(X1[i]) + Math.abs(X2[i]));
     const lp = lamP10(X1[i] + hs*vw1, X2[i] + hs*vw2, c, yv);
@@ -5664,7 +5680,7 @@ function sim10(){
     Kss[i] = clip((lp - 2*S[i] + lm)/(hs*hs));
     if (i+1 < m) Sm[i] = clip(lamP10(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1]), c, yv));
   }
-  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), c, yv, L, rn, S, Sm, Xt, Dfit, Dosc, Kss, mc2,
+  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), c, yv, L, rn, S, Sm, Xt, Dfit, Dosc, Kss, GN11, QN, qnorm, mc2,
            n, div, conv: !div && L[m-1] < 1e-10 };
 }
 // solve the zero-residual set of sample k for w1 given w2:  ½γ·c·w1² + E·c·w1 + (μ·w2 − y) = 0
@@ -5937,6 +5953,7 @@ function drawAll10(){
   drawSymlogStrip($('c10s4'), R10, t10, R10.Kss, PAL.sharp);
   drawLogStrip($('c10s5'), R10, t10, R10.rn, 0, PAL.accent);
   drawSymlogStrip($('c10s6'), R10, t10, R10.Xt, PAL.sharpmid);
+  drawSymlogMulti($('c10s7'), R10, t10, [R10.GN11, R10.QN], [PAL.sharp, PAL.zero]);
   const up = Math.min(Math.round(t10), R10.n), ratio = R10.S[up]*P10.lr/2;
   let cls = PAL.good, txt = 'stable';
   if (R10.div){ cls = PAL.crit; txt = 'diverged'; }
@@ -5948,7 +5965,8 @@ function drawAll10(){
   const B10 = clamp(Math.round(P10.bs), 1, R10.c.length);
   $('p10info').innerHTML = chip('2/η', fmt(2/P10.lr)) + chip('γ', fmt(P10.gam)) + chip('samples n', R10.c.length) +
     chip('batch B', B10 + (B10 === R10.c.length ? ' (full)' : ' · SGD')) + chip('mean c²', fmt(R10.mc2)) +
-    `<span class="chip">γ = 0 recovers the constant-Hessian tab exactly · ∂²λ/∂x² ≈ 2γ²·mean c²</span>`;
+    chip('∇²f (const in w)', `cᵢ·[[${fmt(P10.gam)}, ${fmt(P10.b)}],[${fmt(P10.b)}, 0]]`) +
+    `<span class="chip">Q never changes as w moves — the runaway rides the Gauss–Newton term, not Q · γ = 0 recovers the constant-Hessian tab</span>`;
   $('p10tlab').textContent = `t = ${up} / ${R10.n}`;
 }
 function recompute10(keepT){
@@ -6124,6 +6142,7 @@ bindStrip($('c10s3'), i => `t=${i}\nfitting pull = ${fmt(R10.Dfit[i])}\nw₂ cou
 bindStrip($('c10s4'), i => `t=${i}\n∂²λ/∂x² = ${fmt(R10.Kss[i])}\n(> 0 ⇒ oscillation sharpens ⇒ runaway)`, apply10);
 bindStrip($('c10s5'), i => `t=${i}\n‖r‖=${fmt(R10.rn[i])}`, apply10);
 bindStrip($('c10s6'), i => `t=${i}\nx_t=${fmt(R10.Xt[i])}`, apply10);
+bindStrip($('c10s7'), i => `t=${i}\nGauss–Newton 2‖J₁‖² = ${fmt(R10.GN11[i])}\n‖∇²f‖ (constant Q) = ${fmt(R10.QN[i])}`, apply10);
 $('p10view').addEventListener('change', () => { view10 = $('p10view').value === 'map' ? 'map' : '3d'; drawAll10(); });
 $('p10logz').addEventListener('change', () => { cacheL10.key = ''; drawAll10(); });
 bindRotate($('c10f'), cam10, drawAll10, () => view10 === '3d');
