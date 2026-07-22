@@ -1451,7 +1451,7 @@
   <div class="side">
     <div class="card ctl">
       <h3>Model &nbsp;·&nbsp; fᵢ = gain(w₂)·cᵢ·w₁ + μ·w₂ &nbsp;·&nbsp; gain = a + b·w₂ (linear) or a/(1 + b·w₂) (reciprocal)</h3>
-      <div class="mdef"><b>Sandbox: does the residual-curve shape control self-stabilization?</b> Plain GD on the constant-Hessian model. Each sample's zero-residual curve is w₁ = (yᵢ − μ·w₂)/(gain·cᵢ); its <b>fan curvature</b> flips with b's sign (or a negative target), and the reciprocal gain removes the cusp entirely. The live "curves" chip shows which you're in.<br><br><b>Verdict: the geometry doesn't matter — every fan shape self-stabilizes.</b> The one lever that breaks it is the <b>loss</b>: set <b>β &gt; 0</b> for L = r² + ½β·r⁴. Then ℓ⁗ = 12β &gt; 0 ⇒ ∂²H₁₁/∂w₁² &gt; 0, the growing oscillation sharpens the Hessian, and self-stabilization reverses into divergence. <b>MSE (β = 0) is the exact knife-edge</b> (ℓ⁗ = 0) — which is why no curve-shape change ever worked. Toggle β 0 ↔ 0.05 to switch the pushback off and on.<br><br><b>a</b> base gain · <b>b</b> gain slope · <b>β</b> loss-quartic strength · <b>μ</b> fitting · <b>y₂</b> target · <b>τ</b> target curvature · <b>n</b>/<b>B</b> samples/batch · <b>σ</b> spread · <b>η</b>,<b>T</b> optimizer.</div>
+      <div class="mdef"><b>Sandbox: does the residual-curve shape control self-stabilization?</b> Plain GD on the constant-Hessian model. Each sample's zero-residual curve is w₁ = (yᵢ − μ·w₂)/(gain·cᵢ); its <b>fan curvature</b> flips with b's sign (or a negative target), and the reciprocal gain removes the cusp entirely. The live "curves" chip shows which you're in.<br><br><b>Verdict: the geometry doesn't matter — every fan shape self-stabilizes.</b> What breaks it is making sharpness curve UP along the oscillation (∂²λ/∂w₁² &gt; 0), and there are two twin levers: <b>β</b> (bend the LOSS: L = r² + ½β·r⁴ ⇒ ℓ⁗ = 12β &gt; 0) or <b>γ</b> (bend the MODEL: ∂²f/∂w₁² = γ·c ⇒ ‖J₁‖² grows with w₁, staying pure MSE). Either one re-colors the field — the fit sits in a shrinking white valley, everything around floods pink — and reverses self-stabilization into divergence. <b>Flat model + MSE (γ = β = 0) is the exact knife-edge</b>, which is why no curve-shape change ever worked. Toggle γ 0 ↔ 2.6 or β 0 ↔ 0.05.<br><br><b>a</b> base gain · <b>b</b> gain slope · <b>β</b> loss-quartic strength · <b>μ</b> fitting · <b>y₂</b> target · <b>τ</b> target curvature · <b>n</b>/<b>B</b> samples/batch · <b>σ</b> spread · <b>η</b>,<b>T</b> optimizer.</div>
       <div class="row"><label for="p11opt">optimizer</label>
         <select id="p11opt">
           <option value="gd">plain GD (P = I)</option>
@@ -1472,6 +1472,7 @@
       <div class="row"><label for="p11mu">μ &nbsp;(fitting strength)</label><input id="p11mu" type="number" step="any" value="0.5"></div>
       <div class="row"><label for="p11y2">target y₂</label><input id="p11y2" type="number" step="any" value="2.5"></div>
       <div class="row"><label for="p11beta">loss quartic β &nbsp;(L = r² + ½β·r⁴)</label><input id="p11beta" type="number" step="any" value="0"></div>
+      <div class="row"><label for="p11gam">model curvature γ &nbsp;(∂²f/∂w₁²; MSE route)</label><input id="p11gam" type="number" step="any" value="0"></div>
       <div class="row"><label for="p11x10">init w₁</label><input id="p11x10" type="number" step="any" value="0.3"></div>
       <div class="row"><label for="p11lr">learning rate η</label><input id="p11lr" type="number" step="any" value="0.12"></div>
       <input id="p11lrs" type="range" min="0" max="1000" value="0" aria-label="learning rate slider">
@@ -6096,24 +6097,24 @@ function syncInputs10(){ for (const [id,k] of BIND10) $(id).value = P10[k]; $('p
    Pure constant-Hessian model fᵢ = (a + b·w₂)·cᵢ·w₁ + μ·w₂ under plain GD (no γ, no flip).
    Zero-residual curve wᵢ(w₂) = (yᵢ − μ·w₂)/((a + b·w₂)·cᵢ); curvature ∝ b·(μa + b·yᵢ),
    so b < 0 (or negative target) flips the fan from convex to CONCAVE. A playground.        */
-const P11 = { opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, beta:0, lr:0.12, T:1500 };
+const P11 = { opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, beta:0, gam:0, lr:0.12, T:1500 };
 let R11 = null, t11 = 0, playing11 = false;
 const cam11 = { al: -0.95, ph: 0.50 };
 const cacheF11 = { cv: document.createElement('canvas'), key: '' };
 const cacheL11 = { cv: document.createElement('canvas'), key: '' };
 let surf11 = null;
-const BIND11 = [['p11n','n'],['p11bs','bs'],['p11seed','seed'],['p11sig','sig'],['p11tau','tau'],['p11a','a'],['p11b','b'],['p11mu','mu'],['p11y2','y2'],['p11x10','x10'],['p11beta','beta'],['p11lr','lr'],['p11T','T']];
+const BIND11 = [['p11n','n'],['p11bs','bs'],['p11seed','seed'],['p11sig','sig'],['p11tau','tau'],['p11a','a'],['p11b','b'],['p11mu','mu'],['p11y2','y2'],['p11x10','x10'],['p11beta','beta'],['p11gam','gam'],['p11lr','lr'],['p11T','T']];
 const PRESETS11 = [
-  { n:'⭐ Quartic LOSS → anti-stabilization (β > 0)', d:'THE loss-function route — the one thing in this sandbox that actually breaks the pushback. Same model, same MSE, plus a quartic term: L = r² + ½β·r⁴, so ℓ⁗ = 12β > 0. As the EoS oscillation grows the residuals, the loss curvature ℓ″ = 2 + 6β·r² rises, so the sharpness climbs WITH the oscillation (∂²λ/∂x² > 0) → self-stabilization REVERSES and it diverges (~t 1000 here). Set β = 0 to recover pure MSE (ℓ⁗ = 0, the marginal case that self-stabilizes). It is the loss, not the curves',
-    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.1, mu:0.5, y2:2.5, x10:0.3, beta:0.05, lr:0.1, T:1500 } },
-  { n:'Reciprocal gain · concave, NO cusp (self-stab)', d:'gain a/(1 + b·w₂) never vanishes, so the zero-residual curves become nested PARABOLAS with no shared cusp — genuinely concave and non-converging. The function Hessian is non-constant (∂²f/∂w₂² ≠ 0). Yet it STILL self-stabilizes: the geometry does not switch off the pushback',
-    v:{ opt:'gd', form:'recip', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.2, mu:0.5, y2:2.5, x10:0.6, beta:0, lr:0.1, T:1500 } },
-  { n:'Concave fan (linear) · self-stabilizes', d:'b = −0.2 bends the curves concave but they still fan to a cusp. Plain GD rides the edge: λ crosses 2/η and pins there. (With b < 0 the fitting DE-sharpens, so the sharpness falls)',
-    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, beta:0, lr:0.15, T:1500 } },
-  { n:'Concave + progressive sharpening (negative target)', d:'concave fan AND genuine progressive sharpening. A negative target y₂ = −12 (b > 0) bends the fan concave without reversing the sharpening — loss falls, sharpness climbs through 2/η ≈ 20 (t ≈ 660), all with concave curves. Verdict: STILL self-stabilizes. The fan concavity does not switch it off — only the loss (β) or the w₁-curvature (γ) does',
-    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.2, mu:0.5, y2:-12, x10:0.3, beta:0, lr:0.1, T:2000 } },
-  { n:'MSE comparison (β = 0) · self-stabilizes', d:'the exact same run as the quartic preset but with β = 0 (pure MSE, ℓ⁗ = 0). λ climbs to 2/η and PINS there, bounded forever — the knife-edge case. Toggle β between 0 and 0.05 to watch self-stabilization switch on and off',
-    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.1, mu:0.5, y2:2.5, x10:0.3, beta:0, lr:0.1, T:1500 } },
+  { n:'⭐ MODEL curvature γ → anti-stab, NO β (pure MSE)', d:'the loss stays MSE (β = 0). γ adds ∂²f/∂w₁² = γ·cᵢ, so ‖J₁‖² grows with w₁ and ∂²λ/∂w₁² = 4γ²·mean c² > 0. The sharpness field re-colors — the fit sits in a shrinking white valley, everything around floods pink — and self-stabilization reverses into divergence. Same effect as the quartic loss, but from the MODEL, not the loss. Set γ = 0 to recover the marginal MSE self-stabilizer',
+    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.1, mu:0.5, y2:2.5, x10:0.08, beta:0, gam:2.6, lr:0.1, T:1500 } },
+  { n:'⭐ Quartic LOSS → anti-stabilization (β > 0)', d:'the loss-function twin. Same model, same MSE, plus a quartic term: L = r² + ½β·r⁴, so ℓ⁗ = 12β > 0. The loss curvature rises with the residual, the sharpness climbs WITH the oscillation (∂²λ/∂x² > 0) → self-stabilization reverses and it diverges (~t 1000). Set β = 0 to recover pure MSE',
+    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.1, mu:0.5, y2:2.5, x10:0.3, beta:0.05, gam:0, lr:0.1, T:1500 } },
+  { n:'Reciprocal gain · concave, NO cusp (self-stab)', d:'gain a/(1 + b·w₂) never vanishes, so the zero-residual curves become nested PARABOLAS with no shared cusp — concave and non-converging. Non-constant Hessian. Yet STILL self-stabilizes: geometry alone does not switch off the pushback (turn γ or β up to break it)',
+    v:{ opt:'gd', form:'recip', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.2, mu:0.5, y2:2.5, x10:0.6, beta:0, gam:0, lr:0.1, T:1500 } },
+  { n:'Concave fan (linear) · self-stabilizes', d:'b = −0.2 bends the curves concave but they still fan to a cusp. Plain GD rides the edge: λ crosses 2/η and pins there',
+    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, beta:0, gam:0, lr:0.15, T:1500 } },
+  { n:'MSE comparison (γ = β = 0) · self-stabilizes', d:'the marginal knife-edge: pure MSE, flat model. λ climbs to 2/η and PINS there, bounded forever. Toggle γ 0 ↔ 2.6 (or β 0 ↔ 0.05) to switch self-stabilization off and on',
+    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.1, mu:0.5, y2:2.5, x10:0.3, beta:0, gam:0, lr:0.1, T:1500 } },
 ];
 wireMulti(BIND11, P11, 'p11', recompute11);
 
@@ -6126,33 +6127,36 @@ function gainPP11(w2){ const d = 1 + P11.b*w2; return P11.form === 'recip' ? 2*P
 // LOSS ℓ(r) = r² + ½β·r⁴ (β = 0 ⇒ pure MSE). ℓ'/2 = r + β·r³, ℓ''/2 = 1 + 3β·r². ℓ'''' = 12β:
 // for β > 0 the loss curvature RISES with |r|, so the growing oscillation sharpens the Hessian
 // along w₁ (∂²λ/∂x² > 0) — the LOSS-FUNCTION route to anti-stabilization (genuine GD).
+// MODEL fᵢ = gain(w₂)·cᵢ·w₁ + ½γ·cᵢ·w₁² + μ·w₂.  γ ≠ 0 adds ∂²fᵢ/∂w₁² = γ·cᵢ (model curvature along the
+// oscillation) — the MSE (β = 0) route to anti-stabilization: ‖J₁‖² then grows with w₁, so ∂²λ/∂w₁² > 0.
 function st11(w1, w2, c, yv){
-  const nS = c.length, g = gain11(w2), gp = gainP11(w2), gpp = gainPP11(w2), B = P11.beta, inv = 1/nS;
+  const nS = c.length, g = gain11(w2), gp = gainP11(w2), gpp = gainPP11(w2), B = P11.beta, ga = P11.gam, inv = 1/nS;
   const r = new Float64Array(nS), J1 = new Float64Array(nS), J2 = new Float64Array(nS);
-  let L = 0, mse = 0, g1 = 0, g2 = 0, M11 = 0, M12 = 0, M22 = 0, N12 = 0, N22 = 0, sumR = 0, sumRc = 0;
+  let L = 0, mse = 0, g1 = 0, g2 = 0, M11 = 0, M12 = 0, M22 = 0, N11 = 0, N12 = 0, N22 = 0, sumR = 0, sumRc = 0;
   for (let i = 0; i < nS; i++){
-    const fi = g*w1*c[i] + P11.mu*w2;
+    const fi = g*w1*c[i] + 0.5*ga*w1*w1*c[i] + P11.mu*w2;
     const ri = yv[i] - fi; r[i] = ri;
-    J1[i] = g*c[i]; J2[i] = gp*w1*c[i] + P11.mu;
+    J1[i] = (g + ga*w1)*c[i]; J2[i] = gp*w1*c[i] + P11.mu;
     const lp = ri + B*ri*ri*ri, wgt = 1 + 3*B*ri*ri;       // ℓ'/2  and  ℓ''/2  (β = 0 ⇒ ri, 1)
     L += ri*ri + 0.5*B*ri*ri*ri*ri; mse += ri*ri;
     g1 += -2*lp*J1[i]; g2 += -2*lp*J2[i];
     M11 += wgt*J1[i]*J1[i]; M12 += wgt*J1[i]*J2[i]; M22 += wgt*J2[i]*J2[i];
+    N11 += lp*ga*c[i];              // Σ ℓ'/2·∂²fᵢ/∂w₁²  = lp·γ·c   (the model-curvature term)
     N12 += lp*gp*c[i];              // Σ ℓ'/2·∂²fᵢ/∂w₁∂w₂
     N22 += lp*gpp*w1*c[i];          // Σ ℓ'/2·∂²fᵢ/∂w₂²
     sumR += ri; sumRc += ri*c[i];
   }
   return { E: g, r, J1, J2, nS, L: L*inv, mse: mse*inv, g1: g1*inv, g2: g2*inv,
            M11: M11*inv, M12: M12*inv, M22: M22*inv, sumR: sumR*inv, sumRc: sumRc*inv,
-           h11: 2*M11*inv, h12: (2*M12 - 2*N12)*inv, h22: (2*M22 - 2*N22)*inv };
+           h11: (2*M11 - 2*N11)*inv, h12: (2*M12 - 2*N12)*inv, h22: (2*M22 - 2*N22)*inv };
 }
 function batchGrad11(w1, w2, c, yv, idx, B){
-  const g = gain11(w2), gp = gainP11(w2), be = P11.beta, inv = 1/B;
+  const g = gain11(w2), gp = gainP11(w2), be = P11.beta, ga = P11.gam, inv = 1/B;
   let g1 = 0, g2 = 0, M11 = 0, M12 = 0, M22 = 0;
   for (let t = 0; t < B; t++){
     const i = idx[t];
-    const r = yv[i] - (g*w1*c[i] + P11.mu*w2);
-    const J1 = g*c[i], J2 = gp*w1*c[i] + P11.mu;
+    const r = yv[i] - (g*w1*c[i] + 0.5*ga*w1*w1*c[i] + P11.mu*w2);
+    const J1 = (g + ga*w1)*c[i], J2 = gp*w1*c[i] + P11.mu;
     const lp = r + be*r*r*r, wgt = 1 + 3*be*r*r;
     g1 += -2*lp*J1; g2 += -2*lp*J2; M11 += wgt*J1*J1; M12 += wgt*J1*J2; M22 += wgt*J2*J2;
   }
@@ -6188,17 +6192,25 @@ function lamPH11(s){
 }
 function lamP11(w1, w2, c, yv){ return lamPH11(st11(w1, w2, c, yv)).lam; }
 function L11full(w1, w2, c, yv){
-  const g = gain11(w2), B = P11.beta;
+  const g = gain11(w2), B = P11.beta, ga = P11.gam;
   let L = 0;
-  for (let k = 0; k < c.length; k++){ const r = yv[k] - (g*w1*c[k] + P11.mu*w2); L += r*r + 0.5*B*r*r*r*r; }
+  for (let k = 0; k < c.length; k++){ const r = yv[k] - (g*w1*c[k] + 0.5*ga*w1*w1*c[k] + P11.mu*w2); L += r*r + 0.5*B*r*r*r*r; }
   return Math.min(L/c.length, 1e300);
 }
-function zeroResW1_11(k, w2){
-  const g = gain11(w2), ck = R11.c[k];
-  if (!isFinite(g) || Math.abs(g*ck) < 1e-300) return NaN;
-  return (R11.yv[k] - P11.mu*w2)/(g*ck);
+// zero-residual set of sample k: ½γ·c·w₁² + gain·c·w₁ + (μ·w₂ − y) = 0 (parabola in w₁ when γ ≠ 0)
+function zeroResW1_11(k, w2, branch){
+  const g = gain11(w2), ck = R11.c[k], ga = P11.gam;
+  if (!isFinite(g)) return NaN;
+  if (Math.abs(ga) < 1e-12){
+    if (branch === 1) return NaN;                         // single branch when linear in w₁
+    if (Math.abs(g*ck) < 1e-300) return NaN;
+    return (R11.yv[k] - P11.mu*w2)/(g*ck);
+  }
+  const aq = 0.5*ga*ck, bq = g*ck, cq = P11.mu*w2 - R11.yv[k], disc = bq*bq - 4*aq*cq;
+  if (disc < 0) return NaN;
+  return (-bq + branch*Math.sqrt(disc))/(2*aq);
 }
-function meanOut11(x1, x2, cbar){ return gain11(x2)*x1*cbar + P11.mu*x2; }
+function meanOut11(x1, x2, cbar){ return gain11(x2)*x1*cbar + 0.5*P11.gam*x1*x1*cbar + P11.mu*x2; }
 function sim11(){
   const c = sampleCoef(Math.max(2, Math.round(P11.n)), P11.sig), nS = c.length, T = P11.T;
   const yv = sampleTarget(nS, P11.y2, P11.tau);
@@ -6337,16 +6349,18 @@ function drawSurf11(cv, kind){
       const nS = R11.c.length, NP = 120;
       for (let k = 0; k < nS; k++){
         ctx.strokeStyle = alpha(mix(PAL.surflo, PAL.surfhi, nS > 1 ? k/(nS-1) : 0.5), 0.95);
-        ctx.lineWidth = 1.6; ctx.beginPath();
-        let started = false;
-        for (let j = 0; j <= NP; j++){
-          const x2 = surf11.l2 + (surf11.h2-surf11.l2)*j/NP, x1 = zeroResW1_11(k, x2);
-          if (!isFinite(x1) || x1 < surf11.l1 || x1 > surf11.h1){ started = false; continue; }
-          const p = P3d(x1, x2, meanOut11(x1, x2, surf11.cbar));
-          started ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
-          started = true;
+        ctx.lineWidth = 1.6;
+        for (const branch of [-1, 1]){
+          ctx.beginPath(); let started = false;
+          for (let j = 0; j <= NP; j++){
+            const x2 = surf11.l2 + (surf11.h2-surf11.l2)*j/NP, x1 = zeroResW1_11(k, x2, branch);
+            if (!isFinite(x1) || x1 < surf11.l1 || x1 > surf11.h1){ started = false; continue; }
+            const p = P3d(x1, x2, meanOut11(x1, x2, surf11.cbar));
+            started ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
+            started = true;
+          }
+          ctx.stroke();
         }
-        ctx.stroke();
       }
     }
   }
@@ -6416,16 +6430,18 @@ function drawMap11(cv, kind){
   } else {
     for (let k = 0; k < nS; k++){
       ctx.strokeStyle = alpha(mix(PAL.surflo, PAL.surfhi, nS > 1 ? k/(nS-1) : 0.5), 0.9);
-      ctx.lineWidth = 1.4; ctx.beginPath();
-      let started = false;
-      for (let j = 0; j <= 200; j++){
-        const w2 = lo2 + s2*j/200, w1 = zeroResW1_11(k, w2);
-        const px = A.x(w1), py = A.y(w2);
-        if (!isFinite(px) || !isFinite(py) || w1 < lo1 || w1 > hi1){ started = false; continue; }
-        started ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
-        started = true;
+      ctx.lineWidth = 1.4;
+      for (const branch of [-1, 1]){
+        ctx.beginPath(); let started = false;
+        for (let j = 0; j <= 200; j++){
+          const w2 = lo2 + s2*j/200, w1 = zeroResW1_11(k, w2, branch);
+          const px = A.x(w1), py = A.y(w2);
+          if (!isFinite(px) || !isFinite(py) || w1 < lo1 || w1 > hi1){ started = false; continue; }
+          started ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+          started = true;
+        }
+        ctx.stroke();
       }
-      ctx.stroke();
     }
   }
   const stp = decim(up, 3000);
