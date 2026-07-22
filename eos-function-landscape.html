@@ -1451,7 +1451,7 @@
   <div class="side">
     <div class="card ctl">
       <h3>Model &nbsp;·&nbsp; fᵢ = gain(w₂)·cᵢ·w₁ + μ·w₂ &nbsp;·&nbsp; gain = a + b·w₂ (linear) or a/(1 + b·w₂) (reciprocal)</h3>
-      <div class="mdef"><b>Concave-curve playground.</b> The same constant-Hessian model as the "n points" tab, plain gradient descent (no self-sharpening, no flips) — a clean sandbox to explore the <b>curvature of the zero-residual curves</b> yourself. Each sample's zero-residual set is w₁ = (yᵢ − μ·w₂)/((a + b·w₂)·cᵢ); its curvature has the sign of <b>b·(μa + b·y₂)</b>, so <b>b &lt; 0</b> (or a negative target) bends the fan the opposite way — <b>concave</b> — while b &gt; 0 gives the usual convex fan. The live "curves" chip tells you which you're in.<br><br><b>Two concave routes, and they differ:</b> with <b>b &lt; 0</b> the fitting also <i>de-sharpens</i> (E = a + b·w₂ shrinks as w₂ grows), so you get concave curves but falling sharpness. With a <b>negative target</b> (b &gt; 0) the fan is concave yet progressive sharpening survives — loss falls AND sharpness rises to the edge (the ⭐ preset). Both still <b>self-stabilize</b>: the fan curvature never flips the physics — that's the w₁-direction curvature's job (the γ term on the anti-stabilization tab).<br><br>Things to try: raise <b>η</b> with the slider and watch sharpness cross 2/η → self-stabilize at the edge → and only at large η get flung out (the catapult, not a curvature effect); flip <b>b</b>'s sign to compare convex vs concave at the same η; set <b>τ = 0</b> for exactly-fittable targets. <b>Verdict from the sweep:</b> the fan curvature does not change whether it self-stabilizes — but it's yours to poke at.<br><b>a</b>: base gain · <b>b</b>: gain slope (∇²f off-diag; sign sets the fan curvature) · <b>n</b>: samples · <b>B</b>: batch · <b>σ</b>: spread · <b>τ</b>: target curvature · <b>μ</b>: fitting · <b>y₂</b>: target · <b>η</b>, <b>T</b>: optimizer.</div>
+      <div class="mdef"><b>Concave-curve playground.</b> The same constant-Hessian model as the "n points" tab, plain gradient descent (no self-sharpening, no flips) — a clean sandbox to explore the <b>curvature of the zero-residual curves</b> yourself. Each sample's zero-residual set is w₁ = (yᵢ − μ·w₂)/((a + b·w₂)·cᵢ); its curvature has the sign of <b>b·(μa + b·y₂)</b>, so <b>b &lt; 0</b> (or a negative target) bends the fan the opposite way — <b>concave</b> — while b &gt; 0 gives the usual convex fan. The live "curves" chip tells you which you're in.<br><br><b>Two concave routes, and they differ:</b> with <b>b &lt; 0</b> the fitting also <i>de-sharpens</i> (E = a + b·w₂ shrinks as w₂ grows), so you get concave curves but falling sharpness. With a <b>negative target</b> (b &gt; 0) the fan is concave yet progressive sharpening survives — loss falls AND sharpness rises to the edge (the ⭐ preset). Both still <b>self-stabilize</b>: the fan curvature never flips the physics — that's the w₁-direction curvature's job (the γ term on the anti-stabilization tab).<br><br><b>The one lever that DOES break it here: the loss.</b> Set <b>β &gt; 0</b> to use L = r² + ½β·r⁴ instead of MSE. Then ℓ⁗ = 12β &gt; 0, so <b>∂²H₁₁/∂w₁² = E⁴·Σℓ⁗·cᵢ⁴ &gt; 0</b> — the loss curvature rises with |r|, the growing oscillation sharpens the Hessian, and self-stabilization reverses into divergence. <b>MSE (β = 0) is the exact knife-edge</b> (ℓ⁗ = 0), which is why every model-geometry change self-stabilized: none of them touch ℓ⁗. Toggle β 0 ↔ 0.05 to switch the pushback off and on.<br><br>Things to try: raise <b>η</b> with the slider and watch sharpness cross 2/η → self-stabilize at the edge → and only at large η get flung out (the catapult, not a curvature effect); flip <b>b</b>'s sign to compare convex vs concave at the same η; set <b>τ = 0</b> for exactly-fittable targets. <b>Verdict from the sweep:</b> the fan curvature does not change whether it self-stabilizes — but it's yours to poke at.<br><b>a</b>: base gain · <b>b</b>: gain slope (∇²f off-diag; sign sets the fan curvature) · <b>n</b>: samples · <b>B</b>: batch · <b>σ</b>: spread · <b>τ</b>: target curvature · <b>μ</b>: fitting · <b>y₂</b>: target · <b>η</b>, <b>T</b>: optimizer.</div>
       <div class="row"><label for="p11opt">optimizer</label>
         <select id="p11opt">
           <option value="gd">plain GD (P = I)</option>
@@ -1471,6 +1471,7 @@
       <div class="row"><label for="p11b">b &nbsp;(gain slope · sign = fan curvature)</label><input id="p11b" type="number" step="any" value="-0.2"></div>
       <div class="row"><label for="p11mu">μ &nbsp;(fitting strength)</label><input id="p11mu" type="number" step="any" value="0.5"></div>
       <div class="row"><label for="p11y2">target y₂</label><input id="p11y2" type="number" step="any" value="2.5"></div>
+      <div class="row"><label for="p11beta">loss quartic β &nbsp;(L = r² + ½β·r⁴)</label><input id="p11beta" type="number" step="any" value="0"></div>
       <div class="row"><label for="p11x10">init w₁</label><input id="p11x10" type="number" step="any" value="0.3"></div>
       <div class="row"><label for="p11lr">learning rate η</label><input id="p11lr" type="number" step="any" value="0.12"></div>
       <input id="p11lrs" type="range" min="0" max="1000" value="0" aria-label="learning rate slider">
@@ -1523,7 +1524,7 @@
 
     <div class="card">
       <h3>Training loss</h3>
-      <p class="cap">L = (1/n)Σᵢ rᵢ² · log scale</p>
+      <p class="cap">L = (1/n)Σᵢ (rᵢ² + ½β·rᵢ⁴) · log scale · with β &gt; 0 the quartic term takes over and the loss blows up</p>
       <canvas class="plot" id="c11s1" role="img" aria-label="Training loss"></canvas>
     </div>
 
@@ -6095,24 +6096,24 @@ function syncInputs10(){ for (const [id,k] of BIND10) $(id).value = P10[k]; $('p
    Pure constant-Hessian model fᵢ = (a + b·w₂)·cᵢ·w₁ + μ·w₂ under plain GD (no γ, no flip).
    Zero-residual curve wᵢ(w₂) = (yᵢ − μ·w₂)/((a + b·w₂)·cᵢ); curvature ∝ b·(μa + b·yᵢ),
    so b < 0 (or negative target) flips the fan from convex to CONCAVE. A playground.        */
-const P11 = { opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, lr:0.12, T:1500 };
+const P11 = { opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, beta:0, lr:0.12, T:1500 };
 let R11 = null, t11 = 0, playing11 = false;
 const cam11 = { al: -0.95, ph: 0.50 };
 const cacheF11 = { cv: document.createElement('canvas'), key: '' };
 const cacheL11 = { cv: document.createElement('canvas'), key: '' };
 let surf11 = null;
-const BIND11 = [['p11n','n'],['p11bs','bs'],['p11seed','seed'],['p11sig','sig'],['p11tau','tau'],['p11a','a'],['p11b','b'],['p11mu','mu'],['p11y2','y2'],['p11x10','x10'],['p11lr','lr'],['p11T','T']];
+const BIND11 = [['p11n','n'],['p11bs','bs'],['p11seed','seed'],['p11sig','sig'],['p11tau','tau'],['p11a','a'],['p11b','b'],['p11mu','mu'],['p11y2','y2'],['p11x10','x10'],['p11beta','beta'],['p11lr','lr'],['p11T','T']];
 const PRESETS11 = [
-  { n:'⭐ Reciprocal gain · concave, NO cusp', d:'gain a/(1 + b·w₂) never vanishes, so the zero-residual curves become nested PARABOLAS with no shared cusp — genuinely concave and non-converging, the picture you were after. The function Hessian is now non-constant (∂²f/∂w₂² ≠ 0). And the verdict is the same: it STILL self-stabilizes. The prettier geometry does not switch off the pushback',
-    v:{ opt:'gd', form:'recip', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.2, mu:0.5, y2:2.5, x10:0.6, lr:0.1, T:1500 } },
-  { n:'Concave fan (linear) · self-stabilizes', d:'b = −0.2 bends the zero-residual curves concave but they still fan to a cusp. Plain GD rides the edge: λ crosses 2/η and pins there. Note: with b < 0 the fitting DE-sharpens (a + b·w₂ shrinks as w₂ grows), so the sharpness falls',
-    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, lr:0.15, T:1500 } },
-  { n:'⭐ Concave + progressive sharpening (negative target)', d:'concave fan AND genuine progressive sharpening. A negative target y₂ = −12 (with b > 0) bends the fan concave WITHOUT reversing the sharpening — loss falls, sharpness climbs from ~8 up through 2/η ≈ 20 (around t ≈ 660), all with concave residual curves. Verdict: STILL self-stabilizes. The fan concavity does not switch it off (that needs the w₁-curvature, i.e. the γ term on the anti-stabilization tab)',
-    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.2, mu:0.5, y2:-12, x10:0.3, lr:0.1, T:2000 } },
-  { n:'Concave · crank η → catapult ejection', d:'same concave fan, η pushed up so 2/η drops well below the sharpness: the EoS catapult overshoots and the iterate is flung out. This is the generic too-big-η blow-up (happens for convex too), NOT a curvature effect',
-    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, lr:0.32, T:1500 } },
-  { n:'Convex fan · comparison', d:'flip to b = +0.2 (convex fan, the usual picture) at the same η — behaves the same as the concave run: self-stabilizes',
-    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.2, mu:0.5, y2:2.5, x10:0.3, lr:0.15, T:1500 } },
+  { n:'⭐ Quartic LOSS → anti-stabilization (β > 0)', d:'THE loss-function route — the one thing in this sandbox that actually breaks the pushback. Same model, same MSE, plus a quartic term: L = r² + ½β·r⁴, so ℓ⁗ = 12β > 0. As the EoS oscillation grows the residuals, the loss curvature ℓ″ = 2 + 6β·r² rises, so the sharpness climbs WITH the oscillation (∂²λ/∂x² > 0) → self-stabilization REVERSES and it diverges (~t 1000 here). Set β = 0 to recover pure MSE (ℓ⁗ = 0, the marginal case that self-stabilizes). It is the loss, not the curves',
+    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.1, mu:0.5, y2:2.5, x10:0.3, beta:0.05, lr:0.1, T:1500 } },
+  { n:'Reciprocal gain · concave, NO cusp (self-stab)', d:'gain a/(1 + b·w₂) never vanishes, so the zero-residual curves become nested PARABOLAS with no shared cusp — genuinely concave and non-converging. The function Hessian is non-constant (∂²f/∂w₂² ≠ 0). Yet it STILL self-stabilizes: the geometry does not switch off the pushback',
+    v:{ opt:'gd', form:'recip', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.2, mu:0.5, y2:2.5, x10:0.6, beta:0, lr:0.1, T:1500 } },
+  { n:'Concave fan (linear) · self-stabilizes', d:'b = −0.2 bends the curves concave but they still fan to a cusp. Plain GD rides the edge: λ crosses 2/η and pins there. (With b < 0 the fitting DE-sharpens, so the sharpness falls)',
+    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, beta:0, lr:0.15, T:1500 } },
+  { n:'Concave + progressive sharpening (negative target)', d:'concave fan AND genuine progressive sharpening. A negative target y₂ = −12 (b > 0) bends the fan concave without reversing the sharpening — loss falls, sharpness climbs through 2/η ≈ 20 (t ≈ 660), all with concave curves. Verdict: STILL self-stabilizes. The fan concavity does not switch it off — only the loss (β) or the w₁-curvature (γ) does',
+    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.2, mu:0.5, y2:-12, x10:0.3, beta:0, lr:0.1, T:2000 } },
+  { n:'MSE comparison (β = 0) · self-stabilizes', d:'the exact same run as the quartic preset but with β = 0 (pure MSE, ℓ⁗ = 0). λ climbs to 2/η and PINS there, bounded forever — the knife-edge case. Toggle β between 0 and 0.05 to watch self-stabilization switch on and off',
+    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.1, mu:0.5, y2:2.5, x10:0.3, beta:0, lr:0.1, T:1500 } },
 ];
 wireMulti(BIND11, P11, 'p11', recompute11);
 
@@ -6122,33 +6123,38 @@ wireMulti(BIND11, P11, 'p11', recompute11);
 function gain11(w2){ return P11.form === 'recip' ? P11.a/(1 + P11.b*w2) : P11.a + P11.b*w2; }
 function gainP11(w2){ const d = 1 + P11.b*w2; return P11.form === 'recip' ? -P11.a*P11.b/(d*d) : P11.b; }
 function gainPP11(w2){ const d = 1 + P11.b*w2; return P11.form === 'recip' ? 2*P11.a*P11.b*P11.b/(d*d*d) : 0; }
+// LOSS ℓ(r) = r² + ½β·r⁴ (β = 0 ⇒ pure MSE). ℓ'/2 = r + β·r³, ℓ''/2 = 1 + 3β·r². ℓ'''' = 12β:
+// for β > 0 the loss curvature RISES with |r|, so the growing oscillation sharpens the Hessian
+// along w₁ (∂²λ/∂x² > 0) — the LOSS-FUNCTION route to anti-stabilization (genuine GD).
 function st11(w1, w2, c, yv){
-  const nS = c.length, g = gain11(w2), gp = gainP11(w2), gpp = gainPP11(w2), inv = 1/nS;
+  const nS = c.length, g = gain11(w2), gp = gainP11(w2), gpp = gainPP11(w2), B = P11.beta, inv = 1/nS;
   const r = new Float64Array(nS), J1 = new Float64Array(nS), J2 = new Float64Array(nS);
-  let L = 0, g1 = 0, g2 = 0, M11 = 0, M12 = 0, M22 = 0, N12 = 0, N22 = 0, sumR = 0, sumRc = 0;
+  let L = 0, mse = 0, g1 = 0, g2 = 0, M11 = 0, M12 = 0, M22 = 0, N12 = 0, N22 = 0, sumR = 0, sumRc = 0;
   for (let i = 0; i < nS; i++){
     const fi = g*w1*c[i] + P11.mu*w2;
-    r[i] = yv[i] - fi;
+    const ri = yv[i] - fi; r[i] = ri;
     J1[i] = g*c[i]; J2[i] = gp*w1*c[i] + P11.mu;
-    L += r[i]*r[i];
-    g1 += -2*r[i]*J1[i]; g2 += -2*r[i]*J2[i];
-    M11 += J1[i]*J1[i]; M12 += J1[i]*J2[i]; M22 += J2[i]*J2[i];
-    N12 += r[i]*gp*c[i];              // Σ rᵢ ∂²fᵢ/∂w₁∂w₂ = g'·c
-    N22 += r[i]*gpp*w1*c[i];          // Σ rᵢ ∂²fᵢ/∂w₂²  = g''·w₁·c  (≠ 0 for the reciprocal form)
-    sumR += r[i]; sumRc += r[i]*c[i];
+    const lp = ri + B*ri*ri*ri, wgt = 1 + 3*B*ri*ri;       // ℓ'/2  and  ℓ''/2  (β = 0 ⇒ ri, 1)
+    L += ri*ri + 0.5*B*ri*ri*ri*ri; mse += ri*ri;
+    g1 += -2*lp*J1[i]; g2 += -2*lp*J2[i];
+    M11 += wgt*J1[i]*J1[i]; M12 += wgt*J1[i]*J2[i]; M22 += wgt*J2[i]*J2[i];
+    N12 += lp*gp*c[i];              // Σ ℓ'/2·∂²fᵢ/∂w₁∂w₂
+    N22 += lp*gpp*w1*c[i];          // Σ ℓ'/2·∂²fᵢ/∂w₂²
+    sumR += ri; sumRc += ri*c[i];
   }
-  return { E: g, r, J1, J2, nS, L: L*inv, g1: g1*inv, g2: g2*inv,
+  return { E: g, r, J1, J2, nS, L: L*inv, mse: mse*inv, g1: g1*inv, g2: g2*inv,
            M11: M11*inv, M12: M12*inv, M22: M22*inv, sumR: sumR*inv, sumRc: sumRc*inv,
            h11: 2*M11*inv, h12: (2*M12 - 2*N12)*inv, h22: (2*M22 - 2*N22)*inv };
 }
 function batchGrad11(w1, w2, c, yv, idx, B){
-  const g = gain11(w2), gp = gainP11(w2), inv = 1/B;
+  const g = gain11(w2), gp = gainP11(w2), be = P11.beta, inv = 1/B;
   let g1 = 0, g2 = 0, M11 = 0, M12 = 0, M22 = 0;
   for (let t = 0; t < B; t++){
     const i = idx[t];
     const r = yv[i] - (g*w1*c[i] + P11.mu*w2);
     const J1 = g*c[i], J2 = gp*w1*c[i] + P11.mu;
-    g1 += -2*r*J1; g2 += -2*r*J2; M11 += J1*J1; M12 += J1*J2; M22 += J2*J2;
+    const lp = r + be*r*r*r, wgt = 1 + 3*be*r*r;
+    g1 += -2*lp*J1; g2 += -2*lp*J2; M11 += wgt*J1*J1; M12 += wgt*J1*J2; M22 += wgt*J2*J2;
   }
   return { g1: g1*inv, g2: g2*inv, M11: M11*inv, M12: M12*inv, M22: M22*inv };
 }
@@ -6182,9 +6188,9 @@ function lamPH11(s){
 }
 function lamP11(w1, w2, c, yv){ return lamPH11(st11(w1, w2, c, yv)).lam; }
 function L11full(w1, w2, c, yv){
-  const g = gain11(w2);
+  const g = gain11(w2), B = P11.beta;
   let L = 0;
-  for (let k = 0; k < c.length; k++){ const r = yv[k] - (g*w1*c[k] + P11.mu*w2); L += r*r; }
+  for (let k = 0; k < c.length; k++){ const r = yv[k] - (g*w1*c[k] + P11.mu*w2); L += r*r + 0.5*B*r*r*r*r; }
   return Math.min(L/c.length, 1e300);
 }
 function zeroResW1_11(k, w2){
@@ -6219,7 +6225,7 @@ function sim11(){
   let pv1 = null, pv2 = 0;
   for (let i = 0; i < m; i++){
     const s = st11(X1[i], X2[i], c, yv), P = pre11(s), eA = lamPH11(s);
-    L[i] = clip(s.L); rn[i] = Math.sqrt(Math.max(0, L[i])); S[i] = clip(eA.lam);
+    L[i] = clip(s.L); rn[i] = Math.sqrt(Math.max(0, s.mse)); S[i] = clip(eA.lam);
     const Q = symSqrt2(P.p11, P.p12, P.p22);
     let vw1 = Q.q11*eA.v1 + Q.q12*eA.v2, vw2 = Q.q12*eA.v1 + Q.q22*eA.v2;
     const nv = Math.hypot(vw1, vw2);
