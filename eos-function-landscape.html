@@ -1450,7 +1450,7 @@
 <section class="panel" id="panel11" hidden>
   <div class="side">
     <div class="card ctl">
-      <h3>Model &nbsp;·&nbsp; fᵢ = (a + b·w₂)·cᵢ·w₁ + μ·w₂ &nbsp;·&nbsp; a sandbox for the residual-curve curvature</h3>
+      <h3>Model &nbsp;·&nbsp; fᵢ = gain(w₂)·cᵢ·w₁ + μ·w₂ &nbsp;·&nbsp; gain = a + b·w₂ (linear) or a/(1 + b·w₂) (reciprocal)</h3>
       <div class="mdef"><b>Concave-curve playground.</b> The same constant-Hessian model as the "n points" tab, plain gradient descent (no self-sharpening, no flips) — a clean sandbox to explore the <b>curvature of the zero-residual curves</b> yourself. Each sample's zero-residual set is w₁ = (yᵢ − μ·w₂)/((a + b·w₂)·cᵢ); its curvature has the sign of <b>b·(μa + b·y₂)</b>, so <b>b &lt; 0</b> (or a negative target) bends the fan the opposite way — <b>concave</b> — while b &gt; 0 gives the usual convex fan. The live "curves" chip tells you which you're in.<br><br><b>Two concave routes, and they differ:</b> with <b>b &lt; 0</b> the fitting also <i>de-sharpens</i> (E = a + b·w₂ shrinks as w₂ grows), so you get concave curves but falling sharpness. With a <b>negative target</b> (b &gt; 0) the fan is concave yet progressive sharpening survives — loss falls AND sharpness rises to the edge (the ⭐ preset). Both still <b>self-stabilize</b>: the fan curvature never flips the physics — that's the w₁-direction curvature's job (the γ term on the anti-stabilization tab).<br><br>Things to try: raise <b>η</b> with the slider and watch sharpness cross 2/η → self-stabilize at the edge → and only at large η get flung out (the catapult, not a curvature effect); flip <b>b</b>'s sign to compare convex vs concave at the same η; set <b>τ = 0</b> for exactly-fittable targets. <b>Verdict from the sweep:</b> the fan curvature does not change whether it self-stabilizes — but it's yours to poke at.<br><b>a</b>: base gain · <b>b</b>: gain slope (∇²f off-diag; sign sets the fan curvature) · <b>n</b>: samples · <b>B</b>: batch · <b>σ</b>: spread · <b>τ</b>: target curvature · <b>μ</b>: fitting · <b>y₂</b>: target · <b>η</b>, <b>T</b>: optimizer.</div>
       <div class="row"><label for="p11opt">optimizer</label>
         <select id="p11opt">
@@ -1458,6 +1458,10 @@
           <option value="spec">spectral GD</option>
           <option value="sign">signed GD</option>
           <option value="gn">Gauss–Newton</option></select></div>
+      <div class="row"><label for="p11form">gain form</label>
+        <select id="p11form">
+          <option value="lin">linear · a + b·w₂ (cusp)</option>
+          <option value="recip">reciprocal · a/(1 + b·w₂) (no cusp)</option></select></div>
       <div class="row"><label for="p11n">samples n</label><input id="p11n" type="number" min="2" max="100" step="1" value="100"></div>
       <div class="row"><label for="p11bs">batch size B</label><input id="p11bs" type="number" min="1" max="100" step="1" value="100"></div>
       <div class="row"><label for="p11seed">batch seed</label><input id="p11seed" type="number" min="1" step="1" value="1"></div>
@@ -1497,7 +1501,7 @@
 
     <div class="card">
       <h3>Per-sample zero-residual curves in (w₁, w₂)</h3>
-      <p class="cap">3-D: the mean output surface f̄ = (a + b·w₂)·w₁·c̄ + μ·w₂ with each sample's zero-residual curve · <b>b &lt; 0 bends the fan concave; b &gt; 0 convex</b> · red tint: λ(PH) &gt; 2/η · top-down: the same curves in the plane · drag to rotate</p>
+      <p class="cap">3-D: the mean output surface f̄ = gain(w₂)·w₁·c̄ + μ·w₂ with each sample's zero-residual curve · <b>linear gain:</b> b sign flips convex↔concave but the curves still fan to a cusp (where a + b·w₂ = 0) · <b>reciprocal gain a/(1+b·w₂):</b> never vanishes, so the curves become nested parabolas with NO cusp — concave &amp; non-converging · red tint: λ(PH) &gt; 2/η · drag to rotate</p>
       <canvas class="plot" id="c11f" role="img" aria-label="per-sample zero residual curves"></canvas>
     </div>
 
@@ -6091,7 +6095,7 @@ function syncInputs10(){ for (const [id,k] of BIND10) $(id).value = P10[k]; $('p
    Pure constant-Hessian model fᵢ = (a + b·w₂)·cᵢ·w₁ + μ·w₂ under plain GD (no γ, no flip).
    Zero-residual curve wᵢ(w₂) = (yᵢ − μ·w₂)/((a + b·w₂)·cᵢ); curvature ∝ b·(μa + b·yᵢ),
    so b < 0 (or negative target) flips the fan from convex to CONCAVE. A playground.        */
-const P11 = { opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, lr:0.12, T:1500 };
+const P11 = { opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, lr:0.12, T:1500 };
 let R11 = null, t11 = 0, playing11 = false;
 const cam11 = { al: -0.95, ph: 0.50 };
 const cacheF11 = { cv: document.createElement('canvas'), key: '' };
@@ -6099,44 +6103,51 @@ const cacheL11 = { cv: document.createElement('canvas'), key: '' };
 let surf11 = null;
 const BIND11 = [['p11n','n'],['p11bs','bs'],['p11seed','seed'],['p11sig','sig'],['p11tau','tau'],['p11a','a'],['p11b','b'],['p11mu','mu'],['p11y2','y2'],['p11x10','x10'],['p11lr','lr'],['p11T','T']];
 const PRESETS11 = [
-  { n:'Concave fan · self-stabilizes', d:'b = −0.2 bends the zero-residual curves concave. Plain GD still rides the edge: λ crosses 2/η and pins there — the fan curvature did not change the physics. Note: with b < 0 the fitting DE-sharpens (E = a + b·w₂ shrinks as w₂ grows), so the sharpness actually falls',
-    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, lr:0.15, T:1500 } },
-  { n:'⭐ Concave + progressive sharpening (negative target)', d:'THE case you asked for: concave fan AND genuine progressive sharpening. Using a negative target y₂ = −12 (with b > 0) bends the fan concave WITHOUT reversing the sharpening — loss falls, sharpness climbs from ~8 up through 2/η ≈ 20 (around t ≈ 660), all with concave residual curves. And the verdict: it STILL self-stabilizes. Concave curves + loss↓ + sharpness↑ to the edge → the pushback, not divergence. The fan concavity does not switch it off (that needs the w₁-curvature, i.e. the γ term on the anti-stabilization tab)',
-    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.2, mu:0.5, y2:-12, x10:0.3, lr:0.1, T:2000 } },
+  { n:'⭐ Reciprocal gain · concave, NO cusp', d:'gain a/(1 + b·w₂) never vanishes, so the zero-residual curves become nested PARABOLAS with no shared cusp — genuinely concave and non-converging, the picture you were after. The function Hessian is now non-constant (∂²f/∂w₂² ≠ 0). And the verdict is the same: it STILL self-stabilizes. The prettier geometry does not switch off the pushback',
+    v:{ opt:'gd', form:'recip', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.2, mu:0.5, y2:2.5, x10:0.6, lr:0.1, T:1500 } },
+  { n:'Concave fan (linear) · self-stabilizes', d:'b = −0.2 bends the zero-residual curves concave but they still fan to a cusp. Plain GD rides the edge: λ crosses 2/η and pins there. Note: with b < 0 the fitting DE-sharpens (a + b·w₂ shrinks as w₂ grows), so the sharpness falls',
+    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, lr:0.15, T:1500 } },
+  { n:'⭐ Concave + progressive sharpening (negative target)', d:'concave fan AND genuine progressive sharpening. A negative target y₂ = −12 (with b > 0) bends the fan concave WITHOUT reversing the sharpening — loss falls, sharpness climbs from ~8 up through 2/η ≈ 20 (around t ≈ 660), all with concave residual curves. Verdict: STILL self-stabilizes. The fan concavity does not switch it off (that needs the w₁-curvature, i.e. the γ term on the anti-stabilization tab)',
+    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.2, mu:0.5, y2:-12, x10:0.3, lr:0.1, T:2000 } },
   { n:'Concave · crank η → catapult ejection', d:'same concave fan, η pushed up so 2/η drops well below the sharpness: the EoS catapult overshoots and the iterate is flung out. This is the generic too-big-η blow-up (happens for convex too), NOT a curvature effect',
-    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, lr:0.32, T:1500 } },
+    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, lr:0.32, T:1500 } },
   { n:'Convex fan · comparison', d:'flip to b = +0.2 (convex fan, the usual picture) at the same η — behaves the same as the concave run: self-stabilizes',
-    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.2, mu:0.5, y2:2.5, x10:0.3, lr:0.15, T:1500 } },
-  { n:'Concave · exactly-fittable (τ = 0)', d:'τ = 0 puts the targets inside range(J) — the ⊥ residual vanishes and the loss can reach machine precision along the concave fan',
-    v:{ opt:'gd', n:100, bs:100, seed:1, sig:0.6, tau:0.0, a:2.5, b:-0.2, mu:0.5, y2:2.5, x10:0.3, lr:0.15, T:1500 } },
+    v:{ opt:'gd', form:'lin', n:100, bs:100, seed:1, sig:0.6, tau:0.4, a:2.5, b:0.2, mu:0.5, y2:2.5, x10:0.3, lr:0.15, T:1500 } },
 ];
 wireMulti(BIND11, P11, 'p11', recompute11);
 
+// the w₂-gain and its first two derivatives. 'lin' = a + b·w₂ (constant Hessian, curves fan to a cusp
+// where the gain hits 0). 'recip' = a/(1 + b·w₂) — never vanishes ⇒ zero-residual curves are nested
+// PARABOLAS with no cusp (concave, non-converging), and ∂²f/∂w₂² ≠ 0 ⇒ the function Hessian is non-constant.
+function gain11(w2){ return P11.form === 'recip' ? P11.a/(1 + P11.b*w2) : P11.a + P11.b*w2; }
+function gainP11(w2){ const d = 1 + P11.b*w2; return P11.form === 'recip' ? -P11.a*P11.b/(d*d) : P11.b; }
+function gainPP11(w2){ const d = 1 + P11.b*w2; return P11.form === 'recip' ? 2*P11.a*P11.b*P11.b/(d*d*d) : 0; }
 function st11(w1, w2, c, yv){
-  const nS = c.length, E = P11.a + P11.b*w2, inv = 1/nS;
+  const nS = c.length, g = gain11(w2), gp = gainP11(w2), gpp = gainPP11(w2), inv = 1/nS;
   const r = new Float64Array(nS), J1 = new Float64Array(nS), J2 = new Float64Array(nS);
-  let L = 0, g1 = 0, g2 = 0, M11 = 0, M12 = 0, M22 = 0, N12 = 0, sumR = 0, sumRc = 0;
+  let L = 0, g1 = 0, g2 = 0, M11 = 0, M12 = 0, M22 = 0, N12 = 0, N22 = 0, sumR = 0, sumRc = 0;
   for (let i = 0; i < nS; i++){
-    const fi = E*w1*c[i] + P11.mu*w2;
+    const fi = g*w1*c[i] + P11.mu*w2;
     r[i] = yv[i] - fi;
-    J1[i] = E*c[i]; J2[i] = P11.b*w1*c[i] + P11.mu;
+    J1[i] = g*c[i]; J2[i] = gp*w1*c[i] + P11.mu;
     L += r[i]*r[i];
     g1 += -2*r[i]*J1[i]; g2 += -2*r[i]*J2[i];
     M11 += J1[i]*J1[i]; M12 += J1[i]*J2[i]; M22 += J2[i]*J2[i];
-    N12 += r[i]*P11.b*c[i];
+    N12 += r[i]*gp*c[i];              // Σ rᵢ ∂²fᵢ/∂w₁∂w₂ = g'·c
+    N22 += r[i]*gpp*w1*c[i];          // Σ rᵢ ∂²fᵢ/∂w₂²  = g''·w₁·c  (≠ 0 for the reciprocal form)
     sumR += r[i]; sumRc += r[i]*c[i];
   }
-  return { E, r, J1, J2, nS, L: L*inv, g1: g1*inv, g2: g2*inv,
+  return { E: g, r, J1, J2, nS, L: L*inv, g1: g1*inv, g2: g2*inv,
            M11: M11*inv, M12: M12*inv, M22: M22*inv, sumR: sumR*inv, sumRc: sumRc*inv,
-           h11: 2*M11*inv, h12: (2*M12 - 2*N12)*inv, h22: 2*M22*inv };
+           h11: 2*M11*inv, h12: (2*M12 - 2*N12)*inv, h22: (2*M22 - 2*N22)*inv };
 }
 function batchGrad11(w1, w2, c, yv, idx, B){
-  const E = P11.a + P11.b*w2, inv = 1/B;
+  const g = gain11(w2), gp = gainP11(w2), inv = 1/B;
   let g1 = 0, g2 = 0, M11 = 0, M12 = 0, M22 = 0;
   for (let t = 0; t < B; t++){
     const i = idx[t];
-    const r = yv[i] - (E*w1*c[i] + P11.mu*w2);
-    const J1 = E*c[i], J2 = P11.b*w1*c[i] + P11.mu;
+    const r = yv[i] - (g*w1*c[i] + P11.mu*w2);
+    const J1 = g*c[i], J2 = gp*w1*c[i] + P11.mu;
     g1 += -2*r*J1; g2 += -2*r*J2; M11 += J1*J1; M12 += J1*J2; M22 += J2*J2;
   }
   return { g1: g1*inv, g2: g2*inv, M11: M11*inv, M12: M12*inv, M22: M22*inv };
@@ -6171,17 +6182,17 @@ function lamPH11(s){
 }
 function lamP11(w1, w2, c, yv){ return lamPH11(st11(w1, w2, c, yv)).lam; }
 function L11full(w1, w2, c, yv){
-  const E = P11.a + P11.b*w2;
+  const g = gain11(w2);
   let L = 0;
-  for (let k = 0; k < c.length; k++){ const r = yv[k] - (E*w1*c[k] + P11.mu*w2); L += r*r; }
+  for (let k = 0; k < c.length; k++){ const r = yv[k] - (g*w1*c[k] + P11.mu*w2); L += r*r; }
   return Math.min(L/c.length, 1e300);
 }
 function zeroResW1_11(k, w2){
-  const E = P11.a + P11.b*w2, ck = R11.c[k];
-  if (Math.abs(E*ck) < 1e-300) return NaN;
-  return (R11.yv[k] - P11.mu*w2)/(E*ck);
+  const g = gain11(w2), ck = R11.c[k];
+  if (!isFinite(g) || Math.abs(g*ck) < 1e-300) return NaN;
+  return (R11.yv[k] - P11.mu*w2)/(g*ck);
 }
-function meanOut11(x1, x2, cbar){ return (P11.a + P11.b*x2)*x1*cbar + P11.mu*x2; }
+function meanOut11(x1, x2, cbar){ return gain11(x2)*x1*cbar + P11.mu*x2; }
 function sim11(){
   const c = sampleCoef(Math.max(2, Math.round(P11.n)), P11.sig), nS = c.length, T = P11.T;
   const yv = sampleTarget(nS, P11.y2, P11.tau);
@@ -6190,6 +6201,7 @@ function sim11(){
   let w1 = P11.x10, w2 = 0, n = T, div = false;
   X1[0] = w1; X2[0] = w2;
   for (let t = 0; t < T; t++){
+    if (P11.form === 'recip' && Math.abs(1 + P11.b*w2) < 1e-3){ n = t; div = true; break; }  // reciprocal-gain pole
     const s = st11(w1, w2, c, yv);
     if (!isFinite(s.g1) || !isFinite(s.g2)){ n = t; div = true; break; }
     if (B < nS) drawBatch(idx, B, rnd);
@@ -6266,7 +6278,7 @@ function drawSurf11(cv, kind){
   const w = cv.clientWidth, h = cv.clientHeight;
   if (w < 10 || h < 10) return;
   const key = [kind, w, h, dpr, cam11.al.toFixed(3), cam11.ph.toFixed(3), logz, PAL.ink,
-    surf11.l1, surf11.h1, surf11.l2, surf11.h2, P11.n, P11.sig, P11.tau, P11.a, P11.b, P11.mu, P11.y2, P11.lr, P11.opt].join('|');
+    surf11.l1, surf11.h1, surf11.l2, surf11.h2, P11.n, P11.sig, P11.tau, P11.a, P11.b, P11.mu, P11.y2, P11.lr, P11.opt, P11.form].join('|');
   const G = kind === 'f' ? surf11.F : surf11.LM;
   const zf = logz ? (v => Math.log10(1 + Math.max(0, v))) : (v => v);
   let zlo = Infinity, zhi = -Infinity;
@@ -6434,8 +6446,8 @@ function drawAll11(){
   drawLogStrip($('c11s3'), R11, t11, R11.rn, 0, PAL.accent);
   drawSymlogStrip($('c11s4'), R11, t11, R11.Xt, PAL.sharpmid);
   const up = Math.min(Math.round(t11), R11.n), ratio = R11.S[up]*P11.lr/2;
-  const curv = P11.b*(P11.mu*P11.a + P11.b*P11.y2);
-  const shape = Math.abs(P11.b) < 1e-12 ? 'flat' : (curv > 0 ? 'CONVEX' : 'CONCAVE');
+  const curv = P11.form === 'recip' ? -P11.mu*P11.b : P11.b*(P11.mu*P11.a + P11.b*P11.y2);
+  const shape = Math.abs(curv) < 1e-12 ? 'flat' : (curv > 0 ? 'CONVEX' : 'CONCAVE');
   let cls = PAL.good, txt = 'stable';
   if (R11.div){ cls = PAL.crit; txt = 'diverged'; }
   else if (ratio > 1.06){ cls = PAL.crit; txt = 'unstable here'; }
@@ -6445,7 +6457,7 @@ function drawAll11(){
     `<span class="pill" style="background:${cls}">η·λ/2 = ${fmt(ratio)} · ${txt}</span>`;
   $('p11info').innerHTML = chip('2/η', fmt(2/P11.lr)) + chip('samples n', R11.c.length) +
     `<span class="pill" style="background:${shape==='CONCAVE'?PAL.accent:PAL.zero}">curves: ${shape}</span>` +
-    `<span class="chip">sign of b·(μa + b·y₂) sets the fan curvature</span>`;
+    `<span class="chip">${P11.form==='recip' ? 'reciprocal gain: nested parabolas, NO cusp, non-constant ∇²f' : 'linear gain: curvature = sign of b·(μa + b·y₂), fans to a cusp'}</span>`;
   $('p11tlab').textContent = `t = ${up} / ${R11.n}`;
 }
 function recompute11(keepT){
@@ -6453,7 +6465,7 @@ function recompute11(keepT){
   t11 = keepT ? Math.min(t11, R11.n) : R11.n; $('p11scrub').value = t11;
   drawAll11(); saveHash();
 }
-function syncInputs11(){ for (const [id,k] of BIND11) $(id).value = P11[k]; $('p11lrs').value = lr2slider(P11.lr); $('p11opt').value = P11.opt; }
+function syncInputs11(){ for (const [id,k] of BIND11) $(id).value = P11[k]; $('p11lrs').value = lr2slider(P11.lr); $('p11opt').value = P11.opt; $('p11form').value = P11.form; }
 
 const PRESETS7 = [
   { n:'Full batch · 100 samples', d:'n=100, B=100, η=0.15: the deterministic reference — the full-sample sharpness rides just above 2/η = 13.3 and the loss oscillates with spread 0.19',
@@ -6656,6 +6668,7 @@ bindStrip($('c11s3'), i => `t=${i}\n‖r‖=${fmt(R11.rn[i])}`, apply11);
 bindStrip($('c11s4'), i => `t=${i}\nx_t=${fmt(R11.Xt[i])}`, apply11);
 $('p11logz').addEventListener('change', () => { cacheL11.key = ''; drawAll11(); });
 $('p11view').addEventListener('change', () => { view11 = $('p11view').value === 'map' ? 'map' : '3d'; drawAll11(); });
+$('p11form').addEventListener('change', () => { P11.form = $('p11form').value === 'recip' ? 'recip' : 'lin'; recompute11(false); });
 bindRotate($('c11f'), cam11, drawAll11, () => view11 === '3d');
 bindRotate($('c11L'), cam11, drawAll11, () => view11 === '3d');
 bindMapRot($('c11f'), 'a11', drawAll11, () => view11 === 'map');
