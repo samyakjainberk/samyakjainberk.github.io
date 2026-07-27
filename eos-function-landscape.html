@@ -107,10 +107,10 @@
   #c8f,#c8L{height:380px}
   #c9f,#c9L{height:380px}
   #c10f,#c10L,#c10map{height:380px}
-  #c10s1,#c10s2,#c10s3,#c10s4,#c10s5,#c10s6,#c10s7{height:180px}
+  #c10s1,#c10s2,#c10s3,#c10s4,#c10s5,#c10s6,#c10s7,#c10q1,#c10q2{height:180px}
   #c11f,#c11L{height:380px}
-  #c11s1,#c11s2,#c11s3,#c11s4{height:180px}
-  #c7s1,#c7s2,#c7s3,#c7s4,#c7s5,#c7s6,#c7s7,#c7s8,#c7s9,#c3s18,#c6s18,#c8s15,#c3s17,#c6s17,#c8s14,#c7s10,#c7s11,#c8s12,#c8s13,#c8s1,#c8s2,#c8s3,#c8s4,#c8s5,#c8s6,#c8s7,#c8s8,#c8s9,#c8s10,#c8s11,#c9s15,#c9s14,#c9s12,#c9s13,#c9s1,#c9s2,#c9s3,#c9s4,#c9s5,#c9s6,#c9s7,#c9s8,#c9s9,#c9s10,#c9s11{height:180px}
+  #c11s1,#c11s2,#c11s3,#c11s4,#c11q1,#c11q2{height:180px}
+  #c7s1,#c7s2,#c7s3,#c7s4,#c7s5,#c7s6,#c7s7,#c7s8,#c7s9,#c3s18,#c6s18,#c8s15,#c3s17,#c6s17,#c8s14,#c7s10,#c7s11,#c8s12,#c8s13,#c8s1,#c8s2,#c8s3,#c8s4,#c8s5,#c8s6,#c8s7,#c8s8,#c8s9,#c8s10,#c8s11,#c9s15,#c9s14,#c9s12,#c9s13,#c9s1,#c9s2,#c9s3,#c9s4,#c9s5,#c9s6,#c9s7,#c9s8,#c9s9,#c9s10,#c9s11,#c7q1,#c7q2,#c8q1,#c8q2,#c9q1,#c9q2{height:180px}
   #c3f,#c3L{height:380px}
   #c5f,#c5L{height:340px}
   #c6f,#c6L{height:380px}
@@ -993,6 +993,18 @@
         <span><i class="sw" style="background:var(--zero)"></i>∇S</span></div>
     </div>
 
+    <div class="card">
+      <h3>Residual map · top-Hessian direction &nbsp; a₁ᵀ(I − η·JJᵀ)r</h3>
+      <p class="cap">a₁ = Ĵu₁ where u₁ = top eigenvector of the loss Hessian, pushed into residual space (‖·‖=1) · signed, symlog · the a₁-component of the linearized next-step residual; along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so it flips sign there · η = lr·(2/n) · 1-param: u₁ is the single Jacobian direction, so a₁ ∥ a₂ up to sign</p>
+      <canvas class="plot" id="c7q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Residual map + curvature · sharpness-grad direction &nbsp; a₂ᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r</h3>
+      <p class="cap">a₂ = Ĵ∇S where ∇S = sharpness-changing direction, pushed into residual space · adds the 2nd-order model-curvature term (η²/2)(Pre·Jᵀr)ᵀQ_{a₂}(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <canvas class="plot" id="c7q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
+    </div>
+
   </div>
 </section>
 
@@ -1160,6 +1172,18 @@
       </div>
     </div>
 
+    <div class="card">
+      <h3>Residual map · top-Hessian direction &nbsp; a₁ᵀ(I − η·JJᵀ)r</h3>
+      <p class="cap">a₁ = Ĵu₁ where u₁ = top eigenvector of the loss Hessian, pushed into residual space (‖·‖=1) · signed, symlog · the a₁-component of the linearized next-step residual; along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so it flips sign there · η = lr·(2/n)</p>
+      <canvas class="plot" id="c8q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Residual map + curvature · sharpness-grad direction &nbsp; a₂ᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r</h3>
+      <p class="cap">a₂ = Ĵ∇S where ∇S = sharpness-changing direction, pushed into residual space · adds the 2nd-order model-curvature term (η²/2)(Pre·Jᵀr)ᵀQ_{a₂}(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <canvas class="plot" id="c8q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
+    </div>
+
   </div>
 </section>
 <section class="panel" id="panel9" hidden>
@@ -1317,6 +1341,18 @@
       </div>
     </div>
 
+    <div class="card">
+      <h3>Residual map · top-Hessian direction &nbsp; a₁ᵀ(I − η·JJᵀ)r</h3>
+      <p class="cap">a₁ = Ĵu₁ where u₁ = top eigenvector of the loss Hessian, pushed into residual space (‖·‖=1) · signed, symlog · the a₁-component of the linearized next-step residual; along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so it flips sign there · η = lr·(2/n)</p>
+      <canvas class="plot" id="c9q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Residual map + curvature · sharpness-grad direction &nbsp; a₂ᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r</h3>
+      <p class="cap">a₂ = Ĵ∇S where ∇S = sharpness-changing direction, pushed into residual space · adds the 2nd-order model-curvature term (η²/2)(Pre·Jᵀr)ᵀQ_{a₂}(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <canvas class="plot" id="c9q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
+    </div>
+
   </div>
 </section>
 
@@ -1444,6 +1480,18 @@
       </div>
     </div>
 
+    <div class="card">
+      <h3>Residual map · top-Hessian direction &nbsp; a₁ᵀ(I − η·JJᵀ)r</h3>
+      <p class="cap">a₁ = Ĵu₁ where u₁ = top eigenvector of the loss Hessian, pushed into residual space (‖·‖=1) · signed, symlog · the a₁-component of the linearized next-step residual; along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so it flips sign there · η = lr·(2/n)</p>
+      <canvas class="plot" id="c10q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Residual map + curvature · sharpness-grad direction &nbsp; a₂ᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r</h3>
+      <p class="cap">a₂ = Ĵ∇S where ∇S = sharpness-changing direction, pushed into residual space · adds the 2nd-order model-curvature term (η²/2)(Pre·Jᵀr)ᵀQ_{a₂}(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <canvas class="plot" id="c10q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
+    </div>
+
   </div>
 </section>
 
@@ -1539,6 +1587,18 @@
       <h3>x_t — preconditioned gradient on the top eigenvector</h3>
       <p class="cap">(Pg)·v̂₁ · signed, symlog · the oscillation amplitude</p>
       <canvas class="plot" id="c11s4" role="img" aria-label="oscillation on the top eigenvector"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Residual map · top-Hessian direction &nbsp; a₁ᵀ(I − η·JJᵀ)r</h3>
+      <p class="cap">a₁ = Ĵu₁ where u₁ = top eigenvector of the loss Hessian, pushed into residual space (‖·‖=1) · signed, symlog · the a₁-component of the linearized next-step residual; along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so it flips sign there · η = lr·(2/n)</p>
+      <canvas class="plot" id="c11q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Residual map + curvature · sharpness-grad direction &nbsp; a₂ᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r</h3>
+      <p class="cap">a₂ = Ĵ∇S where ∇S = sharpness-changing direction, pushed into residual space · adds the 2nd-order model-curvature term (η²/2)(Pre·Jᵀr)ᵀQ_{a₂}(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <canvas class="plot" id="c11q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
     </div>
 
   </div>
@@ -3031,6 +3091,41 @@ function drawSymlogStrip(cv, RR, t, arr, color){
 }
 
 
+/* ---------- residual-map EoS diagnostics  aᵀ(I − η·JJᵀ …)r   (shared by panels 7–11) ----------
+   Function-space (NTK) view of one GD step on the residual r = y − f.
+     Plot 1 direction  a₁ = normalize(J·u),   u  = top eigenvector of the loss Hessian (param space)
+     Plot 2 direction  a₂ = normalize(J·∇S),  ∇S = sharpness-gradient direction (param space)
+     Plot 1 value  Q₁ = a₁ᵀ(I − η·J Pre Jᵀ) r
+     Plot 2 value  Q₂ = a₂ᵀ(I − η·J Pre Jᵀ) r + (η²/2)·(Pre·Jᵀr)ᵀ Q_{a₂} (Pre·Jᵀr)
+   η = lr·(2/n): the mean-loss effective rate, so η·λ_top(JJᵀ) ≈ 2 exactly at EoS (⇒ Q₁ along the
+   top mode flips sign there). Pre is the optimizer's preconditioner metric (identity for GD).
+   Model curvature is affine in cᵢ:  Qᵢ = [[αxx,αxy],[αxy,αyy]]·cᵢ, so Q_{a₂}=Σ a₂ᵢ Qᵢ needs only
+   sac2 = Σ a₂ᵢ cᵢ. The +η²/2 curvature term is written as specified (the residual map's own second
+   -order term carries a minus for r = y − f; flip the sign of the α's to get the true next-residual). */
+function residDiag(r, J1, J2, c, axx, axy, ayy, u1, u2, gS1, gS2, p11, p12, p22, eta){
+  const n = r.length;
+  let n1 = 0, n2 = 0, sr1 = 0, sr2 = 0;
+  for (let i = 0; i < n; i++){
+    const j2 = J2 ? J2[i] : 0;
+    const a1 = J1[i]*u1 + j2*u2, a2 = J1[i]*gS1 + j2*gS2;
+    n1 += a1*a1; n2 += a2*a2; sr1 += J1[i]*r[i]; sr2 += j2*r[i];
+  }
+  const i1 = n1 > 1e-300 ? 1/Math.sqrt(n1) : 0, i2 = n2 > 1e-300 ? 1/Math.sqrt(n2) : 0;
+  const ps1 = p11*sr1 + p12*sr2, ps2 = p12*sr1 + p22*sr2;          // Pre·(Jᵀr)
+  let a1r = 0, Ja1_1 = 0, Ja1_2 = 0, a2r = 0, Ja2_1 = 0, Ja2_2 = 0, sac2 = 0;
+  for (let i = 0; i < n; i++){
+    const j2 = J2 ? J2[i] : 0;
+    const a1 = (J1[i]*u1 + j2*u2)*i1, a2 = (J1[i]*gS1 + j2*gS2)*i2;
+    a1r += a1*r[i]; Ja1_1 += J1[i]*a1; Ja1_2 += j2*a1;
+    a2r += a2*r[i]; Ja2_1 += J1[i]*a2; Ja2_2 += j2*a2; sac2 += a2*c[i];
+  }
+  const q1 = a1r - eta*(Ja1_1*ps1 + Ja1_2*ps2);
+  const lin2 = a2r - eta*(Ja2_1*ps1 + Ja2_2*ps2);
+  const sQs = sac2*(axx*ps1*ps1 + 2*axy*ps1*ps2 + ayy*ps2*ps2);    // (Pre·Jᵀr)ᵀ Q_{a₂} (Pre·Jᵀr)
+  return [q1, lin2 + 0.5*eta*eta*sQs];
+}
+
+
 /* ---------- lag-cosine of the J∇S direction (shared by all four panels) ---------- */
 const KLAGS = [1, 2, 5, 10];
 function kickCycles(osc, w2a, lam, lr, m){
@@ -4198,6 +4293,7 @@ function sim7(){
         Xt = new Float64Array(m), GdS = new Float64Array(m), Rpar = new Float64Array(m), Rperp = new Float64Array(m),
         Ru1 = new Float64Array(m), cJ = new Float64Array(m), cS = new Float64Array(m),
         RqF = new Float64Array(m), RqL = new Float64Array(m), Ruv = new Float64Array(m);
+  const Q1 = new Float64Array(m), Q2 = new Float64Array(m);
   // J and ∇S frozen at the first λ(PH) > 2/η crossing (same convention as the 1-D tab)
   let tcJ = Infinity, fpc = null, Spc = 0;
   for (let i = 0; i < m; i++){
@@ -4220,6 +4316,9 @@ function sim7(){
     const h = 1e-5*(1 + Math.abs(ws[i]));
     const Sp = (lamP7(ws[i]+h, c) - lamP7(ws[i]-h, c))/(2*h);
     GdS[i] = clip(Xt[i]*(Sp > 0 ? 1 : Sp < 0 ? -1 : 0));
+    { const eta = P7.lr*2/nS;
+      const qd = residDiag(s.r, s.fp, null, c, -P7.b*P7.b*s.E, 0, 0, 1, 0, Sp, 0, Pv, 0, 0, eta);
+      Q1[i] = clip(qd[0]); Q2[i] = clip(qd[1]); }
     let jn = 0, rd = 0;
     for (let k = 0; k < nS; k++){ jn += s.fp[k]*s.fp[k]; rd += s.r[k]*s.fp[k]; }
     const jl = Math.sqrt(Math.max(jn, 0));
@@ -4252,7 +4351,7 @@ function sim7(){
   return { xs: ws.subarray(0,m), c, L, rn, S, Sm, Xt, GdS, Rpar, Rperp, Ru1, RqF, RqL, Ruv, tcJ,
            RK: lagCosArrays2(Rc, m),
            DM: [dirMemory(Rc, m), dirMemory(Jc, m), dirMemory([cS], m)],
-           n, div, conv: !div && L[m-1] < 1e-10 };
+           Q1, Q2, n, div, conv: !div && L[m-1] < 1e-10 };
 }
 
 /* ---------- panel 8 : TWO parameters, n datapoints ----------
@@ -4374,6 +4473,7 @@ function sim8(){
   }
   const Rc = [], Jc = [];
   for (let i = 0; i < nS; i++){ Rc.push(new Float64Array(m)); Jc.push(new Float64Array(m)); Jc.push(new Float64Array(m)); }
+  const Q1 = new Float64Array(m), Q2 = new Float64Array(m);
   let pv1 = null, pv2 = 0;
   for (let i = 0; i < m; i++){
     const s = st8(X1[i], X2[i], c, yv), P = pre8(s), eA = lamPH8(s);
@@ -4384,6 +4484,11 @@ function sim8(){
     if (nv > 1e-300){ vw1 /= nv; vw2 /= nv; } else { vw1 = 1; vw2 = 0; }
     if (pv1 !== null && vw1*pv1 + vw2*pv2 < 0){ vw1 = -vw1; vw2 = -vw2; }
     pv1 = vw1; pv2 = vw2;
+    { const d = 1e-3*(1 + Math.abs(X1[i]) + Math.abs(X2[i])), eta = P8.lr*2/nS;
+      const gS1 = (lamP8(X1[i]+d, X2[i], c, yv) - lamP8(X1[i]-d, X2[i], c, yv))/(2*d);
+      const gS2 = (lamP8(X1[i], X2[i]+d, c, yv) - lamP8(X1[i], X2[i]-d, c, yv))/(2*d);
+      const qd = residDiag(s.r, s.J1, s.J2, c, 0, s.E*P8.b, s.E*P8.b*P8.b*X1[i], vw1, vw2, gS1, gS2, P.p11, P.p12, P.p22, eta);
+      Q1[i] = clip(qd[0]); Q2[i] = clip(qd[1]); }
     const pg1 = P.p11*s.g1 + P.p12*s.g2, pg2 = P.p12*s.g1 + P.p22*s.g2;
     Xt[i] = clip(pg1*vw1 + pg2*vw2);
     const h = 1e-5*(1 + Math.abs(X1[i]) + Math.abs(X2[i]));
@@ -4471,7 +4576,7 @@ function sim8(){
            Rpar, Rperp, Ru1, Ru2, AngO, AngN, Dfit, Dosc, Rosc, RqF, RqL, Ruv, tcJ,
            RK: lagCosArrays2(Rc, m),
            DM: [dirMemory(Rc, m), dirMemory(Jc, m), dirMemory([cS1, cS2], m)],
-           n, div, conv: !div && L[m-1] < 1e-10 };
+           Q1, Q2, n, div, conv: !div && L[m-1] < 1e-10 };
 }
 function lagCosArrays2(comps, m){
   return KLAGS.map(k => {
@@ -5024,6 +5129,8 @@ function drawAll7(){
   drawSymlogStrip($('c7s7'), R7, t7, R7.Ru1, PAL.sharpmid);
   drawSymlogMulti($('c7s10'), R7, t7, [R7.RqF, R7.RqL], [PAL.accent, PAL.sharp]);
   drawSymlogStrip($('c7s11'), R7, t7, R7.Ruv, PAL.nt[2]);
+  drawSymlogStrip($('c7q1'), R7, t7, R7.Q1, PAL.accent);
+  drawSymlogStrip($('c7q2'), R7, t7, R7.Q2, PAL.sharp);
   drawCosStrip($('c7s8'), R7, t7, R7.RK);
   drawWhoTurnsStrip($('c7s9'), R7, t7, R7.tcJ);
   const up = Math.min(Math.round(t7), R7.n), ratio = R7.S[up]*P7.lr/2;
@@ -5054,6 +5161,8 @@ function drawAll8(){
   drawSymlogStrip($('c8s7'), R8, t8, R8.Rosc, PAL.sharpmid);
   drawSymlogMulti($('c8s12'), R8, t8, [R8.RqF, R8.RqL], [PAL.accent, PAL.sharp]);
   drawSymlogStrip($('c8s13'), R8, t8, R8.Ruv, PAL.nt[2]);
+  drawSymlogStrip($('c8q1'), R8, t8, R8.Q1, PAL.accent);
+  drawSymlogStrip($('c8q2'), R8, t8, R8.Q2, PAL.sharp);
   drawCosStrip($('c8s10'), R8, t8, R8.RK);
   drawWhoTurnsStrip($('c8s11'), R8, t8, R8.tcJ);
   drawCycleStrip($('c8s14'), R8, t8);
@@ -5265,6 +5374,7 @@ function sim9(){
   }
   const Rc = [], Jc = [];
   for (let i = 0; i < nS; i++){ Rc.push(new Float64Array(m)); Jc.push(new Float64Array(m)); Jc.push(new Float64Array(m)); }
+  const Q1 = new Float64Array(m), Q2 = new Float64Array(m);
   let pv1 = null, pv2 = 0;
   for (let i = 0; i < m; i++){
     const s = st9(X1[i], X2[i], c, yv), P = pre9(s), eA = lamPH9(s);
@@ -5275,6 +5385,11 @@ function sim9(){
     if (nv > 1e-300){ vw1 /= nv; vw2 /= nv; } else { vw1 = 1; vw2 = 0; }
     if (pv1 !== null && vw1*pv1 + vw2*pv2 < 0){ vw1 = -vw1; vw2 = -vw2; }
     pv1 = vw1; pv2 = vw2;
+    { const d = 1e-3*(1 + Math.abs(X1[i]) + Math.abs(X2[i])), eta = P9.lr*2/nS;
+      const gS1 = (lamP9(X1[i]+d, X2[i], c, yv) - lamP9(X1[i]-d, X2[i], c, yv))/(2*d);
+      const gS2 = (lamP9(X1[i], X2[i]+d, c, yv) - lamP9(X1[i], X2[i]-d, c, yv))/(2*d);
+      const qd = residDiag(s.r, s.J1, s.J2, c, 0, P9.b, 0, vw1, vw2, gS1, gS2, P.p11, P.p12, P.p22, eta);
+      Q1[i] = clip(qd[0]); Q2[i] = clip(qd[1]); }
     const pg1 = P.p11*s.g1 + P.p12*s.g2, pg2 = P.p12*s.g1 + P.p22*s.g2;
     Xt[i] = clip(pg1*vw1 + pg2*vw2);
     const h = 1e-5*(1 + Math.abs(X1[i]) + Math.abs(X2[i]));
@@ -5362,7 +5477,7 @@ function sim9(){
            Rpar, Rperp, Ru1, Ru2, AngO, AngN, Dfit, Dosc, Rosc, RqF, RqL, Ruv, tcJ,
            RK: lagCosArrays2(Rc, m),
            DM: [dirMemory(Rc, m), dirMemory(Jc, m), dirMemory([cS1, cS2], m)],
-           n, div, conv: !div && L[m-1] < 1e-10 };
+           Q1, Q2, n, div, conv: !div && L[m-1] < 1e-10 };
 }
 function L9full(w1, w2, c, yv){
   const E = P9.a + P9.b*w2;
@@ -5617,6 +5732,8 @@ function drawAll9(){
   drawSymlogStrip($('c9s7'), R9, t9, R9.Rosc, PAL.sharpmid);
   drawSymlogMulti($('c9s12'), R9, t9, [R9.RqF, R9.RqL], [PAL.accent, PAL.sharp]);
   drawSymlogStrip($('c9s13'), R9, t9, R9.Ruv, PAL.nt[2]);
+  drawSymlogStrip($('c9q1'), R9, t9, R9.Q1, PAL.accent);
+  drawSymlogStrip($('c9q2'), R9, t9, R9.Q2, PAL.sharp);
   drawCosStrip($('c9s10'), R9, t9, R9.RK);
   drawWhoTurnsStrip($('c9s11'), R9, t9, R9.tcJ);
   drawCycleStrip($('c9s14'), R9, t9);
@@ -5771,6 +5888,7 @@ function sim10(){
   const L = new Float64Array(m), rn = new Float64Array(m), S = new Float64Array(m), Sm = new Float64Array(Math.max(0,m-1)),
         Xt = new Float64Array(m), Dfit = new Float64Array(m), Dosc = new Float64Array(m), Kss = new Float64Array(m),
         GN11 = new Float64Array(m), QN = new Float64Array(m);
+  const Q1 = new Float64Array(m), Q2 = new Float64Array(m);
   let pv1 = null, pv2 = 0;
   for (let i = 0; i < m; i++){
     const s = st10(X1[i], X2[i], c, yv), P = pre10(s), eA = lamPH10(s);
@@ -5781,6 +5899,11 @@ function sim10(){
     if (nv > 1e-300){ vw1 /= nv; vw2 /= nv; } else { vw1 = 1; vw2 = 0; }
     if (pv1 !== null && vw1*pv1 + vw2*pv2 < 0){ vw1 = -vw1; vw2 = -vw2; }
     pv1 = vw1; pv2 = vw2;
+    { const d = 1e-3*(1 + Math.abs(X1[i]) + Math.abs(X2[i])), eta = P10.lr*2/nS;
+      const gS1 = (lamP10(X1[i]+d, X2[i], c, yv) - lamP10(X1[i]-d, X2[i], c, yv))/(2*d);
+      const gS2 = (lamP10(X1[i], X2[i]+d, c, yv) - lamP10(X1[i], X2[i]-d, c, yv))/(2*d);
+      const qd = residDiag(s.r, s.J1, s.J2, c, P10.gam, P10.b, 0, vw1, vw2, gS1, gS2, P.p11, P.p12, P.p22, eta);
+      Q1[i] = clip(qd[0]); Q2[i] = clip(qd[1]); }
     const pg1 = P.p11*s.g1 + P.p12*s.g2, pg2 = P.p12*s.g1 + P.p22*s.g2;
     Xt[i] = clip(pg1*vw1 + pg2*vw2);
     Dfit[i] = clip(2*P10.lr*P10.mu*s.sumR);              // w₂ advance from the fitting pull
@@ -5798,7 +5921,7 @@ function sim10(){
     if (i+1 < m) Sm[i] = clip(lamP10(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1]), c, yv));
   }
   return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), c, yv, L, rn, S, Sm, Xt, Dfit, Dosc, Kss, GN11, QN, qnorm, mc2,
-           n, div, conv: !div && L[m-1] < 1e-10 };
+           Q1, Q2, n, div, conv: !div && L[m-1] < 1e-10 };
 }
 // solve the zero-residual set of sample k for w1 given w2:  ½γ·c·w1² + E·c·w1 + (μ·w2 − y) = 0
 function zeroResW1_10(k, w2, branch){
@@ -6070,6 +6193,8 @@ function drawAll10(){
   drawSymlogStrip($('c10s4'), R10, t10, R10.Kss, PAL.sharp);
   drawLogStrip($('c10s5'), R10, t10, R10.rn, 0, PAL.accent);
   drawSymlogStrip($('c10s6'), R10, t10, R10.Xt, PAL.sharpmid);
+  drawSymlogStrip($('c10q1'), R10, t10, R10.Q1, PAL.accent);
+  drawSymlogStrip($('c10q2'), R10, t10, R10.Q2, PAL.sharp);
   drawSymlogMulti($('c10s7'), R10, t10, [R10.GN11, R10.QN], [PAL.sharp, PAL.zero]);
   const up = Math.min(Math.round(t10), R10.n), ratio = R10.S[up]*P10.lr/2;
   let cls = PAL.good, txt = 'stable';
@@ -6233,7 +6358,7 @@ function sim11(){
   }
   const m = n+1, clip = v => Math.max(-1e150, Math.min(1e150, v));
   const L = new Float64Array(m), rn = new Float64Array(m), S = new Float64Array(m), Sm = new Float64Array(Math.max(0,m-1)),
-        Xt = new Float64Array(m);
+        Xt = new Float64Array(m), Q1 = new Float64Array(m), Q2 = new Float64Array(m);
   let pv1 = null, pv2 = 0;
   for (let i = 0; i < m; i++){
     const s = st11(X1[i], X2[i], c, yv), P = pre11(s), eA = lamPH11(s);
@@ -6244,11 +6369,17 @@ function sim11(){
     if (nv > 1e-300){ vw1 /= nv; vw2 /= nv; } else { vw1 = 1; vw2 = 0; }
     if (pv1 !== null && vw1*pv1 + vw2*pv2 < 0){ vw1 = -vw1; vw2 = -vw2; }
     pv1 = vw1; pv2 = vw2;
+    { const d = 1e-3*(1 + Math.abs(X1[i]) + Math.abs(X2[i])), eta = P11.lr*2/nS;
+      const gS1 = (lamP11(X1[i]+d, X2[i], c, yv) - lamP11(X1[i]-d, X2[i], c, yv))/(2*d);
+      const gS2 = (lamP11(X1[i], X2[i]+d, c, yv) - lamP11(X1[i], X2[i]-d, c, yv))/(2*d);
+      const gp = gainP11(X2[i]), gpp = gainPP11(X2[i]);
+      const qd = residDiag(s.r, s.J1, s.J2, c, P11.gam, gp, gpp*X1[i], vw1, vw2, gS1, gS2, P.p11, P.p12, P.p22, eta);
+      Q1[i] = clip(qd[0]); Q2[i] = clip(qd[1]); }
     const pg1 = P.p11*s.g1 + P.p12*s.g2, pg2 = P.p12*s.g1 + P.p22*s.g2;
     Xt[i] = clip(pg1*vw1 + pg2*vw2);
     if (i+1 < m) Sm[i] = clip(lamP11(0.5*(X1[i]+X1[i+1]), 0.5*(X2[i]+X2[i+1]), c, yv));
   }
-  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), c, yv, L, rn, S, Sm, Xt,
+  return { x1: X1.subarray(0,m), x2: X2.subarray(0,m), c, yv, L, rn, S, Sm, Xt, Q1, Q2,
            n, div, conv: !div && L[m-1] < 1e-10 };
 }
 function buildSurf11(){
@@ -6467,6 +6598,8 @@ function drawAll11(){
   drawSharpStrip($('c11s2'), R11, t11, P11.lr, true);
   drawLogStrip($('c11s3'), R11, t11, R11.rn, 0, PAL.accent);
   drawSymlogStrip($('c11s4'), R11, t11, R11.Xt, PAL.sharpmid);
+  drawSymlogStrip($('c11q1'), R11, t11, R11.Q1, PAL.accent);
+  drawSymlogStrip($('c11q2'), R11, t11, R11.Q2, PAL.sharp);
   const up = Math.min(Math.round(t11), R11.n), ratio = R11.S[up]*P11.lr/2;
   const curv = P11.form === 'recip' ? -P11.mu*P11.b : P11.b*(P11.mu*P11.a + P11.b*P11.y2);
   const shape = Math.abs(curv) < 1e-12 ? 'flat' : (curv > 0 ? 'CONVEX' : 'CONCAVE');
@@ -6563,6 +6696,8 @@ bindStrip($('c7s10'), i => `t=${i}\nfrozen=${fmt(R7.RqF[i])}\nlive=${fmt(R7.RqL[
 bindStrip($('c7s11'), i => `t=${i}\nr·(Ĵu)=${fmt(R7.Ruv[i])}`, apply7);
 bindStrip($('c7s8'), i => `t=${i}\ncos(r): ${cosTip('c7s8', KLAGS.map((k,s)=>['l'+k, R7.RK[s]]), i)}`, apply7);
 bindStrip($('c7s9'), i => `t=${i}\nresidual ${fmt(R7.DM[0][i])}\nJacobian ${fmt(R7.DM[1][i])}\n∇S ${fmt(R7.DM[2][i])}`, apply7);
+bindStrip($('c7q1'), i => `t=${i}\na₁ᵀ(I−η·JJᵀ)r=${fmt(R7.Q1[i])}`, apply7);
+bindStrip($('c7q2'), i => `t=${i}\na₂ᵀ(I−η·JJᵀ+½η²rᵀJᵀQJ)r=${fmt(R7.Q2[i])}`, apply7);
 bindStrip($('c8s1'), i => `t=${i}\nL=${fmt(R8.L[i])}`, apply8);
 bindStrip($('c8s2'), i => `t=${i}\nλ(PH)=${fmt(R8.S[i])}\n2/η=${fmt(2/P8.lr)}`, apply8);
 bindStrip($('c8s3'), i => `t=${i}\n‖r‖=${fmt(R8.rn[i])}`, apply8);
@@ -6575,6 +6710,8 @@ bindStrip($('c8s10'), i => `t=${i}\ncos(r): ${cosTip('c8s10', KLAGS.map((k,s)=>[
 bindStrip($('c8s11'), i => `t=${i}\nresidual ${fmt(R8.DM[0][i])}\nJacobian ${fmt(R8.DM[1][i])}\n∇S ${fmt(R8.DM[2][i])}`, apply8);
 bindStrip($('c8s14'), i => `t=${i}` + (R8.KC.tev[i] ? `\ncycle fired at t=${R8.KC.tev[i]}\n  w₁=${fmt(R8.KC.osc[i])}  w₂=${fmt(R8.KC.w2[i])}\n  amplitude=${fmt(R8.KC.amp[i])}  excess=${fmt(R8.KC.exc[i])}` : '\nno cycle yet'), apply8);
 bindStrip($('c8s15'), i => `t=${i}\nfitting pull = ${fmt(R8.Dfit[i])}\noscillation  = ${fmt(R8.Dosc[i])}\nnet Δw₂ = ${fmt(R8.Dfit[i] + R8.Dosc[i])}`, apply8);
+bindStrip($('c8q1'), i => `t=${i}\na₁ᵀ(I−η·JJᵀ)r=${fmt(R8.Q1[i])}`, apply8);
+bindStrip($('c8q2'), i => `t=${i}\na₂ᵀ(I−η·JJᵀ+½η²rᵀJᵀQJ)r=${fmt(R8.Q2[i])}`, apply8);
 $('p7csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R7.n; i++)
@@ -6622,6 +6759,8 @@ bindStrip($('c9s10'), i => `t=${i}\ncos(r): ${cosTip('c9s10', KLAGS.map((k,s)=>[
 bindStrip($('c9s11'), i => `t=${i}\nresidual ${fmt(R9.DM[0][i])}\nJacobian ${fmt(R9.DM[1][i])}\n∇S ${fmt(R9.DM[2][i])}`, apply9);
 bindStrip($('c9s14'), i => `t=${i}` + (R9.KC.tev[i] ? `\ncycle fired at t=${R9.KC.tev[i]}\n  w₁=${fmt(R9.KC.osc[i])}  w₂=${fmt(R9.KC.w2[i])}\n  amplitude=${fmt(R9.KC.amp[i])}  excess=${fmt(R9.KC.exc[i])}` : '\nno cycle yet'), apply9);
 bindStrip($('c9s15'), i => `t=${i}\nfitting pull = ${fmt(R9.Dfit[i])}\noscillation  = ${fmt(R9.Dosc[i])}\nnet Δw₂ = ${fmt(R9.Dfit[i] + R9.Dosc[i])}`, apply9);
+bindStrip($('c9q1'), i => `t=${i}\na₁ᵀ(I−η·JJᵀ)r=${fmt(R9.Q1[i])}`, apply9);
+bindStrip($('c9q2'), i => `t=${i}\na₂ᵀ(I−η·JJᵀ+½η²rᵀJᵀQJ)r=${fmt(R9.Q2[i])}`, apply9);
 $('p9logz').addEventListener('change', () => { cacheL9.key = ''; drawAll9(); });
 $('p9lin').addEventListener('change', () => { P9.lin = $('p9lin').checked; recompute9(false); });
 $('p9view').addEventListener('change', () => { view9 = $('p9view').value === 'map' ? 'map' : '3d'; drawAll9(); });
@@ -6658,6 +6797,8 @@ bindStrip($('c10s4'), i => `t=${i}\n∂²λ/∂x² = ${fmt(R10.Kss[i])}\n(> 0 �
 bindStrip($('c10s5'), i => `t=${i}\n‖r‖=${fmt(R10.rn[i])}`, apply10);
 bindStrip($('c10s6'), i => `t=${i}\nx_t=${fmt(R10.Xt[i])}`, apply10);
 bindStrip($('c10s7'), i => `t=${i}\nGauss–Newton 2‖J₁‖² = ${fmt(R10.GN11[i])}\n‖∇²f‖ (constant Q) = ${fmt(R10.QN[i])}`, apply10);
+bindStrip($('c10q1'), i => `t=${i}\na₁ᵀ(I−η·JJᵀ)r=${fmt(R10.Q1[i])}`, apply10);
+bindStrip($('c10q2'), i => `t=${i}\na₂ᵀ(I−η·JJᵀ+½η²rᵀJᵀQJ)r=${fmt(R10.Q2[i])}`, apply10);
 $('p10view').addEventListener('change', () => { view10 = $('p10view').value === 'map' ? 'map' : '3d'; drawAll10(); });
 $('p10logz').addEventListener('change', () => { cacheL10.key = ''; drawAll10(); });
 bindRotate($('c10f'), cam10, drawAll10, () => view10 === '3d');
@@ -6688,6 +6829,8 @@ bindStrip($('c11s1'), i => `t=${i}\nL=${fmt(R11.L[i])}`, apply11);
 bindStrip($('c11s2'), i => `t=${i}\nλ(PH)=${fmt(R11.S[i])}\n2/η=${fmt(2/P11.lr)}`, apply11);
 bindStrip($('c11s3'), i => `t=${i}\n‖r‖=${fmt(R11.rn[i])}`, apply11);
 bindStrip($('c11s4'), i => `t=${i}\nx_t=${fmt(R11.Xt[i])}`, apply11);
+bindStrip($('c11q1'), i => `t=${i}\na₁ᵀ(I−η·JJᵀ)r=${fmt(R11.Q1[i])}`, apply11);
+bindStrip($('c11q2'), i => `t=${i}\na₂ᵀ(I−η·JJᵀ+½η²rᵀJᵀQJ)r=${fmt(R11.Q2[i])}`, apply11);
 $('p11logz').addEventListener('change', () => { cacheL11.key = ''; drawAll11(); });
 $('p11view').addEventListener('change', () => { view11 = $('p11view').value === 'map' ? 'map' : '3d'; drawAll11(); });
 $('p11form').addEventListener('change', () => { P11.form = $('p11form').value === 'recip' ? 'recip' : 'lin'; recompute11(false); });
