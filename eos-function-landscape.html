@@ -994,17 +994,19 @@
     </div>
 
     <div class="card">
-      <h3>Residual map &nbsp; aᵀ(I − η·JJᵀ)r &nbsp;·&nbsp; both directions</h3>
-      <p class="cap">the a-component of the linearized next-step residual, for two probe directions (each ‖·‖=1): a₁ = Ĵu₁ (u₁ = top eigenvector of the loss Hessian) and a₂ = Ĵ∇S (∇S = sharpness-changing direction) · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n) · 1-param: u₁ is the single Jacobian direction, so a₁ ∥ a₂ up to sign</p>
+      <h3>Direction a₁ = Ĵu₁ (top Hessian) &nbsp;·&nbsp; with &amp; without curvature</h3>
+      <p class="cap">the a₁-component of the linearized next-step residual, a₁ = Ĵu₁ pushed into residual space (‖·‖=1) · both curves: the pure NTK map aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order model-curvature term aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n) · 1-param: u₁ is the single Jacobian direction, so a₁ ∥ a₂ up to sign</p>
+      <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c7q1lin"> linear y-axis</label></div>
       <canvas class="plot" id="c7q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
-      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>a₁ = Ĵu₁ (top Hessian eigvec)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>a₂ = Ĵ∇S (sharpness grad)</span></div>
+      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
     </div>
 
     <div class="card">
-      <h3>Residual map + curvature &nbsp; aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r &nbsp;·&nbsp; both directions</h3>
-      <p class="cap">the same two directions a₁, a₂, now with the 2nd-order model-curvature term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w², added inside the operator · signed, symlog</p>
+      <h3>Direction a₂ = Ĵ∇S (sharpness grad) &nbsp;·&nbsp; with &amp; without curvature</h3>
+      <p class="cap">the a₂-component, a₂ = Ĵ∇S (∇S = sharpness-changing direction) pushed into residual space · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c7q2lin"> linear y-axis</label></div>
       <canvas class="plot" id="c7q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
-      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>a₁ = Ĵu₁ (top Hessian eigvec)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>a₂ = Ĵ∇S (sharpness grad)</span></div>
+      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
     </div>
 
   </div>
@@ -1175,17 +1177,19 @@
     </div>
 
     <div class="card">
-      <h3>Residual map &nbsp; aᵀ(I − η·JJᵀ)r &nbsp;·&nbsp; both directions</h3>
-      <p class="cap">the a-component of the linearized next-step residual, for two probe directions (each ‖·‖=1): a₁ = Ĵu₁ (u₁ = top eigenvector of the loss Hessian) and a₂ = Ĵ∇S (∇S = sharpness-changing direction) · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n)</p>
+      <h3>Direction a₁ = Ĵu₁ (top Hessian) &nbsp;·&nbsp; with &amp; without curvature</h3>
+      <p class="cap">the a₁-component of the linearized next-step residual, a₁ = Ĵu₁ pushed into residual space (‖·‖=1) · both curves: the pure NTK map aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order model-curvature term aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n)</p>
+      <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c8q1lin"> linear y-axis</label></div>
       <canvas class="plot" id="c8q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
-      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>a₁ = Ĵu₁ (top Hessian eigvec)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>a₂ = Ĵ∇S (sharpness grad)</span></div>
+      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
     </div>
 
     <div class="card">
-      <h3>Residual map + curvature &nbsp; aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r &nbsp;·&nbsp; both directions</h3>
-      <p class="cap">the same two directions a₁, a₂, now with the 2nd-order model-curvature term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w², added inside the operator · signed, symlog</p>
+      <h3>Direction a₂ = Ĵ∇S (sharpness grad) &nbsp;·&nbsp; with &amp; without curvature</h3>
+      <p class="cap">the a₂-component, a₂ = Ĵ∇S (∇S = sharpness-changing direction) pushed into residual space · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c8q2lin"> linear y-axis</label></div>
       <canvas class="plot" id="c8q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
-      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>a₁ = Ĵu₁ (top Hessian eigvec)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>a₂ = Ĵ∇S (sharpness grad)</span></div>
+      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
     </div>
 
   </div>
@@ -1346,17 +1350,19 @@
     </div>
 
     <div class="card">
-      <h3>Residual map &nbsp; aᵀ(I − η·JJᵀ)r &nbsp;·&nbsp; both directions</h3>
-      <p class="cap">the a-component of the linearized next-step residual, for two probe directions (each ‖·‖=1): a₁ = Ĵu₁ (u₁ = top eigenvector of the loss Hessian) and a₂ = Ĵ∇S (∇S = sharpness-changing direction) · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n)</p>
+      <h3>Direction a₁ = Ĵu₁ (top Hessian) &nbsp;·&nbsp; with &amp; without curvature</h3>
+      <p class="cap">the a₁-component of the linearized next-step residual, a₁ = Ĵu₁ pushed into residual space (‖·‖=1) · both curves: the pure NTK map aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order model-curvature term aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n)</p>
+      <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c9q1lin"> linear y-axis</label></div>
       <canvas class="plot" id="c9q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
-      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>a₁ = Ĵu₁ (top Hessian eigvec)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>a₂ = Ĵ∇S (sharpness grad)</span></div>
+      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
     </div>
 
     <div class="card">
-      <h3>Residual map + curvature &nbsp; aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r &nbsp;·&nbsp; both directions</h3>
-      <p class="cap">the same two directions a₁, a₂, now with the 2nd-order model-curvature term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w², added inside the operator · signed, symlog</p>
+      <h3>Direction a₂ = Ĵ∇S (sharpness grad) &nbsp;·&nbsp; with &amp; without curvature</h3>
+      <p class="cap">the a₂-component, a₂ = Ĵ∇S (∇S = sharpness-changing direction) pushed into residual space · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c9q2lin"> linear y-axis</label></div>
       <canvas class="plot" id="c9q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
-      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>a₁ = Ĵu₁ (top Hessian eigvec)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>a₂ = Ĵ∇S (sharpness grad)</span></div>
+      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
     </div>
 
   </div>
@@ -1487,17 +1493,19 @@
     </div>
 
     <div class="card">
-      <h3>Residual map &nbsp; aᵀ(I − η·JJᵀ)r &nbsp;·&nbsp; both directions</h3>
-      <p class="cap">the a-component of the linearized next-step residual, for two probe directions (each ‖·‖=1): a₁ = Ĵu₁ (u₁ = top eigenvector of the loss Hessian) and a₂ = Ĵ∇S (∇S = sharpness-changing direction) · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n)</p>
+      <h3>Direction a₁ = Ĵu₁ (top Hessian) &nbsp;·&nbsp; with &amp; without curvature</h3>
+      <p class="cap">the a₁-component of the linearized next-step residual, a₁ = Ĵu₁ pushed into residual space (‖·‖=1) · both curves: the pure NTK map aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order model-curvature term aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n)</p>
+      <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c10q1lin"> linear y-axis</label></div>
       <canvas class="plot" id="c10q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
-      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>a₁ = Ĵu₁ (top Hessian eigvec)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>a₂ = Ĵ∇S (sharpness grad)</span></div>
+      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
     </div>
 
     <div class="card">
-      <h3>Residual map + curvature &nbsp; aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r &nbsp;·&nbsp; both directions</h3>
-      <p class="cap">the same two directions a₁, a₂, now with the 2nd-order model-curvature term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w², added inside the operator · signed, symlog</p>
+      <h3>Direction a₂ = Ĵ∇S (sharpness grad) &nbsp;·&nbsp; with &amp; without curvature</h3>
+      <p class="cap">the a₂-component, a₂ = Ĵ∇S (∇S = sharpness-changing direction) pushed into residual space · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c10q2lin"> linear y-axis</label></div>
       <canvas class="plot" id="c10q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
-      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>a₁ = Ĵu₁ (top Hessian eigvec)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>a₂ = Ĵ∇S (sharpness grad)</span></div>
+      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
     </div>
 
   </div>
@@ -1598,17 +1606,19 @@
     </div>
 
     <div class="card">
-      <h3>Residual map &nbsp; aᵀ(I − η·JJᵀ)r &nbsp;·&nbsp; both directions</h3>
-      <p class="cap">the a-component of the linearized next-step residual, for two probe directions (each ‖·‖=1): a₁ = Ĵu₁ (u₁ = top eigenvector of the loss Hessian) and a₂ = Ĵ∇S (∇S = sharpness-changing direction) · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n)</p>
+      <h3>Direction a₁ = Ĵu₁ (top Hessian) &nbsp;·&nbsp; with &amp; without curvature</h3>
+      <p class="cap">the a₁-component of the linearized next-step residual, a₁ = Ĵu₁ pushed into residual space (‖·‖=1) · both curves: the pure NTK map aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order model-curvature term aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n)</p>
+      <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c11q1lin"> linear y-axis</label></div>
       <canvas class="plot" id="c11q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
-      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>a₁ = Ĵu₁ (top Hessian eigvec)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>a₂ = Ĵ∇S (sharpness grad)</span></div>
+      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
     </div>
 
     <div class="card">
-      <h3>Residual map + curvature &nbsp; aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r &nbsp;·&nbsp; both directions</h3>
-      <p class="cap">the same two directions a₁, a₂, now with the 2nd-order model-curvature term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w², added inside the operator · signed, symlog</p>
+      <h3>Direction a₂ = Ĵ∇S (sharpness grad) &nbsp;·&nbsp; with &amp; without curvature</h3>
+      <p class="cap">the a₂-component, a₂ = Ĵ∇S (∇S = sharpness-changing direction) pushed into residual space · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c11q2lin"> linear y-axis</label></div>
       <canvas class="plot" id="c11q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
-      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>a₁ = Ĵu₁ (top Hessian eigvec)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>a₂ = Ĵ∇S (sharpness grad)</span></div>
+      <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
     </div>
 
   </div>
@@ -3216,6 +3226,38 @@ function drawSymlogMulti(cv, RR, t, arrs, cols){
   ctx.beginPath(); ctx.moveTo(A.l, A.y(0)); ctx.lineTo(A.l+A.w, A.y(0)); ctx.stroke();
   for (let s = 0; s < arrs.length; s++)
     lineSeries(ctx, A, Array.from(arrs[s], slg4), arrs[s].length, F.st, 0, cols[s], F.up+1);
+  cursorLine(ctx, A, A.x(F.up));
+  cv._map = { A, n: F.n };
+}
+// signed multi-series with a LINEAR/symlog y-axis toggle. Drawn at STRIDE 1 (full
+// resolution) so the polyline passes through every index — the hover tooltip (which reads
+// the exact index) then always lands on the drawn curve, even where it flips sign every step.
+function drawSignedMulti(cv, RR, t, arrs, cols, linear){
+  const F = stripFrame(cv, t, RR.n), ctx = F.ctx, A = F.A;
+  const tf = linear ? (v => v) : slg4;
+  let M = 0;
+  for (const arr of arrs) for (let i = 0; i < arr.length; i++){ const v = tf(arr[i]); if (isFinite(v) && Math.abs(v) > M) M = Math.abs(v); }
+  if (!(M > 0)) M = 1;
+  M = linear ? M*1.08 : Math.ceil(M) + 0.4;
+  A.y = v => A.t + (M - clamp(v, -M, M))/(2*M)*A.h;
+  ctx.strokeStyle = PAL.grid; ctx.lineWidth = 1; ctx.fillStyle = PAL.muted;
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  if (linear){
+    for (const q of [-1, -0.5, 0, 0.5, 1]){ const yv = q*M, py = A.y(yv);
+      ctx.beginPath(); ctx.moveTo(A.l, py); ctx.lineTo(A.l+A.w, py); ctx.stroke(); ctx.fillText(fmt(yv), A.l-6, py); }
+  } else {
+    const step = Math.max(1, Math.ceil(M/3));
+    for (let sN = -Math.floor(M); sN <= Math.floor(M); sN += step){ const py = A.y(sN);
+      ctx.beginPath(); ctx.moveTo(A.l, py); ctx.lineTo(A.l+A.w, py); ctx.stroke(); ctx.fillText(p10lab(sN), A.l-6, py); }
+  }
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (const v of ticks(0, F.n, 6)) ctx.fillText(fmt(v), A.x(v), A.t+A.h+5);
+  ctx.strokeStyle = PAL.axis; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(A.l, A.t+A.h); ctx.lineTo(A.l+A.w, A.t+A.h); ctx.stroke();
+  ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(A.l, A.y(0)); ctx.lineTo(A.l+A.w, A.y(0)); ctx.stroke();
+  for (let s = 0; s < arrs.length; s++)
+    lineSeries(ctx, A, linear ? arrs[s] : Array.from(arrs[s], slg4), arrs[s].length, 1, 0, cols[s], F.up+1);
   cursorLine(ctx, A, A.x(F.up));
   cv._map = { A, n: F.n };
 }
@@ -5140,8 +5182,8 @@ function drawAll7(){
   drawSymlogStrip($('c7s7'), R7, t7, R7.Ru1, PAL.sharpmid);
   drawSymlogMulti($('c7s10'), R7, t7, [R7.RqF, R7.RqL], [PAL.accent, PAL.sharp]);
   drawSymlogStrip($('c7s11'), R7, t7, R7.Ruv, PAL.nt[2]);
-  drawSymlogMulti($('c7q1'), R7, t7, [R7.Q1a, R7.Q1b], [PAL.accent, PAL.sharp]);
-  drawSymlogMulti($('c7q2'), R7, t7, [R7.Q2a, R7.Q2b], [PAL.accent, PAL.sharp]);
+  drawSignedMulti($('c7q1'), R7, t7, [R7.Q1a, R7.Q2a], [PAL.accent, PAL.sharp], $('c7q1lin').checked);
+  drawSignedMulti($('c7q2'), R7, t7, [R7.Q1b, R7.Q2b], [PAL.accent, PAL.sharp], $('c7q2lin').checked);
   drawCosStrip($('c7s8'), R7, t7, R7.RK);
   drawWhoTurnsStrip($('c7s9'), R7, t7, R7.tcJ);
   const up = Math.min(Math.round(t7), R7.n), ratio = R7.S[up]*P7.lr/2;
@@ -5172,8 +5214,8 @@ function drawAll8(){
   drawSymlogStrip($('c8s7'), R8, t8, R8.Rosc, PAL.sharpmid);
   drawSymlogMulti($('c8s12'), R8, t8, [R8.RqF, R8.RqL], [PAL.accent, PAL.sharp]);
   drawSymlogStrip($('c8s13'), R8, t8, R8.Ruv, PAL.nt[2]);
-  drawSymlogMulti($('c8q1'), R8, t8, [R8.Q1a, R8.Q1b], [PAL.accent, PAL.sharp]);
-  drawSymlogMulti($('c8q2'), R8, t8, [R8.Q2a, R8.Q2b], [PAL.accent, PAL.sharp]);
+  drawSignedMulti($('c8q1'), R8, t8, [R8.Q1a, R8.Q2a], [PAL.accent, PAL.sharp], $('c8q1lin').checked);
+  drawSignedMulti($('c8q2'), R8, t8, [R8.Q1b, R8.Q2b], [PAL.accent, PAL.sharp], $('c8q2lin').checked);
   drawCosStrip($('c8s10'), R8, t8, R8.RK);
   drawWhoTurnsStrip($('c8s11'), R8, t8, R8.tcJ);
   drawCycleStrip($('c8s14'), R8, t8);
@@ -5743,8 +5785,8 @@ function drawAll9(){
   drawSymlogStrip($('c9s7'), R9, t9, R9.Rosc, PAL.sharpmid);
   drawSymlogMulti($('c9s12'), R9, t9, [R9.RqF, R9.RqL], [PAL.accent, PAL.sharp]);
   drawSymlogStrip($('c9s13'), R9, t9, R9.Ruv, PAL.nt[2]);
-  drawSymlogMulti($('c9q1'), R9, t9, [R9.Q1a, R9.Q1b], [PAL.accent, PAL.sharp]);
-  drawSymlogMulti($('c9q2'), R9, t9, [R9.Q2a, R9.Q2b], [PAL.accent, PAL.sharp]);
+  drawSignedMulti($('c9q1'), R9, t9, [R9.Q1a, R9.Q2a], [PAL.accent, PAL.sharp], $('c9q1lin').checked);
+  drawSignedMulti($('c9q2'), R9, t9, [R9.Q1b, R9.Q2b], [PAL.accent, PAL.sharp], $('c9q2lin').checked);
   drawCosStrip($('c9s10'), R9, t9, R9.RK);
   drawWhoTurnsStrip($('c9s11'), R9, t9, R9.tcJ);
   drawCycleStrip($('c9s14'), R9, t9);
@@ -6204,8 +6246,8 @@ function drawAll10(){
   drawSymlogStrip($('c10s4'), R10, t10, R10.Kss, PAL.sharp);
   drawLogStrip($('c10s5'), R10, t10, R10.rn, 0, PAL.accent);
   drawSymlogStrip($('c10s6'), R10, t10, R10.Xt, PAL.sharpmid);
-  drawSymlogMulti($('c10q1'), R10, t10, [R10.Q1a, R10.Q1b], [PAL.accent, PAL.sharp]);
-  drawSymlogMulti($('c10q2'), R10, t10, [R10.Q2a, R10.Q2b], [PAL.accent, PAL.sharp]);
+  drawSignedMulti($('c10q1'), R10, t10, [R10.Q1a, R10.Q2a], [PAL.accent, PAL.sharp], $('c10q1lin').checked);
+  drawSignedMulti($('c10q2'), R10, t10, [R10.Q1b, R10.Q2b], [PAL.accent, PAL.sharp], $('c10q2lin').checked);
   drawSymlogMulti($('c10s7'), R10, t10, [R10.GN11, R10.QN], [PAL.sharp, PAL.zero]);
   const up = Math.min(Math.round(t10), R10.n), ratio = R10.S[up]*P10.lr/2;
   let cls = PAL.good, txt = 'stable';
@@ -6609,8 +6651,8 @@ function drawAll11(){
   drawSharpStrip($('c11s2'), R11, t11, P11.lr, true);
   drawLogStrip($('c11s3'), R11, t11, R11.rn, 0, PAL.accent);
   drawSymlogStrip($('c11s4'), R11, t11, R11.Xt, PAL.sharpmid);
-  drawSymlogMulti($('c11q1'), R11, t11, [R11.Q1a, R11.Q1b], [PAL.accent, PAL.sharp]);
-  drawSymlogMulti($('c11q2'), R11, t11, [R11.Q2a, R11.Q2b], [PAL.accent, PAL.sharp]);
+  drawSignedMulti($('c11q1'), R11, t11, [R11.Q1a, R11.Q2a], [PAL.accent, PAL.sharp], $('c11q1lin').checked);
+  drawSignedMulti($('c11q2'), R11, t11, [R11.Q1b, R11.Q2b], [PAL.accent, PAL.sharp], $('c11q2lin').checked);
   const up = Math.min(Math.round(t11), R11.n), ratio = R11.S[up]*P11.lr/2;
   const curv = P11.form === 'recip' ? -P11.mu*P11.b : P11.b*(P11.mu*P11.a + P11.b*P11.y2);
   const shape = Math.abs(curv) < 1e-12 ? 'flat' : (curv > 0 ? 'CONVEX' : 'CONCAVE');
@@ -6707,8 +6749,8 @@ bindStrip($('c7s10'), i => `t=${i}\nfrozen=${fmt(R7.RqF[i])}\nlive=${fmt(R7.RqL[
 bindStrip($('c7s11'), i => `t=${i}\nr·(Ĵu)=${fmt(R7.Ruv[i])}`, apply7);
 bindStrip($('c7s8'), i => `t=${i}\ncos(r): ${cosTip('c7s8', KLAGS.map((k,s)=>['l'+k, R7.RK[s]]), i)}`, apply7);
 bindStrip($('c7s9'), i => `t=${i}\nresidual ${fmt(R7.DM[0][i])}\nJacobian ${fmt(R7.DM[1][i])}\n∇S ${fmt(R7.DM[2][i])}`, apply7);
-bindStrip($('c7q1'), i => `t=${i}\na₁ᵀ(I−η·JJᵀ)r = ${fmt(R7.Q1a[i])}\na₂ᵀ(I−η·JJᵀ)r = ${fmt(R7.Q1b[i])}`, apply7);
-bindStrip($('c7q2'), i => `t=${i}\na₁ (+curv): ${fmt(R7.Q2a[i])}\na₂ (+curv): ${fmt(R7.Q2b[i])}`, apply7);
+bindStrip($('c7q1'), i => `t=${i}\na₁ · 1st-order = ${fmt(R7.Q1a[i])}\na₁ · +curv = ${fmt(R7.Q2a[i])}`, apply7);
+bindStrip($('c7q2'), i => `t=${i}\na₂ · 1st-order = ${fmt(R7.Q1b[i])}\na₂ · +curv = ${fmt(R7.Q2b[i])}`, apply7);
 bindStrip($('c8s1'), i => `t=${i}\nL=${fmt(R8.L[i])}`, apply8);
 bindStrip($('c8s2'), i => `t=${i}\nλ(PH)=${fmt(R8.S[i])}\n2/η=${fmt(2/P8.lr)}`, apply8);
 bindStrip($('c8s3'), i => `t=${i}\n‖r‖=${fmt(R8.rn[i])}`, apply8);
@@ -6721,8 +6763,8 @@ bindStrip($('c8s10'), i => `t=${i}\ncos(r): ${cosTip('c8s10', KLAGS.map((k,s)=>[
 bindStrip($('c8s11'), i => `t=${i}\nresidual ${fmt(R8.DM[0][i])}\nJacobian ${fmt(R8.DM[1][i])}\n∇S ${fmt(R8.DM[2][i])}`, apply8);
 bindStrip($('c8s14'), i => `t=${i}` + (R8.KC.tev[i] ? `\ncycle fired at t=${R8.KC.tev[i]}\n  w₁=${fmt(R8.KC.osc[i])}  w₂=${fmt(R8.KC.w2[i])}\n  amplitude=${fmt(R8.KC.amp[i])}  excess=${fmt(R8.KC.exc[i])}` : '\nno cycle yet'), apply8);
 bindStrip($('c8s15'), i => `t=${i}\nfitting pull = ${fmt(R8.Dfit[i])}\noscillation  = ${fmt(R8.Dosc[i])}\nnet Δw₂ = ${fmt(R8.Dfit[i] + R8.Dosc[i])}`, apply8);
-bindStrip($('c8q1'), i => `t=${i}\na₁ᵀ(I−η·JJᵀ)r = ${fmt(R8.Q1a[i])}\na₂ᵀ(I−η·JJᵀ)r = ${fmt(R8.Q1b[i])}`, apply8);
-bindStrip($('c8q2'), i => `t=${i}\na₁ (+curv): ${fmt(R8.Q2a[i])}\na₂ (+curv): ${fmt(R8.Q2b[i])}`, apply8);
+bindStrip($('c8q1'), i => `t=${i}\na₁ · 1st-order = ${fmt(R8.Q1a[i])}\na₁ · +curv = ${fmt(R8.Q2a[i])}`, apply8);
+bindStrip($('c8q2'), i => `t=${i}\na₂ · 1st-order = ${fmt(R8.Q1b[i])}\na₂ · +curv = ${fmt(R8.Q2b[i])}`, apply8);
 $('p7csv').addEventListener('click', () => {
   const rows = [];
   for (let i = 0; i <= R7.n; i++)
@@ -6770,8 +6812,8 @@ bindStrip($('c9s10'), i => `t=${i}\ncos(r): ${cosTip('c9s10', KLAGS.map((k,s)=>[
 bindStrip($('c9s11'), i => `t=${i}\nresidual ${fmt(R9.DM[0][i])}\nJacobian ${fmt(R9.DM[1][i])}\n∇S ${fmt(R9.DM[2][i])}`, apply9);
 bindStrip($('c9s14'), i => `t=${i}` + (R9.KC.tev[i] ? `\ncycle fired at t=${R9.KC.tev[i]}\n  w₁=${fmt(R9.KC.osc[i])}  w₂=${fmt(R9.KC.w2[i])}\n  amplitude=${fmt(R9.KC.amp[i])}  excess=${fmt(R9.KC.exc[i])}` : '\nno cycle yet'), apply9);
 bindStrip($('c9s15'), i => `t=${i}\nfitting pull = ${fmt(R9.Dfit[i])}\noscillation  = ${fmt(R9.Dosc[i])}\nnet Δw₂ = ${fmt(R9.Dfit[i] + R9.Dosc[i])}`, apply9);
-bindStrip($('c9q1'), i => `t=${i}\na₁ᵀ(I−η·JJᵀ)r = ${fmt(R9.Q1a[i])}\na₂ᵀ(I−η·JJᵀ)r = ${fmt(R9.Q1b[i])}`, apply9);
-bindStrip($('c9q2'), i => `t=${i}\na₁ (+curv): ${fmt(R9.Q2a[i])}\na₂ (+curv): ${fmt(R9.Q2b[i])}`, apply9);
+bindStrip($('c9q1'), i => `t=${i}\na₁ · 1st-order = ${fmt(R9.Q1a[i])}\na₁ · +curv = ${fmt(R9.Q2a[i])}`, apply9);
+bindStrip($('c9q2'), i => `t=${i}\na₂ · 1st-order = ${fmt(R9.Q1b[i])}\na₂ · +curv = ${fmt(R9.Q2b[i])}`, apply9);
 $('p9logz').addEventListener('change', () => { cacheL9.key = ''; drawAll9(); });
 $('p9lin').addEventListener('change', () => { P9.lin = $('p9lin').checked; recompute9(false); });
 $('p9view').addEventListener('change', () => { view9 = $('p9view').value === 'map' ? 'map' : '3d'; drawAll9(); });
@@ -6808,8 +6850,8 @@ bindStrip($('c10s4'), i => `t=${i}\n∂²λ/∂x² = ${fmt(R10.Kss[i])}\n(> 0 �
 bindStrip($('c10s5'), i => `t=${i}\n‖r‖=${fmt(R10.rn[i])}`, apply10);
 bindStrip($('c10s6'), i => `t=${i}\nx_t=${fmt(R10.Xt[i])}`, apply10);
 bindStrip($('c10s7'), i => `t=${i}\nGauss–Newton 2‖J₁‖² = ${fmt(R10.GN11[i])}\n‖∇²f‖ (constant Q) = ${fmt(R10.QN[i])}`, apply10);
-bindStrip($('c10q1'), i => `t=${i}\na₁ᵀ(I−η·JJᵀ)r = ${fmt(R10.Q1a[i])}\na₂ᵀ(I−η·JJᵀ)r = ${fmt(R10.Q1b[i])}`, apply10);
-bindStrip($('c10q2'), i => `t=${i}\na₁ (+curv): ${fmt(R10.Q2a[i])}\na₂ (+curv): ${fmt(R10.Q2b[i])}`, apply10);
+bindStrip($('c10q1'), i => `t=${i}\na₁ · 1st-order = ${fmt(R10.Q1a[i])}\na₁ · +curv = ${fmt(R10.Q2a[i])}`, apply10);
+bindStrip($('c10q2'), i => `t=${i}\na₂ · 1st-order = ${fmt(R10.Q1b[i])}\na₂ · +curv = ${fmt(R10.Q2b[i])}`, apply10);
 $('p10view').addEventListener('change', () => { view10 = $('p10view').value === 'map' ? 'map' : '3d'; drawAll10(); });
 $('p10logz').addEventListener('change', () => { cacheL10.key = ''; drawAll10(); });
 bindRotate($('c10f'), cam10, drawAll10, () => view10 === '3d');
@@ -6840,9 +6882,19 @@ bindStrip($('c11s1'), i => `t=${i}\nL=${fmt(R11.L[i])}`, apply11);
 bindStrip($('c11s2'), i => `t=${i}\nλ(PH)=${fmt(R11.S[i])}\n2/η=${fmt(2/P11.lr)}`, apply11);
 bindStrip($('c11s3'), i => `t=${i}\n‖r‖=${fmt(R11.rn[i])}`, apply11);
 bindStrip($('c11s4'), i => `t=${i}\nx_t=${fmt(R11.Xt[i])}`, apply11);
-bindStrip($('c11q1'), i => `t=${i}\na₁ᵀ(I−η·JJᵀ)r = ${fmt(R11.Q1a[i])}\na₂ᵀ(I−η·JJᵀ)r = ${fmt(R11.Q1b[i])}`, apply11);
-bindStrip($('c11q2'), i => `t=${i}\na₁ (+curv): ${fmt(R11.Q2a[i])}\na₂ (+curv): ${fmt(R11.Q2b[i])}`, apply11);
+bindStrip($('c11q1'), i => `t=${i}\na₁ · 1st-order = ${fmt(R11.Q1a[i])}\na₁ · +curv = ${fmt(R11.Q2a[i])}`, apply11);
+bindStrip($('c11q2'), i => `t=${i}\na₂ · 1st-order = ${fmt(R11.Q1b[i])}\na₂ · +curv = ${fmt(R11.Q2b[i])}`, apply11);
 $('p11logz').addEventListener('change', () => { cacheL11.key = ''; drawAll11(); });
+$('c7q1lin').addEventListener('change', drawAll7);
+$('c7q2lin').addEventListener('change', drawAll7);
+$('c8q1lin').addEventListener('change', drawAll8);
+$('c8q2lin').addEventListener('change', drawAll8);
+$('c9q1lin').addEventListener('change', drawAll9);
+$('c9q2lin').addEventListener('change', drawAll9);
+$('c10q1lin').addEventListener('change', drawAll10);
+$('c10q2lin').addEventListener('change', drawAll10);
+$('c11q1lin').addEventListener('change', drawAll11);
+$('c11q2lin').addEventListener('change', drawAll11);
 $('p11view').addEventListener('change', () => { view11 = $('p11view').value === 'map' ? 'map' : '3d'; drawAll11(); });
 $('p11form').addEventListener('change', () => { P11.form = $('p11form').value === 'recip' ? 'recip' : 'lin'; recompute11(false); });
 bindRotate($('c11f'), cam11, drawAll11, () => view11 === '3d');
