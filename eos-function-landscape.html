@@ -995,15 +995,15 @@
 
     <div class="card">
       <h3>Direction a₁ = Ĵu₁ (top Hessian) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₁-component of the linearized next-step residual, a₁ = Ĵu₁ pushed into residual space (‖·‖=1) · both curves: the pure NTK map aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order model-curvature term aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n) · 1-param: u₁ is the single Jacobian direction, so a₁ ∥ a₂ up to sign</p>
+      <p class="cap">the a₁-component of the linearized next-step residual, a₁ = Ĵu₁ pushed into residual space (‖·‖=1) · both curves: the pure NTK map aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order model-curvature term aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n) · 1-param: there is no direction ⊥ u₁, so a₂ = 0 here (the a₂ plot stays flat)</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c7q1lin"> linear y-axis</label></div>
       <canvas class="plot" id="c7q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
     </div>
 
     <div class="card">
-      <h3>Direction a₂ = Ĵ∇S (sharpness grad) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₂-component, a₂ = Ĵ∇S (∇S = sharpness-changing direction) pushed into residual space · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <h3>Direction a₂ = Ĵu, u = ∇S ⊥ u₁ (self-stab pushback) &nbsp;·&nbsp; with &amp; without curvature</h3>
+      <p class="cap">the a₂-component along the SELF-STABILIZATION PUSHBACK direction u = ∇S projected ⊥ u₁ (the top Hessian eigenvector / oscillation axis), pushed into residual space — the flat direction GD relocates along to reduce sharpness (in a 2-parameter panel this is the 2nd Hessian eigenvector, signed toward decreasing sharpness) · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c7q2lin"> linear y-axis</label></div>
       <canvas class="plot" id="c7q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
@@ -1195,8 +1195,8 @@
     </div>
 
     <div class="card">
-      <h3>Direction a₂ = Ĵ∇S (sharpness grad) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₂-component, a₂ = Ĵ∇S (∇S = sharpness-changing direction) pushed into residual space · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <h3>Direction a₂ = Ĵu, u = ∇S ⊥ u₁ (self-stab pushback) &nbsp;·&nbsp; with &amp; without curvature</h3>
+      <p class="cap">the a₂-component along the SELF-STABILIZATION PUSHBACK direction u = ∇S projected ⊥ u₁ (the top Hessian eigenvector / oscillation axis), pushed into residual space — the flat direction GD relocates along to reduce sharpness (in a 2-parameter panel this is the 2nd Hessian eigenvector, signed toward decreasing sharpness) · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c8q2lin"> linear y-axis</label></div>
       <canvas class="plot" id="c8q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
@@ -1368,8 +1368,8 @@
     </div>
 
     <div class="card">
-      <h3>Direction a₂ = Ĵ∇S (sharpness grad) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₂-component, a₂ = Ĵ∇S (∇S = sharpness-changing direction) pushed into residual space · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <h3>Direction a₂ = Ĵu, u = ∇S ⊥ u₁ (self-stab pushback) &nbsp;·&nbsp; with &amp; without curvature</h3>
+      <p class="cap">the a₂-component along the SELF-STABILIZATION PUSHBACK direction u = ∇S projected ⊥ u₁ (the top Hessian eigenvector / oscillation axis), pushed into residual space — the flat direction GD relocates along to reduce sharpness (in a 2-parameter panel this is the 2nd Hessian eigenvector, signed toward decreasing sharpness) · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c9q2lin"> linear y-axis</label></div>
       <canvas class="plot" id="c9q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
@@ -1511,8 +1511,8 @@
     </div>
 
     <div class="card">
-      <h3>Direction a₂ = Ĵ∇S (sharpness grad) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₂-component, a₂ = Ĵ∇S (∇S = sharpness-changing direction) pushed into residual space · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <h3>Direction a₂ = Ĵu, u = ∇S ⊥ u₁ (self-stab pushback) &nbsp;·&nbsp; with &amp; without curvature</h3>
+      <p class="cap">the a₂-component along the SELF-STABILIZATION PUSHBACK direction u = ∇S projected ⊥ u₁ (the top Hessian eigenvector / oscillation axis), pushed into residual space — the flat direction GD relocates along to reduce sharpness (in a 2-parameter panel this is the 2nd Hessian eigenvector, signed toward decreasing sharpness) · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c10q2lin"> linear y-axis</label></div>
       <canvas class="plot" id="c10q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
@@ -1624,8 +1624,8 @@
     </div>
 
     <div class="card">
-      <h3>Direction a₂ = Ĵ∇S (sharpness grad) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₂-component, a₂ = Ĵ∇S (∇S = sharpness-changing direction) pushed into residual space · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <h3>Direction a₂ = Ĵu, u = ∇S ⊥ u₁ (self-stab pushback) &nbsp;·&nbsp; with &amp; without curvature</h3>
+      <p class="cap">the a₂-component along the SELF-STABILIZATION PUSHBACK direction u = ∇S projected ⊥ u₁ (the top Hessian eigenvector / oscillation axis), pushed into residual space — the flat direction GD relocates along to reduce sharpness (in a 2-parameter panel this is the 2nd Hessian eigenvector, signed toward decreasing sharpness) · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c11q2lin"> linear y-axis</label></div>
       <canvas class="plot" id="c11q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
@@ -3134,10 +3134,14 @@ function drawSymlogStrip(cv, RR, t, arr, color){
    -order term carries a minus for r = y − f; flip the sign of the α's to get the true next-residual). */
 function residDiag(r, J1, J2, c, axx, axy, ayy, u1, u2, gS1, gS2, p11, p12, p22, eta){
   const n = r.length;
+  // a₂ probes the SELF-STABILIZATION PUSHBACK direction: ∇S projected ⊥ u₁ (top Hessian eigenvector /
+  // oscillation axis). ∇³L[u₁,u₁,·] = ∇S (Hellmann–Feynman); its ⊥-u₁ part is the flat direction GD
+  // relocates along to reduce sharpness. (u1,u2) is unit, so subtract the u₁-component of ∇S.
+  const dsu = gS1*u1 + gS2*u2, g1o = gS1 - dsu*u1, g2o = gS2 - dsu*u2;
   let n1 = 0, n2 = 0, sr1 = 0, sr2 = 0;
   for (let i = 0; i < n; i++){
     const j2 = J2 ? J2[i] : 0;
-    const a1 = J1[i]*u1 + j2*u2, a2 = J1[i]*gS1 + j2*gS2;
+    const a1 = J1[i]*u1 + j2*u2, a2 = J1[i]*g1o + j2*g2o;
     n1 += a1*a1; n2 += a2*a2; sr1 += J1[i]*r[i]; sr2 += j2*r[i];
   }
   const i1 = n1 > 1e-300 ? 1/Math.sqrt(n1) : 0, i2 = n2 > 1e-300 ? 1/Math.sqrt(n2) : 0;
@@ -3145,7 +3149,7 @@ function residDiag(r, J1, J2, c, axx, axy, ayy, u1, u2, gS1, gS2, p11, p12, p22,
   let a1r = 0, Ja1_1 = 0, Ja1_2 = 0, a2r = 0, Ja2_1 = 0, Ja2_2 = 0, sac1 = 0, sac2 = 0;
   for (let i = 0; i < n; i++){
     const j2 = J2 ? J2[i] : 0;
-    const a1 = (J1[i]*u1 + j2*u2)*i1, a2 = (J1[i]*gS1 + j2*gS2)*i2;
+    const a1 = (J1[i]*u1 + j2*u2)*i1, a2 = (J1[i]*g1o + j2*g2o)*i2;
     a1r += a1*r[i]; Ja1_1 += J1[i]*a1; Ja1_2 += j2*a1; sac1 += a1*c[i];
     a2r += a2*r[i]; Ja2_1 += J1[i]*a2; Ja2_2 += j2*a2; sac2 += a2*c[i];
   }
