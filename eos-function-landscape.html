@@ -489,7 +489,7 @@
 
     <div class="card">
       <h3>Self-stabilization cycles — where each catapult fires</h3>
-      <p class="cap">each tread is one cycle, read at each cycle's turning point (a local maximum of the oscillation envelope) · <b>red</b>: the oscillation amplitude there · <b>orange</b>: the instability excess η·λ/2 − 1 at the same step · ticks on the axis mark the cycles · the amplitude shrinks cycle after cycle because each catapult lowers w₂, which lowers E and hence λ, shrinking the excess that drives the growth · hover for the exact (t, w₁, w₂)</p>
+      <p class="cap">each tread = one self-stabilization cycle (read at the oscillation-envelope peak) · <b>red</b>: amplitude there · <b>orange</b>: instability excess η·λ/2 − 1 · shrinks each cycle as the catapult lowers w₂ → E → λ · hover for (t, w₁, w₂)</p>
       <canvas class="plot" id="c3s17" role="img" aria-label="per-cycle oscillation amplitude and instability excess"></canvas>
       <div class="legend">
         <span><i class="sw" style="background:var(--crit)"></i>amplitude at kick-in</span>
@@ -499,7 +499,7 @@
 
     <div class="card">
       <h3>Gauss–Newton eigenvector memory — cos(vₖ(t), vₖ(t−1))</h3>
-      <p class="cap">step-to-step cosine similarity of the top-k Gauss–Newton (NTK) eigenvectors — how much each principal NTK direction rotates from t−1 to t · <b>2 parameters ⇒ the GN has rank 2</b>, so only the top 2 eigenvectors are non-degenerate (the other n−2 span an arbitrary null space and are omitted, which is why there are 2 curves and not 5) · |cos| ∈ [0,1]: 1 = direction unchanged, dips = rotation · lag 1</p>
+      <p class="cap">step-to-step cosine of the top-k Gauss–Newton (NTK) eigenvectors — how much each rotates from t−1 to t · <b>2 params ⇒ GN is rank 2</b>, so only 2 are non-degenerate (2 curves, not 5) · |cos| ∈ [0,1]: 1 = unchanged, dips = rotation · lag 1</p>
       <canvas class="plot" id="c3s18" role="img" aria-label="the two contributions to the w2 step"></canvas>
       <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>GN eigenvector 1 (top)</span> <span><i class="sw" style="background:var(--now)"></i>GN eigenvector 2</span></div>
     </div>
@@ -834,7 +834,7 @@
 
     <div class="card">
       <h3>Self-stabilization cycles — where each catapult fires</h3>
-      <p class="cap">each tread is one cycle, read at each cycle's turning point (a local maximum of the oscillation envelope) · <b>red</b>: the oscillation amplitude there · <b>orange</b>: the instability excess η·λ/2 − 1 at the same step · ticks on the axis mark the cycles · the amplitude shrinks cycle after cycle because each catapult lowers w₂, which lowers E and hence λ, shrinking the excess that drives the growth · hover for the exact (t, w₁, w₂)</p>
+      <p class="cap">each tread = one self-stabilization cycle (read at the oscillation-envelope peak) · <b>red</b>: amplitude there · <b>orange</b>: instability excess η·λ/2 − 1 · shrinks each cycle as the catapult lowers w₂ → E → λ · hover for (t, w₁, w₂)</p>
       <canvas class="plot" id="c6s17" role="img" aria-label="per-cycle oscillation amplitude and instability excess"></canvas>
       <div class="legend">
         <span><i class="sw" style="background:var(--crit)"></i>amplitude at kick-in</span>
@@ -844,7 +844,7 @@
 
     <div class="card">
       <h3>Gauss–Newton eigenvector memory — cos(vₖ(t), vₖ(t−1))</h3>
-      <p class="cap">step-to-step cosine similarity of the top-k Gauss–Newton (NTK) eigenvectors — how much each principal NTK direction rotates from t−1 to t · <b>2 parameters ⇒ the GN has rank 2</b>, so only the top 2 eigenvectors are non-degenerate (the other n−2 span an arbitrary null space and are omitted, which is why there are 2 curves and not 5) · |cos| ∈ [0,1]: 1 = direction unchanged, dips = rotation · lag 1</p>
+      <p class="cap">step-to-step cosine of the top-k Gauss–Newton (NTK) eigenvectors — how much each rotates from t−1 to t · <b>2 params ⇒ GN is rank 2</b>, so only 2 are non-degenerate (2 curves, not 5) · |cos| ∈ [0,1]: 1 = unchanged, dips = rotation · lag 1</p>
       <canvas class="plot" id="c6s18" role="img" aria-label="the two contributions to the w2 step"></canvas>
       <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>GN eigenvector 1 (top)</span> <span><i class="sw" style="background:var(--now)"></i>GN eigenvector 2</span></div>
     </div>
@@ -994,7 +994,7 @@
 
     <div class="card">
       <h3>Direction a₁ = Ĵu₁ (top Hessian) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₁-component of the linearized next-step residual, a₁ = Ĵu₁ pushed into residual space (‖·‖=1) · both curves: the pure NTK map aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order model-curvature term aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n) · 1-param: there is no direction ⊥ u₁, so a₂ = 0 here (the a₂ plot stays flat)</p>
+      <p class="cap">a₁-component of the linearized next-step residual, a₁ = Ĵu₁ (‖·‖=1) · two curves: NTK map aᵀ(I − η·JJᵀ)r, and with the 2nd-order model-curvature term (+ ½η²·rᵀJᵀQJ) · signed, symlog · along the top mode (1 − η·λ) → −1 at EoS (a₁ flips sign) · η = lr·(2/n) · 1-param: there is no direction ⊥ u₁, so a₂ = 0 here (the a₂ plot stays flat)</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c7q1lin"> linear y-axis</label></div>
       <canvas class="plot" id="c7q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
@@ -1002,7 +1002,7 @@
 
     <div class="card">
       <h3>Direction a₂ = Ĵu, u = ∇S ⊥ u₁ (self-stab pushback) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₂-component along the SELF-STABILIZATION PUSHBACK direction u = ∇S projected ⊥ u₁ (the top Hessian eigenvector / oscillation axis), pushed into residual space — the flat direction GD relocates along to reduce sharpness (in a 2-parameter panel this is the 2nd Hessian eigenvector, signed toward decreasing sharpness) · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <p class="cap">a₂-component along the self-stabilization pushback direction u = ∇S ⊥ u₁ — the flat direction GD relocates along to reduce sharpness (= 2nd Hessian eigenvector in a 2-param panel) · two curves: NTK map, and with the 2nd-order curvature term (Q=∂²f/∂w²) · signed, symlog</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c7q2lin"> linear y-axis</label></div>
       <canvas class="plot" id="c7q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
@@ -1016,22 +1016,7 @@
   <div class="side">
     <div class="card ctl">
       <h3>Model &nbsp;·&nbsp; fᵢ = a·e<sup>b·s</sup>·w₁·cᵢ + μ·w₂, &nbsp; s = cosθ·w₁ + (sinθ/κ)·w₂</h3>
-      <div class="mdef"><b>n datapoints, two parameters.</b> The oscillating output enters weighted by
-      <b>cᵢ = 1 + σ·zᵢ</b> (spread across samples) while the fitting pull μ·w₂ moves every output
-      equally — so in function space the <b>oscillation direction</b> and the <b>fitting direction</b>
-      are different vectors whenever σ ≠ 0, and coincide exactly when σ = 0 (the single-datapoint
-      degeneracy). Targets are yᵢ = y₂ + τ·(zᵢ² − ⅓): the Jacobian rows span {1, c} = {1, z}, so the <b>quadratic</b>
-      part τ·zᵢ² is what the two parameters can never reach — set τ = 0 and the targets become exactly
-      reachable and ‖r⊥‖ collapses to zero. With n &gt; 1 the oscillation also re-centres: it happens around w₁* ≠ 0 rather than around the valley, so watch x_t rather than the sign of w₁.
-      <b>Angle θ</b> rotates the sharpness-changing direction: the gain exponent uses the combined coordinate
-      <b>s = cosθ·w₁ + sinθ·w₂</b>, so ∇S points along (cosθ, sinθ) and <b>θ is the angle between ∇S and the w₁
-      oscillation</b>. θ = 90° ⇒ s = w₂ (the original, ∇S ⊥ oscillation, self-stabilizing); as θ → 0° the gain
-      grows along the oscillating coordinate itself, so the growing oscillation self-sharpens — the panel-3 θ-lab
-      story, now with n samples and the full NTK.
-      <b>SGD:</b> with <b>B</b> &lt; n each step draws a fresh uniform batch of B samples and steps on that batch's gradient (the preconditioner is built from the same batch); B = n is full-batch. Charts report <b>full-sample</b> quantities so the 2/η comparison stays meaningful; the <b>seed</b> fixes the noise realisation.<br><b>n</b>: samples · <b>B</b>: batch · <b>σ</b>: spread · <b>a, b</b>: valley sharpness and its gradient · <b>θ</b>: angle between ∇S and the oscillation (90° = original) ·
-      <b>κ</b>: valley flatness — divides the w₂ sensitivity of the gain, so the sharpening valley gets longer and the
-      curvature along ∇S drops by ≈1/κ² (at θ≈90 use κ &gt; 1 to make ∇S much flatter than 2/η while the oscillation
-      still rides the edge; κ = 1 is the original) · <b>μ</b>: fitting strength · <b>y₂</b>: target · <b>η</b>, <b>T</b>: optimizer.</div>
+      <div class="mdef"><b>n datapoints, two parameters.</b> fᵢ = a·e<sup>b·s</sup>·w₁·cᵢ + μ·w₂, &nbsp;cᵢ = 1 + σ·zᵢ, &nbsp;s = cosθ·w₁ + sinθ·w₂. w₁ oscillates; the fitting pull μ·w₂ drives progressive sharpening. Targets yᵢ = y₂ + τ·(zᵢ² − ⅓) — the quadratic τ-part is unreachable by the two parameters (τ = 0 ⇒ exactly fittable). <b>θ</b>: angle between ∇S and the w₁ oscillation (90° = ∇S ⊥ osc, the original; smaller ⇒ the oscillation self-sharpens). <b>κ</b>: divides the gain's w₂-sensitivity, flattening the ∇S valley (curvature ↓ ≈1/κ²; 1 = original). B &lt; n ⇒ SGD.<br><b>n</b> samples · <b>B</b> batch · <b>σ</b> spread · <b>a, b</b> sharpness &amp; gradient · <b>θ</b> ∇S–oscillation angle · <b>κ</b> valley flatness · <b>μ</b> fitting · <b>y₂</b> target · <b>λ</b> weight decay · <b>η, T</b> optimizer.</div>
       <div class="row"><label for="p8opt">optimizer</label>
         <select id="p8opt">
           <option value="gd">plain GD (P = I)</option>
@@ -1168,7 +1153,7 @@
 
     <div class="card">
       <h3>Self-stabilization cycles — where each catapult fires</h3>
-      <p class="cap">each tread is one cycle, read at each cycle's turning point (a local maximum of the oscillation envelope) · <b>red</b>: the oscillation amplitude there · <b>orange</b>: the instability excess η·λ/2 − 1 at the same step · ticks on the axis mark the cycles · the amplitude shrinks cycle after cycle because each catapult lowers w₂, which lowers E and hence λ, shrinking the excess that drives the growth · hover for the exact (t, w₁, w₂)</p>
+      <p class="cap">each tread = one self-stabilization cycle (read at the oscillation-envelope peak) · <b>red</b>: amplitude there · <b>orange</b>: instability excess η·λ/2 − 1 · shrinks each cycle as the catapult lowers w₂ → E → λ · hover for (t, w₁, w₂)</p>
       <canvas class="plot" id="c8s14" role="img" aria-label="per-cycle oscillation amplitude and instability excess"></canvas>
       <div class="legend">
         <span><i class="sw" style="background:var(--crit)"></i>amplitude at kick-in</span>
@@ -1178,14 +1163,14 @@
 
     <div class="card">
       <h3>Gauss–Newton eigenvector memory — cos(vₖ(t), vₖ(t−1))</h3>
-      <p class="cap">step-to-step cosine similarity of the top-k Gauss–Newton (NTK) eigenvectors — how much each principal NTK direction rotates from t−1 to t · <b>2 parameters ⇒ the GN has rank 2</b>, so only the top 2 eigenvectors are non-degenerate (the other n−2 span an arbitrary null space and are omitted, which is why there are 2 curves and not 5) · |cos| ∈ [0,1]: 1 = direction unchanged, dips = rotation · lag 1</p>
+      <p class="cap">step-to-step cosine of the top-k Gauss–Newton (NTK) eigenvectors — how much each rotates from t−1 to t · <b>2 params ⇒ GN is rank 2</b>, so only 2 are non-degenerate (2 curves, not 5) · |cos| ∈ [0,1]: 1 = unchanged, dips = rotation · lag 1</p>
       <canvas class="plot" id="c8s15" role="img" aria-label="the two contributions to the w2 step"></canvas>
       <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>GN eigenvector 1 (top)</span> <span><i class="sw" style="background:var(--now)"></i>GN eigenvector 2</span></div>
     </div>
 
     <div class="card">
       <h3>Direction a₁ = Ĵu₁ (top Hessian) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₁-component of the linearized next-step residual, a₁ = Ĵu₁ pushed into residual space (‖·‖=1) · both curves: the pure NTK map aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order model-curvature term aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n)</p>
+      <p class="cap">a₁-component of the linearized next-step residual, a₁ = Ĵu₁ (‖·‖=1) · two curves: NTK map aᵀ(I − η·JJᵀ)r, and with the 2nd-order model-curvature term (+ ½η²·rᵀJᵀQJ) · signed, symlog · along the top mode (1 − η·λ) → −1 at EoS (a₁ flips sign) · η = lr·(2/n)</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c8q1lin"> linear y-axis</label></div>
       <canvas class="plot" id="c8q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
@@ -1193,7 +1178,7 @@
 
     <div class="card">
       <h3>Direction a₂ = Ĵu, u = ∇S ⊥ u₁ (self-stab pushback) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₂-component along the SELF-STABILIZATION PUSHBACK direction u = ∇S projected ⊥ u₁ (the top Hessian eigenvector / oscillation axis), pushed into residual space — the flat direction GD relocates along to reduce sharpness (in a 2-parameter panel this is the 2nd Hessian eigenvector, signed toward decreasing sharpness) · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <p class="cap">a₂-component along the self-stabilization pushback direction u = ∇S ⊥ u₁ — the flat direction GD relocates along to reduce sharpness (= 2nd Hessian eigenvector in a 2-param panel) · two curves: NTK map, and with the 2nd-order curvature term (Q=∂²f/∂w²) · signed, symlog</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c8q2lin"> linear y-axis</label></div>
       <canvas class="plot" id="c8q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
@@ -1339,7 +1324,7 @@
 
     <div class="card">
       <h3>Self-stabilization cycles — where each catapult fires</h3>
-      <p class="cap">each tread is one cycle, read at each cycle's turning point (a local maximum of the oscillation envelope) · <b>red</b>: the oscillation amplitude there · <b>orange</b>: the instability excess η·λ/2 − 1 at the same step · ticks on the axis mark the cycles · the amplitude shrinks cycle after cycle because each catapult lowers w₂, which lowers E and hence λ, shrinking the excess that drives the growth · hover for the exact (t, w₁, w₂)</p>
+      <p class="cap">each tread = one self-stabilization cycle (read at the oscillation-envelope peak) · <b>red</b>: amplitude there · <b>orange</b>: instability excess η·λ/2 − 1 · shrinks each cycle as the catapult lowers w₂ → E → λ · hover for (t, w₁, w₂)</p>
       <canvas class="plot" id="c9s14" role="img" aria-label="per-cycle oscillation amplitude and instability excess"></canvas>
       <div class="legend">
         <span><i class="sw" style="background:var(--crit)"></i>amplitude at kick-in</span>
@@ -1349,14 +1334,14 @@
 
     <div class="card">
       <h3>Gauss–Newton eigenvector memory — cos(vₖ(t), vₖ(t−1))</h3>
-      <p class="cap">step-to-step cosine similarity of the top-k Gauss–Newton (NTK) eigenvectors — how much each principal NTK direction rotates from t−1 to t · <b>2 parameters ⇒ the GN has rank 2</b>, so only the top 2 eigenvectors are non-degenerate (the other n−2 span an arbitrary null space and are omitted, which is why there are 2 curves and not 5) · |cos| ∈ [0,1]: 1 = direction unchanged, dips = rotation · lag 1</p>
+      <p class="cap">step-to-step cosine of the top-k Gauss–Newton (NTK) eigenvectors — how much each rotates from t−1 to t · <b>2 params ⇒ GN is rank 2</b>, so only 2 are non-degenerate (2 curves, not 5) · |cos| ∈ [0,1]: 1 = unchanged, dips = rotation · lag 1</p>
       <canvas class="plot" id="c9s15" role="img" aria-label="the two contributions to the w2 step"></canvas>
       <div class="legend"><span><i class="sw" style="background:var(--sharp)"></i>GN eigenvector 1 (top)</span> <span><i class="sw" style="background:var(--now)"></i>GN eigenvector 2</span></div>
     </div>
 
     <div class="card">
       <h3>Direction a₁ = Ĵu₁ (top Hessian) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₁-component of the linearized next-step residual, a₁ = Ĵu₁ pushed into residual space (‖·‖=1) · both curves: the pure NTK map aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order model-curvature term aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n)</p>
+      <p class="cap">a₁-component of the linearized next-step residual, a₁ = Ĵu₁ (‖·‖=1) · two curves: NTK map aᵀ(I − η·JJᵀ)r, and with the 2nd-order model-curvature term (+ ½η²·rᵀJᵀQJ) · signed, symlog · along the top mode (1 − η·λ) → −1 at EoS (a₁ flips sign) · η = lr·(2/n)</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c9q1lin"> linear y-axis</label></div>
       <canvas class="plot" id="c9q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
@@ -1364,7 +1349,7 @@
 
     <div class="card">
       <h3>Direction a₂ = Ĵu, u = ∇S ⊥ u₁ (self-stab pushback) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₂-component along the SELF-STABILIZATION PUSHBACK direction u = ∇S projected ⊥ u₁ (the top Hessian eigenvector / oscillation axis), pushed into residual space — the flat direction GD relocates along to reduce sharpness (in a 2-parameter panel this is the 2nd Hessian eigenvector, signed toward decreasing sharpness) · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <p class="cap">a₂-component along the self-stabilization pushback direction u = ∇S ⊥ u₁ — the flat direction GD relocates along to reduce sharpness (= 2nd Hessian eigenvector in a 2-param panel) · two curves: NTK map, and with the 2nd-order curvature term (Q=∂²f/∂w²) · signed, symlog</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c9q2lin"> linear y-axis</label></div>
       <canvas class="plot" id="c9q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
@@ -1500,7 +1485,7 @@
 
     <div class="card">
       <h3>Direction a₁ = Ĵu₁ (top Hessian) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₁-component of the linearized next-step residual, a₁ = Ĵu₁ pushed into residual space (‖·‖=1) · both curves: the pure NTK map aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order model-curvature term aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n)</p>
+      <p class="cap">a₁-component of the linearized next-step residual, a₁ = Ĵu₁ (‖·‖=1) · two curves: NTK map aᵀ(I − η·JJᵀ)r, and with the 2nd-order model-curvature term (+ ½η²·rᵀJᵀQJ) · signed, symlog · along the top mode (1 − η·λ) → −1 at EoS (a₁ flips sign) · η = lr·(2/n)</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c10q1lin"> linear y-axis</label></div>
       <canvas class="plot" id="c10q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
@@ -1508,7 +1493,7 @@
 
     <div class="card">
       <h3>Direction a₂ = Ĵu, u = ∇S ⊥ u₁ (self-stab pushback) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₂-component along the SELF-STABILIZATION PUSHBACK direction u = ∇S projected ⊥ u₁ (the top Hessian eigenvector / oscillation axis), pushed into residual space — the flat direction GD relocates along to reduce sharpness (in a 2-parameter panel this is the 2nd Hessian eigenvector, signed toward decreasing sharpness) · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <p class="cap">a₂-component along the self-stabilization pushback direction u = ∇S ⊥ u₁ — the flat direction GD relocates along to reduce sharpness (= 2nd Hessian eigenvector in a 2-param panel) · two curves: NTK map, and with the 2nd-order curvature term (Q=∂²f/∂w²) · signed, symlog</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c10q2lin"> linear y-axis</label></div>
       <canvas class="plot" id="c10q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
@@ -1614,7 +1599,7 @@
 
     <div class="card">
       <h3>Direction a₁ = Ĵu₁ (top Hessian) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₁-component of the linearized next-step residual, a₁ = Ĵu₁ pushed into residual space (‖·‖=1) · both curves: the pure NTK map aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order model-curvature term aᵀ(I − η·JJᵀ + ½η²·rᵀJᵀQJ)r · signed, symlog · along the top NTK mode the factor is (1 − η·λ) → −1 at EoS, so a₁ flips sign there · η = lr·(2/n)</p>
+      <p class="cap">a₁-component of the linearized next-step residual, a₁ = Ĵu₁ (‖·‖=1) · two curves: NTK map aᵀ(I − η·JJᵀ)r, and with the 2nd-order model-curvature term (+ ½η²·rᵀJᵀQJ) · signed, symlog · along the top mode (1 − η·λ) → −1 at EoS (a₁ flips sign) · η = lr·(2/n)</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c11q1lin"> linear y-axis</label></div>
       <canvas class="plot" id="c11q1" role="img" aria-label="residual map on top-Hessian direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
@@ -1622,7 +1607,7 @@
 
     <div class="card">
       <h3>Direction a₂ = Ĵu, u = ∇S ⊥ u₁ (self-stab pushback) &nbsp;·&nbsp; with &amp; without curvature</h3>
-      <p class="cap">the a₂-component along the SELF-STABILIZATION PUSHBACK direction u = ∇S projected ⊥ u₁ (the top Hessian eigenvector / oscillation axis), pushed into residual space — the flat direction GD relocates along to reduce sharpness (in a 2-parameter panel this is the 2nd Hessian eigenvector, signed toward decreasing sharpness) · both curves: aᵀ(I − η·JJᵀ)r and the same plus the 2nd-order term (η²/2)(Pre·Jᵀr)ᵀQ_a(Pre·Jᵀr), Q=∂²f/∂w² · signed, symlog</p>
+      <p class="cap">a₂-component along the self-stabilization pushback direction u = ∇S ⊥ u₁ — the flat direction GD relocates along to reduce sharpness (= 2nd Hessian eigenvector in a 2-param panel) · two curves: NTK map, and with the 2nd-order curvature term (Q=∂²f/∂w²) · signed, symlog</p>
       <div style="text-align:right;margin:-2px 0 5px"><label class="toggle"><input type="checkbox" id="c11q2lin"> linear y-axis</label></div>
       <canvas class="plot" id="c11q2" role="img" aria-label="residual map plus curvature on sharpness-gradient direction"></canvas>
       <div class="legend"><span class="tg"><i class="sw" style="background:var(--accent)"></i>aᵀ(I − η·JJᵀ)r  (NTK, 1st order)</span> <span class="tg"><i class="sw" style="background:var(--sharp)"></i>+ ½η²·rᵀJᵀQJ  (with model curvature)</span></div>
